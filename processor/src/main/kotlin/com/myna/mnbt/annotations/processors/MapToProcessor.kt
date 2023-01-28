@@ -1,12 +1,9 @@
 package com.myna.mnbt.annotations.processors
 
-import com.myna.mnbt.annotations.MapTo
-import java.lang.IllegalStateException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
-
 
 @SupportedAnnotationTypes("com.myna.mnbt.annotations.MapTo")
 class MapToProcessor: AbstractProcessor() {
@@ -24,8 +21,7 @@ class MapToProcessor: AbstractProcessor() {
     }
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
-        throw IllegalStateException()
-//        this.messager!!.printMessage(Diagnostic.Kind.ERROR, "hello annotation processor!OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-//        return true
+        this.messager!!.printMessage(Diagnostic.Kind.WARNING, "hello annotation processor!OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        return true
     }
 }

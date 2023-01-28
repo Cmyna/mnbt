@@ -37,7 +37,6 @@ annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
          * it use "^[packNamePattern]" as pattern
          * see pattern [packNamePattern] for further info
          */
-        @JvmStatic
         // the result will be something like "xyz" (original: "xyz.[remain path]") or "xyz\.xyz" (original: "xyz\.xyz.[remain path]")
         // so to get the real name(eg: transfer "xyz\.xyz" to "xyz.xyz"), needs post processing
         // how regex work: denote sub-patterns A=([^\.]*) B=(\\.)   (here use character '\' presents in actual String, not text '\\' presents in java source code)
@@ -49,7 +48,6 @@ annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
          * the [Regex] pattern that match each tag name in path,
          * see pattern [packNamePattern] used in this regex
          */
-        @JvmStatic
         val packageNameRegex = Regex(packNamePattern)
 
         fun getFirstPackageName(path:String):String {

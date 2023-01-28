@@ -15,6 +15,7 @@ plugins {
 
     //kotlin
     id("org.jetbrains.kotlin.jvm") version "1.6.0"
+    kotlin("kapt") version "1.4.20"
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
@@ -60,6 +61,7 @@ dependencies {
     annotationProcessor(project(":processor"))
     testAnnotationProcessor(project(":processor"))
 
+
     // self project dependencies
 }
 
@@ -71,9 +73,9 @@ allprojects {
     }
 
     gradle.projectsEvaluated {
-//        tasks.withType(JavaCompile) {
-//            options.compilerArgs = ["-Xlint","-verbose","-XprintRounds","-XprintProcessorInfo","-Xmaxerrs", "100000"]
-//        }
+        tasks.withType(JavaCompile::class.java) {
+            options.compilerArgs = listOf("-Xlint","-verbose","-XprintRounds","-XprintProcessorInfo","-Xmaxerrs", "100000")
+        }
     }
 }
 

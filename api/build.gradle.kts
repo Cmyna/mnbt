@@ -1,3 +1,5 @@
+
+
 buildscript {
     repositories {
         mavenCentral()
@@ -15,6 +17,7 @@ plugins {
 
     //kotlin
     id("org.jetbrains.kotlin.jvm") version "1.6.0"
+    kotlin("kapt") version "1.4.20"
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
@@ -61,9 +64,16 @@ dependencies {
     // annotation processor
     annotationProcessor(project(":processor"))
     testAnnotationProcessor(project(":processor"))
-
+    kapt(project(":processor"))
 
 }
+
+kapt {
+    arguments {
+        arg("key", "value")
+    }
+}
+
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
