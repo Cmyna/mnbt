@@ -20,11 +20,9 @@ plugins {
 
     //javafx
     id 'application' // this plugin can generate bat exec file by adding "application{}" below
-    id 'org.openjfx.javafxplugin' version '0.0.9'
 
     //use jlink to do modular work
     id 'org.beryx.jlink' version '2.23.1'
-
 }
 
 configurations {
@@ -38,21 +36,6 @@ configurations {
 ////        jvmTarget = "1.8"
 ////    }
 //}
-
-// application plugin
-/*application{
-
-}*/
-
-//java fx
-javafx {
-    version = "19"
-    // javafx.controls: javafx components that can controls some functionality in app, like button, radio button, table, etc.
-    // javafx.fxml: an xml language to describe javafx UI layout
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
-}
-//define application main class in javaFx app
-mainClassName = "com.myna.FxApplication"
 
 // jlink task
 // we use jlink to extract the module we want from project
@@ -68,9 +51,6 @@ jlink {
     //        '--no-header-files',
     //        '--no-man-pages'
     ]
-    launcher {
-        name = "hellofx"
-    }
 }
 
 
@@ -83,34 +63,17 @@ repositories {
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'org.apache.commons:commons-math3:3.6.1'
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:28.0-jre'
+    implementation 'org.junit.jupiter:junit-jupiter:5.4.2'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
-    implementation 'org.projectlombok:lombok:1.18.16'
 
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
+//    testImplementation 'junit:junit:4.12'
     testImplementation 'org.assertj:assertj-core:3.18.1'
 
     implementation 'com.google.code.gson:gson:2.8.6'
-	
-	//JOGL dependencies
-    implementation "org.jogamp.gluegen:gluegen-rt:2.3.2"
-    implementation "org.jogamp.jogl:jogl-all:2.3.2"
-
-    //lombok
-    implementation 'org.projectlombok:lombok:1.18.22'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
-
-    testImplementation 'org.projectlombok:lombok:1.18.22'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
-
-
-    runtimeOnly "org.jogamp.gluegen:gluegen-rt:2.3.2:natives-windows-amd64"
-    runtimeOnly "org.jogamp.jogl:jogl-all:2.3.2:natives-windows-amd64"
-
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
