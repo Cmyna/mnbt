@@ -1,5 +1,6 @@
-package com.myna.mnbt.annotation.processor
+package com.myna.mnbt.annotations.processors
 
+import com.myna.mnbt.annotations.MapTo
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
@@ -13,16 +14,16 @@ class MapToProcessor: AbstractProcessor() {
     private var messager:Messager? = null
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return mutableSetOf()
+        return mutableSetOf(MapTo::class.java.canonicalName)
     }
 
     override fun init(processingEnv: ProcessingEnvironment?) {
         super.init(processingEnv)
-        messager = processingEnv?.messager
+        messager = processingEnv!!.messager
     }
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
-        this.messager?.printMessage(Diagnostic.Kind.ERROR, "hello annotation processor!")
+        this.messager!!.printMessage(Diagnostic.Kind.ERROR, "hello annotation processor!")
         TODO("Not yet implemented")
     }
 }

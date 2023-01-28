@@ -1,6 +1,5 @@
 package com.myna.mnbt
 
-import com.google.common.reflect.TypeToken
 import com.myna.mnbt.converter.*
 import com.myna.utils.AdaptedInputStream
 import com.myna.mnbt.tag.CompoundTag

@@ -2,7 +2,7 @@ package ioTest
 
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.IdTagString
-import com.myna.mnbt.annotation.MapTo
+import com.myna.mnbt.annotations.MapTo
 import com.myna.mnbt.reflect.MTypeToken
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.assertEquals

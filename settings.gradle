@@ -9,4 +9,6 @@
 
 rootProject.name = 'mnbt'
 include 'kspProcessor'
-
+include 'processor'
+include 'annotation'
+include 'global'

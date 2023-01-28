@@ -76,9 +76,12 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.6.0"
 
     // annotation processor
-    annotationProcessor project(':kspProcessor')
-    testAnnotationProcessor project(':kspProcessor')
+    annotationProcessor project(':processor')
+    testAnnotationProcessor project(':processor')
 
+    // self project dependencies
+    implementation project(':global')
+    implementation project(':annotation')
 }
 
 

@@ -1,11 +1,6 @@
-package com.myna.mnbt.annotation
+package com.myna.mnbt.annotations
 
-import com.myna.mnbt.IdTagCompound
 import java.lang.NullPointerException
-import javax.annotation.processing.*
-import javax.lang.model.SourceVersion
-import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
 
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
@@ -21,7 +16,7 @@ import javax.tools.Diagnostic
  *
  * @param typeId: the related tag id
  */
-annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
+annotation class MapTo(val path:String, val typeId: Byte = 10) {
 
 
     companion object {

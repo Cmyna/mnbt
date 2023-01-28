@@ -1,6 +1,6 @@
 package com.myna.mnbt.converter
 
-import com.myna.mnbt.annotation.MapTo
+import com.myna.mnbt.annotations.MapTo
 import java.util.*
 
 fun nestCIntent(parents: Deque<Any>, ignoreTypeToken:Boolean): RecordParents {

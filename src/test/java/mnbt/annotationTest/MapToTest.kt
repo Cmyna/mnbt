@@ -1,6 +1,6 @@
 package mnbt.annotationTest
 
-import com.myna.mnbt.annotation.MapTo
+import com.myna.mnbt.annotations.MapTo
 
 class MapToTest {
 

@@ -1,10 +1,9 @@
 package com.myna.mnbt.converter
 
-import com.google.common.reflect.TypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
-import com.myna.mnbt.annotation.MapTo
+import com.myna.mnbt.annotations.MapTo
 import com.myna.mnbt.exceptions.ConversionException
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
