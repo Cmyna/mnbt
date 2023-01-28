@@ -9,12 +9,21 @@ repositories {
     mavenCentral()
 }
 
+// solution for handling @JvmDefault interface implementation error: https://stackoverflow.com/questions/53964192/jvmdefault-and-how-add-compiler-option
+// use answer from 'Fang'
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "9"
+
+        // For creation of default methods in interfaces
+        freeCompilerArgs = ["-Xjvm-default=all"]
+    }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-
-    implementation 'com.google.devtools.ksp:symbol-processing-api:1.8.0-1.0.9'
 }
 
 test {
