@@ -8,4 +8,5 @@
  */
 
 rootProject.name = 'mnbt'
-include 'kspProccessor'
+include 'kspProcessor'
+

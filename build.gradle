@@ -75,12 +75,10 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.8.6'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.6.0"
 
     // annotation processor
-    implementation project(':mnbt')
-    ksp project(':mnbt')
-
+    ksp project(':kspProcessor')
 
 }
 
