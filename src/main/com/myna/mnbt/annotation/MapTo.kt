@@ -72,23 +72,7 @@ annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
             return res?: throw NullPointerException()
         }
 
-        @SupportedAnnotationTypes("com.myna.mnbt.annotations.MapTo")
-        @SupportedSourceVersion(SourceVersion.RELEASE_8)
-        class Proccessor: AbstractProcessor() {
 
-            private var messager: Messager? = null
-
-            override fun init(processingEnv: ProcessingEnvironment?) {
-                super.init(processingEnv)
-                this.messager = processingEnv?.messager
-            }
-
-            override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
-                this.messager?.printMessage(Diagnostic.Kind.NOTE, "Hello Annotation Processor!")
-                TODO("Not yet implemented")
-            }
-
-        }
 
     }
 

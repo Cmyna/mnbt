@@ -1,5 +1,3 @@
-package study;
-
 public class TestClass_A {
 
     private static int member1 = 50;

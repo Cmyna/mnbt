@@ -77,8 +77,10 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
-    // ksp
-    implementation 'com.google.devtools.ksp:symbol-processing-api:1.6.21-1.0.6'
+    // annotation processor
+    implementation project(':mnbt')
+    ksp project(':mnbt')
+
 
 }
 
