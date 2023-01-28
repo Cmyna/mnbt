@@ -61,7 +61,6 @@ dependencies {
     annotationProcessor(project(":processor"))
     testAnnotationProcessor(project(":processor"))
 
-
     // self project dependencies
 }
 
@@ -72,10 +71,19 @@ allprojects {
         delete = setOf("build", "out")
     }
 
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile::class.java) {
-            options.compilerArgs = listOf("-Xlint","-verbose","-XprintRounds","-XprintProcessorInfo","-Xmaxerrs", "100000")
+//    gradle.projectsEvaluated {
+//        tasks.withType(JavaCompile::class.java) {
+//            options.compilerArgs = listOf("-Xlint","-verbose","-XprintRounds","-XprintProcessorInfo","-Xmaxerrs", "100000")
+//        }
+//    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+//            freeCompilerArgs = listOf()
         }
     }
 }
+
+
 

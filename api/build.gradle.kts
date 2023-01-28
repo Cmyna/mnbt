@@ -65,14 +65,14 @@ dependencies {
     annotationProcessor(project(":processor"))
     testAnnotationProcessor(project(":processor"))
     kapt(project(":processor"))
-
+    kaptTest(project(":processor"))
 }
 
-kapt {
-    arguments {
-        arg("key", "value")
-    }
-}
+//kapt {
+//    arguments {
+//        arg("key", "value")
+//    }
+//}
 
 
 sourceSets.main {
