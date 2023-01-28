@@ -14,7 +14,7 @@ plugins {
     id("idea")
 
     //kotlin
-    id("org.jetbrains.kotlin.jvm") version "1.6.0" apply false
+    id("org.jetbrains.kotlin.jvm") version "1.6.0"
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
