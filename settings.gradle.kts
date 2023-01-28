@@ -10,3 +10,4 @@
 rootProject.name = "mnbt"
 include("processor")
 include("annotation")
+include("api")

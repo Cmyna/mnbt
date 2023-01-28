@@ -38,7 +38,7 @@ open class MTypeToken<T> {
 
     fun resolveType(type: Type) = MTypeToken(gToken.resolveType(type))
 
-    fun isSubtypeOf(typeToken:MTypeToken<out Any>) = this.gToken.isSubtypeOf(typeToken.gToken)
+    fun isSubtypeOf(typeToken: MTypeToken<out Any>) = this.gToken.isSubtypeOf(typeToken.gToken)
     fun wrap(): MTypeToken<T> = MTypeToken(this.gToken.wrap())
 
 

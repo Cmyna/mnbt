@@ -18,6 +18,8 @@ plugins {
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
+
+
 }
 
 // jlink task
@@ -60,20 +62,13 @@ dependencies {
     annotationProcessor(project(":processor"))
     testAnnotationProcessor(project(":processor"))
 
-    // self project dependencies
+
 }
 
-allprojects {
-
-    tasks.create<Delete>("clean build") {
-        group = "build"
-        delete = setOf("build", "out")
-    }
-
-    gradle.projectsEvaluated {
-//        tasks.withType(JavaCompile) {
-//            options.compilerArgs = ["-Xlint","-verbose","-XprintRounds","-XprintProcessorInfo","-Xmaxerrs", "100000"]
-//        }
-    }
+sourceSets.main {
+    java.srcDirs("src/main/java","src/main/kotlin")
 }
 
+sourceSets.test {
+    java.srcDirs("src/test/kotlin")
+}

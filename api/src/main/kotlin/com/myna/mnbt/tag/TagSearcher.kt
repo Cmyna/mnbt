@@ -12,7 +12,7 @@ object TagSearcher {
 
         val accessQueue = path.split('.') // last one is target tag name
         val targetTagName = accessQueue.last()
-        val parentTag = goToTargetDir(tag, accessQueue)?: return null
+        val parentTag = goToTargetDir(tag, accessQueue) ?: return null
 
         val value = parentTag.value
         if (value is Iterable<*>) {

@@ -1,6 +1,6 @@
 package com.myna.mnbt.reflect
 
-import com.google.common.reflect.TypeToken
+import com.myna.mnbt.reflect.MTypeToken
 import java.lang.reflect.GenericArrayType
 import java.lang.reflect.Type
 
@@ -26,7 +26,7 @@ object TypeCheckTool {
      * check can cast source class to target class or not
      * if two classes are primitive class, it will try to convert to related wrapper class
      */
-    fun isCastable(source:MTypeToken<*>, target:MTypeToken<*>):Boolean {
+    fun isCastable(source: MTypeToken<*>, target: MTypeToken<*>):Boolean {
         val wrappedSource = source.wrap()
         val wrappedTarget = target.wrap()
         // a shortcut prevent using TypeToken.subTypeOf when input TypeToken has been a rawType
