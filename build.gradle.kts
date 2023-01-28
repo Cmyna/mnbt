@@ -68,10 +68,7 @@ allprojects {
 
     tasks.create<Delete>("clean build") {
         group = "build"
-        delete {
-            delete("${projectDir}/build")
-            delete("${projectDir}/out")
-        }
+        delete = setOf("build", "out")
     }
 
     gradle.projectsEvaluated {
