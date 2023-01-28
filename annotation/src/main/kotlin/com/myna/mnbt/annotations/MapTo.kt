@@ -2,6 +2,7 @@ package com.myna.mnbt.annotations
 
 import java.lang.NullPointerException
 
+const val IdTagCompound:Byte = 10
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
@@ -16,7 +17,7 @@ import java.lang.NullPointerException
  *
  * @param typeId: the related tag id
  */
-annotation class MapTo(val path:String, val typeId: Byte = 10) {
+annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
 
 
     companion object {

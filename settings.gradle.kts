@@ -7,8 +7,6 @@
  * in the user manual at https://docs.gradle.org/5.6.1/userguide/multi_project_builds.html
  */
 
-rootProject.name = 'mnbt'
-include 'kspProcessor'
-include 'processor'
-include 'annotation'
-include 'global'
+rootProject.name = "mnbt"
+include("processor")
+include("annotation")
