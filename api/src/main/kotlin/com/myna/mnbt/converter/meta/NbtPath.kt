@@ -9,6 +9,8 @@ import com.myna.mnbt.converter.TagConverter
  *
  * if one class want to remap to another tag structure (not follow by its class name & field name),
  * it should implement this interface.
+ *
+ *
  */
 interface NbtPath {
     /**
@@ -16,6 +18,9 @@ interface NbtPath {
      *
      * eg: if result is `["tag1","tag2","tag3"]`, Converter will find tag1.tag2.tag3
      * starts at root tag passed in [TagConverter.toValue] method
+     *
+     * if it is happen in [TagConverter.createTag] method, it will create the structure like:
+     * `root.tag1.tag2.tag3` where root is the root compound tag with name parameter "root" passed in method
      */
     fun getClassNbtPath():Array<String>
 
