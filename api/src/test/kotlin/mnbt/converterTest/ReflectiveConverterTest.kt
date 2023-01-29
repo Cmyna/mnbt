@@ -1,9 +1,6 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.IdTagByte
-import com.myna.mnbt.IdTagInt
-import com.myna.mnbt.IdTagLong
-import com.myna.mnbt.IdTagString
+import com.myna.mnbt.*
 import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
@@ -20,27 +17,39 @@ class ReflectiveConverterTest {
         val rootName = "root"
         val testClassA = TestClassA(515, "string value", 2333333333333333, 35)
         val testClassA2 = TestClassA(0, "string value2", 9150055533881563, -127)
-        val classARoot = CompoundTag("tag2").also { comp->
-            ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
-            ApiTestValueBuildTool.prepareTag2("long tag", testClassA.k).also { comp.add(it) }
-
-            val tag3 = CompoundTag("tag3")
-            ApiTestValueBuildTool.prepareTag2("string tag", testClassA.valj).also {tag3.add(it)}
-            val tag4 = CompoundTag("tag4").also {tag3.add(it)}
-            ApiTestValueBuildTool.prepareTag2("byte tag", testClassA.m).also {tag4.add(it)}
-            comp.add(tag3)
-        }
+        val classATag = getClassACompound(testClassA)
         val expectedCompound = CompoundTag(rootName).also { root->
-            CompoundTag("tag1").also { tag1->
-                tag1.add(classARoot)
-                root.add(tag1)
-            }
+            root.add(classATag)
         }
 
         val template = ApiTestTool.ConverterTestTemplate()
         template.expectedTag = expectedCompound
         template.apiTest(TestMnbt.inst.refConverterProxy, rootName, "root2", testClassA, testClassA2, object:MTypeToken<TestClassA>() {})
     }
+
+    @Test
+    fun restructureTagTest() {
+        val testClassA = TestClassA(515, "string value", 2333333333333333, 35)
+        val testClassB = TestClassB(testClassA, 23, 5.0, 0.8887f)
+        val testClassB2 = TestClassB(testClassA, 555, 0.3, 55555f)
+        val aComp = getClassACompound(testClassA)
+        val tag2 = aComp.value.find {tag->tag.name == "tag2"} as CompoundTag
+        val tag3 = tag2.value.find {tag->tag.name=="tag3"} as CompoundTag
+        val bCompName = "test class B tag"
+        val bComp = CompoundTag(bCompName).also { bComp->
+            CompoundTag("class A tag").also {
+                it.add(aComp)
+                bComp.add(it)
+            }
+            ApiTestValueBuildTool.prepareTag2("short tag", testClassB.n).also {aComp.add(it)}
+            ApiTestValueBuildTool.prepareTag2("double tag", testClassB.d).also {tag3.add(it)}
+            ApiTestValueBuildTool.prepareTag2(TestClassB::f.name, testClassB.f).also {bComp.add(it)}
+        }
+        val template = ApiTestTool.ConverterTestTemplate()
+        template.expectedTag = bComp
+        template.apiTest(TestMnbt.inst.refConverterProxy, bCompName, "root2", testClassB, testClassB2, object:MTypeToken<TestClassB>() {})
+    }
+
 
     @Test
     fun testFieldConversionHelper() {
@@ -60,6 +69,22 @@ class ReflectiveConverterTest {
         helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
     }
 
+    private fun getClassACompound(testClassA:TestClassA):CompoundTag {
+        val classADataContainerTag = CompoundTag("tag2").also { comp->
+            ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
+            ApiTestValueBuildTool.prepareTag2("long tag", testClassA.k).also { comp.add(it) }
+
+            val tag3 = CompoundTag("tag3")
+            ApiTestValueBuildTool.prepareTag2("string tag", testClassA.valj).also {tag3.add(it)}
+            val tag4 = CompoundTag("tag4").also {tag3.add(it)}
+            ApiTestValueBuildTool.prepareTag2("byte tag", testClassA.m).also {tag4.add(it)}
+            comp.add(tag3)
+        }
+        return CompoundTag("tag1").also { tag1->
+            tag1.add(classADataContainerTag)
+        }
+    }
+
 
     data class TestClassA(val i:Int, val valj:String, val k:Long, val m:Byte):NbtPath {
         override fun getClassNbtPath(): Array<String> {
@@ -71,6 +96,29 @@ class ReflectiveConverterTest {
 
         override fun getFieldsTagType(): Map<String, Byte> {
             return testClassAFieldsType
+        }
+    }
+
+    data class TestClassB(val classA:TestClassA, val n:Short, val d:Double, val f:Float):NbtPath {
+        override fun getClassNbtPath(): Array<String> {
+            return arrayOf()
+        }
+
+        override fun getFieldsPaths(): Map<String, Array<String>> {
+            return mapOf(
+                    "classA" to arrayOf("class A tag"),
+                    "n" to arrayOf("tag1", "short tag"),
+                    "d" to arrayOf("tag1", "tag2", "tag3", "double tag")
+            )
+        }
+
+        override fun getFieldsTagType(): Map<String, Byte> {
+            return mapOf(
+                    TestClassB::classA.name to IdTagCompound,
+                    TestClassB::n.name to IdTagShort,
+                    TestClassB::d.name to IdTagDouble,
+                    TestClassB::f.name to IdTagFloat
+            )
         }
     }
 

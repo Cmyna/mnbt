@@ -59,8 +59,6 @@ interface EncodeToBytes:EncodeIntent
 interface OnBytesToProxyEncodeIntent:EncodeHead,EncodeToBytes,CodecRecordParents
 
 
-
-
 interface DecodeIntent:CodecCallerIntent
 
 interface DecodeHead:DecodeIntent {

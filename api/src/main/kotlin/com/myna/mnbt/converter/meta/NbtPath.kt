@@ -17,10 +17,12 @@ interface NbtPath {
      * return related Tag path to the class implement this interface
      *
      * eg: if result is `["tag1","tag2","tag3"]`, Converter will find tag1.tag2.tag3
-     * starts at root tag passed in [TagConverter.toValue] method
+     * starts at root tag passed in [TagConverter.toValue] method; else if result is empty array,
+     * converter will regard tag passed in [TagConverter.toValue] as tag of target class
      *
      * if it is happen in [TagConverter.createTag] method, it will create the structure like:
-     * `root.tag1.tag2.tag3` where root is the root compound tag with name parameter "root" passed in method
+     * `root.tag1.tag2.tag3` where root is the root compound tag with name parameter "root" passed in method;
+     * it result is empty array, then tag named "root" will be regard as target tag for the class object
      */
     fun getClassNbtPath():Array<String>
 

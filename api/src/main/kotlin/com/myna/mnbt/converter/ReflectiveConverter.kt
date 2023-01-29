@@ -55,10 +55,12 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val classMapPath = value.getClassNbtPath()
                 fieldsPath = value.getFieldsPaths()
                 fieldsCompound = buildFieldTagContainers(fieldsPath)
-                val compounds = arrayOfNulls<CompoundTag>(classMapPath.size)
-                val underRoot = nestedTag(classMapPath, compounds)
-                root.add(underRoot)
-                valueTargetTag = compounds[classMapPath.size-1]!!
+                if (classMapPath.isNotEmpty()) {
+                    val compounds = arrayOfNulls<CompoundTag>(classMapPath.size)
+                    nestedTag(classMapPath, compounds)
+                    root.add(compounds[0]!!)
+                    valueTargetTag = compounds[classMapPath.size-1]!!
+                }
             }
 
             val fields = ObjectInstanceHandler.getAllFields(value::class.java)
@@ -196,17 +198,16 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
     }
 
-    private fun nestedTag(path: Array<String>, compounds:Array<CompoundTag?>):CompoundTag {
+    private fun nestedTag(path: Array<String>, compounds:Array<CompoundTag?>) {
         var pointer = 0
         var last:CompoundTag? = null
-        while (pointer < path.size) {
+        while (pointer < compounds.size) {
             val tag = CompoundTag(path[pointer])
             last?.add(tag)
             compounds[pointer] = tag
             last = tag
             pointer += 1
         }
-        return compounds[0]!!
     }
 
     /**
