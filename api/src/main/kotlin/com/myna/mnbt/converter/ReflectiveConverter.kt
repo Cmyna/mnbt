@@ -4,6 +4,7 @@ import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
 import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.exceptions.ConversionException
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
@@ -40,21 +41,41 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
         intent as RecordParents
-        if (isExcluded(value::class.java)) return null
+        val valueClass = value::class.java
+        if (isExcluded(valueClass)) return null
+
+
+
+
         try {
+            // check value class implements NbtPath or not
+            var root:Tag<AnyCompound>? = null
+            var target: CompoundTag? = null
+            var fieldsPath:Map<String, Array<String>>? = null
+            if (value is NbtPath) {
+                // construct target by nbt path
+                val classMapPath = value.getRemappedClass()
+                fieldsPath = value.getRemappedField()
+                val compounds = arrayOfNulls<CompoundTag>(classMapPath.size)
+                root = nestedTag(classMapPath, classMapPath.size-1, compounds)
+                target = compounds[classMapPath.size-1]
+            }
+
             val fields = ObjectInstanceHandler.getAllFields(value::class.java)
-            val compTag = CompoundTag(name)
+            target = target?:CompoundTag(name)
             fields.onEach { field-> // try set field accessible
                 val accessible = field.trySetAccessible()
                 if (!accessible) return@onEach // if try set Accessible return false, it may be a static final member
                 val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
                 val actualValue = field.get(value) ?: return@onEach // actual value is null, skip this field
+
                 // try let proxy handle sub tag, if null then ignore this field
                 val subTag = proxy.createTag(field.name, actualValue, fieldTk, nestCIntent(intent.parents, false))
                         ?:return@onEach
-                compTag.add(subTag)
             }
-            return compTag
+
+            // if value is NbtPath (so root will not be null), return path root tag
+            return root?:target
         }
         catch(e:Exception) {
             if (outputDebugInfo) e.printStackTrace()
@@ -111,10 +132,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // check field annotation
         val mapToAnn = field.getAnnotation(MapTo::class.java)
 
-        if (mapToAnn != null) {
-            val regex = Regex("^(\\S|\\s)+\\.")
-        }
-
         // go to path target tag
         val startedTag = if (mapToAnn!=null) {
             TagSearcher.findTag(sourceTag, mapToAnn.path, mapToAnn.typeId) ?: throw ConversionException(
@@ -135,6 +152,70 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     private fun isExcluded(type:Class<*>):Boolean {
         return typeBlackList.any { black->
             black.isAssignableFrom(type)
+        }
+    }
+
+    private fun nestedTag(path: Array<String>, pointer:Int, compounds:Array<CompoundTag?>):CompoundTag {
+        val tag = CompoundTag(path[pointer])
+        compounds[pointer] = tag
+        if (pointer > 0) {
+            val subTag = nestedTag(path, pointer-1, compounds)
+            tag.add(subTag)
+        }
+        return tag
+    }
+
+    /**
+     * pointer should only be used for helper function [buildFieldTagContainersHelper]
+     */
+    data class FieldPath(val fieldName:String, val path:Array<String>, var pointer: Int)
+    data class FieldCompounds(val compounds: Array<CompoundTag?>)
+
+
+    private fun buildFieldTagContainers(paths:Map<String, Array<String>>):Map<String, Array<CompoundTag>> {
+        paths.mapValues {
+            // remove bottom, because bottom is field target tag, should let proxy handle it
+            it.value.copyOfRange(0, it.value.size-1)
+        }
+        val pathsForHelper = paths.map {
+            FieldPath(it.key, it.value, 0)
+        }
+        val helperBuild = paths.mapValues {
+            FieldCompounds(arrayOfNulls(it.value.size))
+        }
+        buildFieldTagContainersHelper(pathsForHelper, helperBuild)
+        return helperBuild.mapValues {
+            it.value.compounds.reduce { pre, cur ->
+                // build contain chain
+                pre!!.add(cur!!)
+                cur
+            }
+            it.value.compounds
+        } as Map<String, Array<CompoundTag>>
+    }
+
+    private fun buildFieldTagContainersHelper(paths:List<FieldPath>, helperBuild:Map<String, FieldCompounds>) {
+        paths.groupBy {
+            // group fields by their current top package name (at pointer)
+            // if pointer over path size, group to null(no package handle)
+            if (it.pointer < it.path.size) it.path[it.pointer]
+            else null
+        }.onEach {
+            // if group is null, do nothing
+            if (it.key==null) return@onEach
+            // top package compound
+            val compound = CompoundTag(it.key)
+            it.value.onEach { fp ->
+                val fieldResult = helperBuild[fp.fieldName]!!
+                // set current top package to result array
+                fieldResult.compounds[fp.pointer] = compound
+
+                // move pointer to sub path of current top package path
+                fp.pointer += 1
+            }
+
+            // build sub path
+            buildFieldTagContainersHelper(it.value, helperBuild)
         }
     }
 

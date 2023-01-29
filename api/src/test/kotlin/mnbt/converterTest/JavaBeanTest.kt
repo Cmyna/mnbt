@@ -38,7 +38,7 @@ class JavaBeanTest {
         }
         val template = ApiTestTool.ConverterTestTemplate()
         template.expectedTag = sameCompound
-        template.apiTest(TestMnbt.inst.tConverterProxy, "A1", "A2", a, a2, tk)
+        template.apiTest(TestMnbt.inst.refConverterProxy, "A1", "A2", a, a2, tk)
     }
 
     @Test
@@ -75,7 +75,7 @@ class JavaBeanTest {
         }
         val typeToken = object: MTypeToken<JavaBeanWithFlatValueList>() {}
         converterTemplate.expectedTag = compound
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, obj1, obj2, typeToken)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, obj1, obj2, typeToken)
     }
 
     @Test
@@ -87,11 +87,11 @@ class JavaBeanTest {
         val tk = object: MTypeToken<JavaBeanWithFlatValueIterable>() {}
         val emptyComp = CompoundTag(name1)
         // set reflective tag converter nullable properties
-        TestMnbt.inst.tReflectiveConverter.returnObjectWithNullableProperties = true
+        TestMnbt.inst.refReflectiveConverter.returnObjectWithNullableProperties = true
         converterTemplate.expectedTag = emptyComp
         converterTemplate.assertNameNotEquals = false
         converterTemplate.assertValueNotEquals = false
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, bean1, bean2, tk)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
 
 
         bean1.byteArray = ApiTestValueBuildTool.listPreparation(300) { Random.nextBytes(1)[0] }.toTypedArray()
@@ -109,7 +109,7 @@ class JavaBeanTest {
         converterTemplate.expectedTag = comp2
         converterTemplate.assertNameNotEquals = true
         converterTemplate.assertValueNotEquals = true
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, bean1, bean2, tk)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
 
         // test only one value not equals
         bean2.byteArray = bean1.byteArray
@@ -117,7 +117,7 @@ class JavaBeanTest {
         bean2.longArray = bean1.longArray
         bean1.bytesIterable = ApiTestValueBuildTool.listPreparation(399) { Random.nextBytes(Random.nextInt(36, 95)) }
         ApiTestValueBuildTool.iterableToListTag("bytesIterable", IdTagByteArray, bean1.bytesIterable!!, ApiTestValueBuildTool::prepareTag).also {comp2.add(it)}
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, bean1, bean2, tk)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
     }
 
     @Test
@@ -153,8 +153,8 @@ class JavaBeanTest {
         }
         converterTemplate.expectedTag = listTag
         // set reflect type converter accept nullable properties
-        TestMnbt.inst.tReflectiveConverter.returnObjectWithNullableProperties = true
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, arr1, arr2, tk)
+        TestMnbt.inst.refReflectiveConverter.returnObjectWithNullableProperties = true
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, arr1, arr2, tk)
     }
 
     @Test
@@ -181,7 +181,7 @@ class JavaBeanTest {
             ApiTestValueBuildTool.prepareTag2("bean3Str", bean1.bean3Str!!).also {comp.add(it)}
         }
         converterTemplate.expectedTag = compound
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, bean1, bean2, tk)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
     }
 
 
@@ -213,12 +213,12 @@ class JavaBeanTest {
             ListTag<AnyCompound>(IdTagCompound,"beanList").also { listTag ->
                 val subTk = object:MTypeToken<JavaBean>() {}
                 bean1.beanList!!.onEach { subBean->
-                    TestMnbt.inst.tConverterProxy.createTag(null, subBean, subTk)!!.also {listTag.add(it as Tag<AnyCompound>)}
+                    TestMnbt.inst.refConverterProxy.createTag(null, subBean, subTk)!!.also {listTag.add(it as Tag<AnyCompound>)}
                 }
             }.also {comp.add(it)}
         }
         converterTemplate.expectedTag = compound
-        converterTemplate.apiTest(TestMnbt.inst.tConverterProxy, name1, name2, bean1, bean2, tk)
+        converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
     }
 
 

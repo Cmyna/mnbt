@@ -75,14 +75,14 @@ class ApiValidationTest {
         val name1 = "boolean tag with true value"
         val name2 = "boolean tag with true value"
         val boolTypeToken = MTypeToken.of(Boolean::class.java)
-        val tag1 = TestMnbt.inst.tConverterProxy.createTag(name1, value1, boolTypeToken)!!
-        val tag2 = TestMnbt.inst.tConverterProxy.createTag(name2, value2, boolTypeToken)!!
+        val tag1 = TestMnbt.inst.refConverterProxy.createTag(name1, value1, boolTypeToken)!!
+        val tag2 = TestMnbt.inst.refConverterProxy.createTag(name2, value2, boolTypeToken)!!
         assertTrue(tag1.value is Byte)
         assertTrue(tag2.value is Byte)
         assertEquals(tag1.value, 1.toByte())
         assertEquals(tag2.value, 0.toByte())
-        val backValue1 = TestMnbt.inst.tConverterProxy.toValue(tag1, boolTypeToken)!!
-        val backValue2 = TestMnbt.inst.tConverterProxy.toValue(tag2, boolTypeToken)!!
+        val backValue1 = TestMnbt.inst.refConverterProxy.toValue(tag1, boolTypeToken)!!
+        val backValue2 = TestMnbt.inst.refConverterProxy.toValue(tag2, boolTypeToken)!!
         assertEquals(value1, backValue1.second)
         assertEquals(value2, backValue2.second)
         assertEquals(name1, backValue1.first)
@@ -90,11 +90,11 @@ class ApiValidationTest {
 
         // test Tag<Byte> that value not 0
         val tag3 = PrimitiveTag.ByteTag("", 127)
-        val value3 = TestMnbt.inst.tConverterProxy.toValue(tag3, boolTypeToken)!!
+        val value3 = TestMnbt.inst.refConverterProxy.toValue(tag3, boolTypeToken)!!
         assertEquals(true, value3.second)
 
         val tag4 = PrimitiveTag.ByteTag("", -15)
-        val value4 = TestMnbt.inst.tConverterProxy.toValue(tag4, boolTypeToken)!!
+        val value4 = TestMnbt.inst.refConverterProxy.toValue(tag4, boolTypeToken)!!
         assertEquals(true, value4.second)
     }
 
@@ -124,9 +124,9 @@ class ApiValidationTest {
     @Test
     fun listTagApiTest() {
         //test
-        ApiTestTool.listTagApiTest(1000, TestMnbt.inst.tArrayToListConverter, TestMnbt.inst.tListCodec)
-        ApiTestTool.listTagApiTest(0, TestMnbt.inst.tArrayToListConverter, TestMnbt.inst.tListCodec) // check empty list
-        nestedListTest(TestMnbt.inst.tArrayToListConverter, TestMnbt.inst.tListCodec)
+        ApiTestTool.listTagApiTest(1000, TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec)
+        ApiTestTool.listTagApiTest(0, TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec) // check empty list
+        nestedListTest(TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec)
     }
 
     /**
@@ -138,7 +138,7 @@ class ApiValidationTest {
         val listOfArrays2 = ApiTestValueBuildTool.flatValueArraysPreparation(20)
         listOfArrays.onEachIndexed { i,tri->
             template.apiTest(
-                    TestMnbt.inst.tConverterProxy, TestMnbt.inst.tCodecProxy,
+                    TestMnbt.inst.refConverterProxy, TestMnbt.inst.refCodecProxy,
                     tri.first, listOfArrays2.get(i).first, tri.third, listOfArrays2.get(i).third,
                     tri.second, object:MTypeToken<Array<Any>>() {}
             )
@@ -154,7 +154,7 @@ class ApiValidationTest {
         val listOfArrays2 = ApiTestValueBuildTool.flatValueListsPreparation(20)
         listOfArrays.onEachIndexed { i,tri->
             template.apiTest(
-                    TestMnbt.inst.tConverterProxy, TestMnbt.inst.tCodecProxy,
+                    TestMnbt.inst.refConverterProxy, TestMnbt.inst.refCodecProxy,
                     tri.first, listOfArrays2.get(i).first, tri.third, listOfArrays2.get(i).third,
                     tri.second, object:MTypeToken<List<Any>>() {}
             )
@@ -183,7 +183,7 @@ class ApiValidationTest {
 
             bitsLen += TagIdPayload // tag end payload
             template.valueEqFun = this.valueEqFun
-            template.apiTest(TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+            template.apiTest(TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                     compName, "empty compound tag", map1, emptyMap, bitsLen, typeToken)
         }
 
@@ -205,9 +205,9 @@ class ApiValidationTest {
         // flat structure multi type map
         template.assertRawType = false
         val emptyMap = HashMap<String, Any>()
-        ApiTestTool.mapTypeTest(template, TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+        ApiTestTool.mapTypeTest(template, TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                 emptyMap, 1) { HashMap() }
-        ApiTestTool.mapTypeTest(template, TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+        ApiTestTool.mapTypeTest(template, TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                 emptyMap, 1) { TreeMap() }
     }
 
@@ -217,9 +217,9 @@ class ApiValidationTest {
     @Test
     fun nestedMapTypeCompoundApiTest() {
         val emptyMap = HashMap<String, Any>()
-        ApiTestTool.mapTypeTest(template, TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+        ApiTestTool.mapTypeTest(template, TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                 emptyMap, 6) { HashMap() }
-        ApiTestTool.mapTypeTest(template, TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+        ApiTestTool.mapTypeTest(template, TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                 emptyMap, 6) { TreeMap() }
     }
 
@@ -231,13 +231,13 @@ class ApiValidationTest {
         val typeToken = object: MTypeToken<List<Map<String, Any>>>() {}
         val list1 = ApiTestValueBuildTool.flatMapListsPreparation("list1", 4) { HashMap() }
         val list2 = ApiTestValueBuildTool.flatMapListsPreparation("list2", 5) { HashMap() }
-        template.apiTest(TestMnbt.inst.tListConverter, TestMnbt.inst.tListCodec,
+        template.apiTest(TestMnbt.inst.refListConverter, TestMnbt.inst.refListCodec,
                 list1.first, list2.first, list1.third, list2.third, list1.second, typeToken)
 
         val typeToken2 = object:MTypeToken<Map<String, Any>>() {}
         val map1 = ApiTestValueBuildTool.mapWithListPreparation("map1", 3)
         val map2 = ApiTestValueBuildTool.mapWithListPreparation("map2", 3)
-        template.apiTest(TestMnbt.inst.tMapConverter, TestMnbt.inst.tCompoundCodec,
+        template.apiTest(TestMnbt.inst.refMapConverter, TestMnbt.inst.refCompoundCodec,
                 map1.first, map2.first, map1.third, map2.third, map1.second, typeToken2)
     }
 
@@ -256,7 +256,7 @@ class ApiValidationTest {
 
         template.assertDecodedConvertedValueEq = false
         template.apiTest(
-                TestMnbt.inst.tConverterProxy, TestMnbt.inst.tCodecProxy,
+                TestMnbt.inst.refConverterProxy, TestMnbt.inst.refCodecProxy,
                 "list1", "list3", list1, list3, TagIdPayload+ArraySizePayload+TagIdPayload+ArraySizePayload,
                 object:MTypeToken<List<Any>>() {}
         )

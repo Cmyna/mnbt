@@ -198,7 +198,7 @@ object ApiTestValueBuildTool {
         val list = flatTagValuesPreparation(profiling)
         val tagList = ArrayList<Tag<out Any>>()
         list.onEach {
-            val tag = TestMnbt.inst.tConverterProxy.createTag(it.first, it.third, MTypeToken.of(it.third::class.java) as MTypeToken<Any>)!!
+            val tag = TestMnbt.inst.refConverterProxy.createTag(it.first, it.third, MTypeToken.of(it.third::class.java) as MTypeToken<Any>)!!
             tagList.add(tag)
         }
         return tagList
@@ -208,7 +208,7 @@ object ApiTestValueBuildTool {
         val listOfArrays = flatValueArraysPreparation(size)
         val tagList = ArrayList<Tag<MutableList<out Any>>>()
         listOfArrays.onEach {
-            val listTag = TestMnbt.inst.tConverterProxy.createTag(it.first, it.third, object:MTypeToken<Array<Any>>() {}) as Tag<MutableList<out Any>>
+            val listTag = TestMnbt.inst.refConverterProxy.createTag(it.first, it.third, object:MTypeToken<Array<Any>>() {}) as Tag<MutableList<out Any>>
             tagList.add(listTag)
         }
         return tagList

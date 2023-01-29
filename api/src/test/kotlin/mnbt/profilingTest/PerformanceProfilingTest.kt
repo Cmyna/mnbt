@@ -117,23 +117,23 @@ class PerformanceProfilingTest {
 
 
     private fun convertToTagTest(name:String, value:Any, typeToken: MTypeToken<Any>): Tag<out Any> {
-        return TestMnbt.inst.tConverterProxy.createTag(name, value, typeToken)!!
+        return TestMnbt.inst.refConverterProxy.createTag(name, value, typeToken)!!
     }
 
     private fun tagToValueTest(tag: Tag<out Any>, typeToken: MTypeToken<Any>): Any {
-        return TestMnbt.inst.tConverterProxy.toValue(tag, typeToken)!!.second
+        return TestMnbt.inst.refConverterProxy.toValue(tag, typeToken)!!.second
     }
 
     private fun bitsToTagTest(bits:ByteArray): Tag<out Any> {
         val inputStream = AdaptedInputStream(bits)
         val intent = userDecodeIntent(inputStream)
-        return TestMnbt.inst.tCodecProxy.decode(intent).tag
+        return TestMnbt.inst.refCodecProxy.decode(intent).tag
     }
 
     private fun tagToBitsTest(tag: Tag<out Any>):ByteArray {
         val outputStream = ByteArrayOutputStream()
         val intent = userEncodeIntent(outputStream)
-        val feedback = TestMnbt.inst.tCodecProxy.encode(tag, intent)
+        val feedback = TestMnbt.inst.refCodecProxy.encode(tag, intent)
         val bits = outputStream.toByteArray()
         return bits
     }

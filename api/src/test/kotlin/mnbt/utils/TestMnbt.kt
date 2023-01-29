@@ -7,15 +7,15 @@ class TestMnbt: Mnbt() {
     val asserterConverterProxy = AsserterConverterProxy(super.converterProxy)
     val asserterCodecProxy = AsserterCodecProxy(super.codecProxy)
 
-    val tConverterProxy = super.converterProxy
-    val tCodecProxy = super.codecProxy
-    val tReflectiveConverter = super.reflectiveConverter
-    val tMapConverter = super.mapTypeTagConverter
-    val tArrayToListConverter = super.arrayTypeListTagConverter
-    val tListConverter = super.listTypeConverter
+    val refConverterProxy = super.converterProxy
+    val refCodecProxy = super.codecProxy
+    val refReflectiveConverter = super.reflectiveConverter
+    val refMapConverter = super.mapTypeTagConverter
+    val refArrayToListConverter = super.arrayTypeListTagConverter
+    val refListConverter = super.listTypeConverter
 
-    val tCompoundCodec = super.compoundTagCodec
-    val tListCodec = super.listCodec
+    val refCompoundCodec = super.compoundTagCodec
+    val refListCodec = super.listCodec
 
     init {
         super.reflectiveConverter.proxy = asserterConverterProxy

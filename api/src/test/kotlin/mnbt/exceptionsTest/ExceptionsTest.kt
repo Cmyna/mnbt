@@ -39,14 +39,14 @@ class ExceptionsTest {
 
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(nbtList1, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(nbtList1, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
 
         val nbtList3 = ListTag("list3",  ArrayList<Tag<out AnyTagList>>(), IdTagList)
         nbtList3.add(nbtList3 as Tag<AnyTagList>)
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(nbtList3, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(nbtList3, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
 
 
@@ -57,14 +57,14 @@ class ExceptionsTest {
         compound2.add(compound1)
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(compound1, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(compound1, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
 
         val compound3 = CompoundTag("comp3")
         compound3.add(compound3)
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(compound3, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(compound3, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
 
         //mixed circular reference
@@ -74,11 +74,11 @@ class ExceptionsTest {
         compound4.add(nbtList4)
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(compound4, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(compound4, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
         assertThrows<CircularReferenceException> {
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.tCodecProxy.encode(nbtList4, userEncodeIntent(outputStream))
+            TestMnbt.inst.refCodecProxy.encode(nbtList4, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
     }
 
@@ -92,49 +92,49 @@ class ExceptionsTest {
         // if tree depth is smaller than 512, nothing happens
         val list511 = recursiveListTree(511)
         var intent = userEncodeIntent(outputStream)
-        TestMnbt.inst.tCodecProxy.encode(list511, intent)
+        TestMnbt.inst.refCodecProxy.encode(list511, intent)
 
         // tree depth is 512, still nothing happens
         intent = userEncodeIntent(outputStream)
         val list512 = encapsulateWithList(list511)
-        TestMnbt.inst.tCodecProxy.encode(list512, intent)
+        TestMnbt.inst.refCodecProxy.encode(list512, intent)
 
         // if tree depth is 513, MaximumDepthException throws
         intent = userEncodeIntent(outputStream)
         val list513 = encapsulateWithList(list512)
         assertThrows<MaxNbtTreeDepthException> {
-            TestMnbt.inst.tCodecProxy.encode(list513, intent)
+            TestMnbt.inst.refCodecProxy.encode(list513, intent)
         }.also {println("Exception throws: ${it.message}\n")}
 
 
         // test compound tree like above
         intent = userEncodeIntent(outputStream)
         val comp511 = recursiveCompoundTree(511)
-        TestMnbt.inst.tCodecProxy.encode(comp511, intent)
+        TestMnbt.inst.refCodecProxy.encode(comp511, intent)
 
         intent = userEncodeIntent(outputStream)
         val comp512 = encapsulateWithCompound(comp511)
-        TestMnbt.inst.tCodecProxy.encode(comp512, intent)
+        TestMnbt.inst.refCodecProxy.encode(comp512, intent)
 
         intent = userEncodeIntent(outputStream)
         val comp513 = encapsulateWithCompound(comp512)
         assertThrows<MaxNbtTreeDepthException> {
             intent = userEncodeIntent(outputStream)
-            TestMnbt.inst.tCodecProxy.encode(comp513, intent)
+            TestMnbt.inst.refCodecProxy.encode(comp513, intent)
         }.also {println("Exception throws: ${it.message}\n")}
 
         // test compound list mixed structure
         intent = userEncodeIntent(outputStream)
         val tree511 = recursiveListCompoundTree(511)
-        TestMnbt.inst.tCodecProxy.encode(tree511, intent)
+        TestMnbt.inst.refCodecProxy.encode(tree511, intent)
         intent = userEncodeIntent(outputStream)
         val tree512 = encapsulateWithCompound(tree511)
-        TestMnbt.inst.tCodecProxy.encode(tree512, intent)
+        TestMnbt.inst.refCodecProxy.encode(tree512, intent)
         intent = userEncodeIntent(outputStream)
         val tree513 = encapsulateWithCompound(tree512)
         assertThrows<MaxNbtTreeDepthException> {
             intent = userEncodeIntent(outputStream)
-            TestMnbt.inst.tCodecProxy.encode(tree513, intent)
+            TestMnbt.inst.refCodecProxy.encode(tree513, intent)
         }.also {println("Exception throws: ${it.message}\n")}
     }
 
@@ -156,12 +156,12 @@ class ExceptionsTest {
 
         // test Codec proxy
         inputStream.reset()
-        TestMnbt.inst.tCodecProxy.decode(desIntent).tag.also {
+        TestMnbt.inst.refCodecProxy.decode(desIntent).tag.also {
             assertEquals(nullTag, it)
             assertEquals(inputStream.available(), 0)
         }
         outputStream.reset()
-        TestMnbt.inst.tCodecProxy.encode(nullTag, intent).also {
+        TestMnbt.inst.refCodecProxy.encode(nullTag, intent).also {
             val res = outputStream.toByteArray()
             assertEquals(1, res.size)
             assertEquals(IdTagEnd, res[0])
@@ -172,12 +172,12 @@ class ExceptionsTest {
         val a = Anonymous(51515)
         val tk = object: MTypeToken<Anonymous>() {}
         ExcluderConverter.instance.createTag("some name", a, tk).also { assertEquals(nullTag, it)}
-        TestMnbt.inst.tConverterProxy.createTag("some name", a, tk).also { assertEquals(nullTag, it) }
+        TestMnbt.inst.refConverterProxy.createTag("some name", a, tk).also { assertEquals(nullTag, it) }
 
         val b = object:ArrayList<String>() {}
         val tk2 = object: MTypeToken<ArrayList<String>>() {}
         ExcluderConverter.instance.createTag("some name", b, tk2).also { assertEquals(nullTag, it)}
-        TestMnbt.inst.tConverterProxy.createTag("some name", b, tk2).also { assertEquals(nullTag, it) }
+        TestMnbt.inst.refConverterProxy.createTag("some name", b, tk2).also { assertEquals(nullTag, it) }
 
 
     }

@@ -12,7 +12,7 @@ class ReflectiveConverterExceptions {
     @Test
     fun nullablePropertiesTest() {
         val bean = JavaBean()
-        val reflectiveConverter = TestMnbt.inst.tReflectiveConverter
+        val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
         val tk = object: MTypeToken<JavaBean>() {}
         reflectiveConverter.returnObjectWithNullableProperties = false // set it to false
         var tag = reflectiveConverter.createTag("empty bean", bean, tk)!!

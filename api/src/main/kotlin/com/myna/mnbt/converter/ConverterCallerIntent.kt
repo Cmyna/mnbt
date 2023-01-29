@@ -1,5 +1,6 @@
 package com.myna.mnbt.converter
 
+import com.myna.mnbt.Tag
 import java.util.Deque
 
 /**
@@ -17,6 +18,17 @@ interface RecordParents: ConverterCallerIntent {
     val parents: Deque<Any>
 }
 
+/**
+ * an interface specifies that all sub-interface is used to createTag
+ */
+interface CreateTagIntent:ConverterCallerIntent
+
+/**
+ *
+ */
+interface CreateAt:CreateTagIntent {
+    val entry: Tag<out Any>
+}
 
 interface ToValueIntent:ConverterCallerIntent
 
@@ -35,3 +47,4 @@ interface StartAt:ToValueIntent {
     val path:String
     val tagTypeId:Byte
 }
+
