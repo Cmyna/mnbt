@@ -30,17 +30,18 @@ annotation class MapTo(val path:String, val typeId: Byte = IdTagCompound) {
          *
          * `eg2: path "xyz\\.xyz.abc." will match "xyz\\.xyz","abc"`
          */
-        private const val packNamePattern = "([^\\.]*\\\\.)*[^\\.]*"
+        // the result will be something like "xyz" (original: "xyz.[remain path]") or "xyz\.xyz" (original: "xyz\.xyz.[remain path]")
+        // so to get the real name(eg: transfer "xyz\.xyz" to "xyz.xyz"), needs post processing
+        // how regex work: denote sub-patterns A=([^\.]*) B=(\\.)   (here use character '\' presents in actual String, not text '\\' presents in java source code)
+        //      the whole regex is ((AB)+A)|((AB)*A+)
+        // '?:' is for specify 'non-capturing' to improve performance, because we dont need capture
+        private const val packNamePattern = "(?:(?:[^\\.]*\\\\.)+[^\\.]*)|(?:(?:[^\\.]*\\\\.)*[^\\.]+)"
 
         /**
          * the [Regex] pattern that match first package name in path,
          * it use "^[packNamePattern]" as pattern
          * see pattern [packNamePattern] for further info
          */
-        // the result will be something like "xyz" (original: "xyz.[remain path]") or "xyz\.xyz" (original: "xyz\.xyz.[remain path]")
-        // so to get the real name(eg: transfer "xyz\.xyz" to "xyz.xyz"), needs post processing
-        // how regex work: denote sub-patterns A=([^\.]*) B=(\\.)   (here use character '\' presents in actual String, not text '\\' presents in java source code)
-        //      the whole regex is (AB)*A
         val firstPackageNameRegex = Regex("^$packNamePattern")
 
 

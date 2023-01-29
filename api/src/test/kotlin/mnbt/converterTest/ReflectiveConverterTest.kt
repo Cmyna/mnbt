@@ -1,5 +1,9 @@
 package mnbt.converterTest
 
+import com.myna.mnbt.IdTagByte
+import com.myna.mnbt.IdTagInt
+import com.myna.mnbt.IdTagLong
+import com.myna.mnbt.IdTagString
 import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
@@ -51,15 +55,22 @@ class ReflectiveConverterTest {
         assertEquals(res["m"]!![1].name, "tag4")
         assertTrue(res["i"]!!.isEmpty())
         assertTrue(res["k"]!!.isEmpty())
+
+        testClassAFieldsPath["null"] = arrayOf()
+        helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
     }
 
 
     data class TestClassA(val i:Int, val valj:String, val k:Long, val m:Byte):NbtPath {
-        override fun getRemappedClass(): Array<String> {
+        override fun getClassNbtPath(): Array<String> {
             return testClassAPath
         }
-        override fun getRemappedField(): Map<String, Array<String>> {
+        override fun getFieldsPaths(): Map<String, Array<String>> {
             return testClassAFieldsPath
+        }
+
+        override fun getFieldsTagType(): Map<String, Byte> {
+            return testClassAFieldsType
         }
     }
 
@@ -73,6 +84,13 @@ class ReflectiveConverterTest {
             it["k"] = arrayOf("long tag")
             it["m"] = arrayOf("tag3","tag4", "byte tag")
         }
+
+        val testClassAFieldsType = mapOf(
+                "i" to IdTagInt,
+                "valj" to IdTagString,
+                "k" to IdTagLong,
+                "m" to IdTagByte
+        )
     }
 }
 

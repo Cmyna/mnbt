@@ -17,14 +17,16 @@ interface NbtPath {
      * eg: if result is `["tag1","tag2","tag3"]`, Converter will find tag1.tag2.tag3
      * starts at root tag passed in [TagConverter.toValue] method
      */
-    fun getRemappedClass():Array<String>
+    fun getClassNbtPath():Array<String>
 
     /**
      * return a map recording field name->related path.
-     * The related path is path related to class related path from [getRemappedClass].
+     * The related path is path related to class related path from [getClassNbtPath].
      *
      * eg: if a field related path is ["subTag1","subTag2"], where class related path is ["tag1", "tag2"],
      * then reflective converter will try find tag1.tag2.subTag1.subTag2 in the root tag passed in
      */
-    fun getRemappedField():Map<String, Array<String>>
+    fun getFieldsPaths():Map<String, Array<String>>
+
+    fun getFieldsTagType():Map<String, Byte>
 }

@@ -2,35 +2,53 @@ package com.myna.mnbt.tag
 
 import com.myna.mnbt.Tag
 
+
 object TagSearcher {
+
+    /**
+     * match valid tag name in nbt tags path, it should starts at a string without '.' at start, split each tag name with '.',
+     * if tag name has '.', use '\\.' instead
+     *
+     * `eg: path "pack1.pack2.*" will match "pack1","pack2","*"`
+     *
+     * `eg2: path "xyz\\.xyz.abc." will match "xyz\\.xyz","abc"`
+     */
+    private val packNameRegex = Regex("(?:(?:[^\\.]*\\\\.)+[^\\.]*)|(?:(?:[^\\.]*\\\\.)*[^\\.]+)")
+
+    fun findTag(tag:Tag<out Any>, path:Iterable<String>, id:Byte):Tag<out Any>? {
+        val accessQueue = path.toList()
+        val target = findTag(tag, accessQueue) ?: return null
+        return if (target.id!=id) null
+        else target
+    }
+
+    fun toAccessQueue(path:String):List<String> {
+        val accessQueue = ArrayList<String>()
+        var match = packNameRegex.find(path)
+        while (match!=null) {
+            accessQueue.add(match.value)
+            match = match.next()
+        }
+        return accessQueue
+    }
 
     /**
      * find a tag with same name and value type, if not found return null
      */
     fun findTag(tag: Tag<out Any>, path:String, id:Byte):Tag<out Any>? {
         if (match(tag, path, id)) return tag
-
-        val accessQueue = path.split('.') // last one is target tag name
-        val targetTagName = accessQueue.last()
-        val parentTag = goToTargetDir(tag, accessQueue) ?: return null
-
-        val value = parentTag.value
-        if (value is Iterable<*>) {
-            value.onEach { element->
-                if (element !is Tag<*>) return@onEach
-                if (element.name == targetTagName && element.id == id) return element as Tag<out Any>
-            }
-        }
-        return null
+        val accessQueue = toAccessQueue(path)
+        val target = findTag(tag, accessQueue) ?: return null
+        return if (target.id!=id) null
+        else target
     }
 
     /**
      * @param accessQueue list of tag names, specifies the access sequences
      */
-    private fun goToTargetDir(tag:Tag<out Any>, accessQueue:List<String>):Tag<out Any>? {
+    private fun findTag(tag:Tag<out Any>, accessQueue:List<String>):Tag<out Any>? {
         var current = tag
-        for (i in 0 until accessQueue.size-1) {
-            val subName = accessQueue[i]
+        accessQueue.onEach { subName->
             val value = current.value
             if (value !is Iterable<*>) return null
             val subTag = value.find { element->

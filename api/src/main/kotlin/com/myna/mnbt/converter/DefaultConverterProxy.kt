@@ -6,6 +6,7 @@ import com.myna.mnbt.exceptions.MaxNbtTreeDepthException
 import com.myna.mnbt.Tag
 import com.myna.mnbt.exceptions.ConversionException
 import com.myna.mnbt.reflect.MTypeToken
+import com.myna.mnbt.tag.TagSearcher
 import com.myna.mnbt.tag.TagSearcher.findTag
 import kotlin.collections.ArrayDeque
 
@@ -58,7 +59,8 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
 
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
         val startedTag = if (intent is StartAt) {
-            findTag(tag, intent.path, intent.tagTypeId)?: throw ConversionException(
+            val accessQueue = TagSearcher.toAccessQueue(intent.path)
+            findTag(tag, accessQueue, intent.tagTypeId)?: throw ConversionException(
                     "Can not find matched Tag with name:${intent.path} and value type:${intent.tagTypeId}"
             )
         } else tag
