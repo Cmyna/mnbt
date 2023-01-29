@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.6.0"
+    id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
 
@@ -14,4 +14,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
     implementation(project(":annotation"))
+
+    // java poet & kotlin poet
+    implementation("com.squareup:javapoet:1.13.0")
+    implementation("com.squareup:kotlinpoet:1.12.0")
 }

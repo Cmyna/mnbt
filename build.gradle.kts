@@ -4,7 +4,7 @@ buildscript {
     }
     //extra.kotlin_version = "1.6.0"
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
     }
 }
 
@@ -14,7 +14,7 @@ plugins {
     id("idea")
 
     //kotlin
-    id("org.jetbrains.kotlin.jvm") version "1.6.0"
+    id("org.jetbrains.kotlin.jvm") version "1.6.10"
     kotlin("kapt") version "1.4.20"
 
     //use jlink to do modular work
@@ -53,7 +53,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.8.6")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
 
     // annotation
     implementation(project(":annotation"))
