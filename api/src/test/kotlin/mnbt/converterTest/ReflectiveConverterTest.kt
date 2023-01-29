@@ -6,6 +6,7 @@ import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.ApiTestTool
 import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.TestMnbt
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class ReflectiveConverterTest {
@@ -40,9 +41,16 @@ class ReflectiveConverterTest {
     @Test
     fun testFieldConversionHelper() {
         val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
-        val helper = reflectiveConverter::class.java.getDeclaredMethod("buildFieldTagContainers")
-        val res = helper.invoke(testClassAFieldsPath) as Map<String, Array<CompoundTag?>>
-
+        val helper = reflectiveConverter::class.java.getDeclaredMethod("buildFieldTagContainers", Map::class.java)
+        helper.trySetAccessible()
+        val res = helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
+        assertEquals(res["valj"]!!.size, 1)
+        assertEquals(res["m"]!!.size, 2)
+        assertEquals(res["valj"]!![0], res["m"]!![0])
+        assertEquals(res["valj"]!![0].name, "tag3")
+        assertEquals(res["m"]!![1].name, "tag4")
+        assertTrue(res["i"]!!.isEmpty())
+        assertTrue(res["k"]!!.isEmpty())
     }
 
 

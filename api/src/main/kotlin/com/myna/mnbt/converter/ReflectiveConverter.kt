@@ -173,18 +173,20 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
 
     private fun buildFieldTagContainers(paths:Map<String, Array<String>>):Map<String, Array<CompoundTag>> {
-        paths.mapValues {
+        val popLast = paths.mapValues {
             // remove bottom, because bottom is field target tag, should let proxy handle it
-            it.value.copyOfRange(0, it.value.size-1)
+            if (it.value.isNotEmpty()) it.value.copyOfRange(0, it.value.size-1)
+            else it.value
         }
-        val pathsForHelper = paths.map {
+        val pathsForHelper = popLast.map {
             FieldPath(it.key, it.value, 0)
         }
-        val helperBuild = paths.mapValues {
+        val helperBuild = popLast.mapValues {
             FieldCompounds(arrayOfNulls(it.value.size))
         }
         buildFieldTagContainersHelper(pathsForHelper, helperBuild)
         return helperBuild.mapValues {
+            if (it.value.compounds.isEmpty()) return@mapValues it.value.compounds
             it.value.compounds.reduce { pre, cur ->
                 // build contain chain
                 pre!!.add(cur!!)

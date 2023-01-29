@@ -1,28 +1,15 @@
 
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    //extra.kotlin_version = "1.6.0"
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
-    }
-}
-
 plugins {
     // Apply the java-library plugin to add support for Java Library
     id("java-library")
     id("idea")
 
     //kotlin
-    id("org.jetbrains.kotlin.jvm") version "1.6.10"
+    kotlin("jvm") version "1.6.10"
     kotlin("kapt") version "1.4.20"
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
-
-
 }
 
 // jlink task
