@@ -107,8 +107,8 @@ class ReflectiveConverterTest {
         override fun getFieldsPaths(): Map<String, Array<String>> {
             return mapOf(
                     "classA" to arrayOf("class A tag"),
-                    "n" to arrayOf("tag1", "short tag"),
-                    "d" to arrayOf("tag1", "tag2", "tag3", "double tag")
+                    "n" to arrayOf("class A tag", "tag1", "short tag"),
+                    "d" to arrayOf("class A tag", "tag1", "tag2", "tag3", "double tag")
             )
         }
 
