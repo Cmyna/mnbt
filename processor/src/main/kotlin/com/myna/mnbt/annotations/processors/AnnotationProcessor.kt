@@ -1,6 +1,7 @@
 package com.myna.mnbt.annotations.processors
 
 import com.myna.mnbt.annotations.MapTo
+import java.lang.IllegalStateException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
@@ -11,7 +12,7 @@ import javax.tools.Diagnostic
 private const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
 
 @SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME)
-class MapToProcessor: AbstractProcessor() {
+class AnnotationProcessor: AbstractProcessor() {
 
     private var messager:Messager? = null
 
@@ -26,12 +27,18 @@ class MapToProcessor: AbstractProcessor() {
     override fun init(processingEnv: ProcessingEnvironment?) {
         super.init(processingEnv)
         messager = processingEnv!!.messager
-        this.messager!!.printMessage(Diagnostic.Kind.NOTE, "AAAAAAAAAAAAAAAAAAAAAA")
+        this.messager!!.printMessage(Diagnostic.Kind.NOTE, "Mnbt Processor is inited")
     }
 
+    // the core idea of handle @MapTo annotation:
+    // if it is a class, auto make this class implement an interface, use an static final companion object store interfaces related static data
+    // if it is a field, find enclosed class and handle with the class
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "Hello!")
-        roundEnv?.getElementsAnnotatedWith(MapTo::class.java)?.onEach {
+        val annotated = roundEnv?.getElementsAnnotatedWith(MapTo::class.java)
+        this.messager!!.printMessage(Diagnostic.Kind.NOTE, "annotated element num: ${annotated?.size?:0}")
+        val group = group(annotated!!)
+        annotated.onEach {
             this.messager!!.printMessage(Diagnostic.Kind.NOTE, "enclosindClass: ${it.enclosingElement.simpleName}")
             this.messager!!.printMessage(Diagnostic.Kind.NOTE, "kind: ${it.kind}")
             this.messager!!.printMessage(Diagnostic.Kind.NOTE, "class type: ${it.kind.declaringClass}")
@@ -46,4 +53,24 @@ class MapToProcessor: AbstractProcessor() {
 
         return true
     }
+
+    /**
+     * group elements: each key is a class and value is set of field with @MapTo annotation in this class
+     */
+    private fun group(annotations:Set<Element>):Map<Element, MutableSet<Element>?> {
+        val classes = annotations.filter { it.kind.isClass }
+        val fields = annotations.filter { it.kind.isField }
+        val groupMap = HashMap<Element, MutableSet<Element>?>()
+        classes.onEach {
+            groupMap[it] = null
+        }
+        fields.onEach { fieldElement->
+            val enclosed = fieldElement.enclosingElement
+            if (!enclosed.kind.isClass) throw IllegalStateException("field enclose ${fieldElement.simpleName} should be a class!")
+            if (groupMap[enclosed] == null) groupMap[enclosed] = HashSet()
+            groupMap[enclosed]!!.add(fieldElement)
+        }
+        return groupMap
+    }
+
 }
