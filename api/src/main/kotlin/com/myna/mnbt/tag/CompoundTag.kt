@@ -20,7 +20,7 @@ class CompoundTag(
         return value.all { tag-> other.value.find{it==tag}!=null } && other.value.all { tag-> value.find{tag==it}!=null }
     }
 
-    fun add(value: Tag<out Any>) {
-        this.value.add(value)
+    fun add(value: Tag<out Any>):Boolean {
+        return this.value.add(value)
     }
 }

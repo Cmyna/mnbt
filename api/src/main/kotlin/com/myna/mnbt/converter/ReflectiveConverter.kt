@@ -44,22 +44,26 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         intent as RecordParents
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
+
         try {
-            // check value class implements NbtPath or not
             var root = CompoundTag(name) // root is the final output
-            var valueTargetTag: CompoundTag = root // target is the result of value conversion (object conversion)
+
+            // dataEntry is the tag stores the result of value conversion (object conversion)
+            // if no extra tag insert(no redirect path), dataEntry == root, else dataEntry is the tag contain link end
+            var dataEntryTag: CompoundTag = root
             var fieldsPath:Map<String, Array<String>>? = null
             var fieldsCompound:Map<String, Array<CompoundTag>>? = null
-            if (value is NbtPath) {
+
+            if (value is NbtPath) { // check value class implements NbtPath or not
                 // construct target by nbt path
                 val classMapPath = value.getClassNbtPath()
                 fieldsPath = value.getFieldsPaths()
                 fieldsCompound = buildFieldTagContainers(fieldsPath)
                 if (classMapPath.isNotEmpty()) {
                     val compounds = arrayOfNulls<CompoundTag>(classMapPath.size)
-                    nestedTag(classMapPath, compounds)
+                    buildRootToDataEntry(classMapPath, compounds)
                     root.add(compounds[0]!!)
-                    valueTargetTag = compounds[classMapPath.size-1]!!
+                    dataEntryTag = compounds[classMapPath.size-1]!!
                 }
             }
 
@@ -85,8 +89,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                     val containersChain = fieldsCompound[field.name]!!
                     val container = containersChain.last()
                     container.add(subTag)
-                    valueTargetTag.add(containersChain.first())
-                } else valueTargetTag.add(subTag)
+                    dataEntryTag.add(containersChain.first())
+                } else dataEntryTag.add(subTag)
             }
 
             // if value is NbtPath (so root will not be null), return path root tag
@@ -198,13 +202,14 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
     }
 
-    private fun nestedTag(path: Array<String>, compounds:Array<CompoundTag?>) {
+    private fun buildRootToDataEntry(path: Array<String>, link:Array<CompoundTag?>) {
         var pointer = 0
+        // construct remain
         var last:CompoundTag? = null
-        while (pointer < compounds.size) {
+        while (pointer < link.size) {
             val tag = CompoundTag(path[pointer])
             last?.add(tag)
-            compounds[pointer] = tag
+            link[pointer] = tag
             last = tag
             pointer += 1
         }
@@ -230,6 +235,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             FieldCompounds(arrayOfNulls(it.value.size))
         }
         buildFieldTagContainersHelper(pathsForHelper, helperBuild)
+
         return helperBuild.mapValues {
             if (it.value.compounds.isEmpty()) return@mapValues it.value.compounds
             it.value.compounds.reduce { pre, cur ->

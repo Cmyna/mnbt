@@ -1,6 +1,7 @@
 package com.myna.mnbt.converter
 
 import com.myna.mnbt.Tag
+import com.myna.mnbt.tag.CompoundTag
 import java.util.Deque
 
 /**
@@ -24,12 +25,7 @@ interface RecordParents: ConverterCallerIntent {
 interface CreateTagIntent:ConverterCallerIntent
 
 // TODO: remove duplicate tag creation issue
-/**
- *
- */
-interface CreateAt:CreateTagIntent {
-    val entry: Tag<out Any>
-}
+
 
 interface ToValueIntent:ConverterCallerIntent
 
