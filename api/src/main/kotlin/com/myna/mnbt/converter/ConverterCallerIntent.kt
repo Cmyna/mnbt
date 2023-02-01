@@ -24,8 +24,36 @@ interface RecordParents: ConverterCallerIntent {
  */
 interface CreateTagIntent:ConverterCallerIntent
 
-// TODO: remove duplicate tag creation issue
+/**
+ * an locator for finding target tag in already built tag hierarchical structure
+ */
+interface TagLocator:CreateTagIntent {
+    /**
+     * @param absolutePath mnbt format absolute URL String
+     */
+    fun findAt(absolutePath: String, id:Byte):Tag<out Any>?
 
+
+    /**
+     * link a new tag with an absolute parent path
+     */
+    fun linkTagAt(absolutePath: String, tag:Tag<out Any>):Boolean
+}
+
+fun TagLocator.toPath(vararg relatedPath: String):String {
+    TODO()
+}
+
+fun TagLocator.combine(absolutePath: String, relatedPath:String):String {
+    TODO()
+}
+
+interface ParentTagsInfo:CreateTagIntent {
+    /**
+     * @return an complete mnbt format url
+     */
+    fun getRootPath():String
+}
 
 interface ToValueIntent:ConverterCallerIntent
 

@@ -2,13 +2,14 @@ package com.myna.mnbt.converter.meta
 
 import com.myna.mnbt.converter.ReflectiveConverter
 import com.myna.mnbt.converter.TagConverter
+import java.lang.reflect.Field
 
 /**
  * nbt url: using url format to represent a locator to a tag structure
  *
- * the url format is: mnbt://[hierarchical tag path]
+ * the url format is: `mnbt://[hierarchical tag path]`
  *
- * where [hierarchical tag path] format is: [tag name1]/[tag name2][tag name3]/...
+ * where [hierarchical tag path] format is: `<tag name1>/<tag name2>/<tag name3>/...`
  *
  * you can use related tag path, which is started at "./", or access the parent tag by using "../"
  *
@@ -38,8 +39,8 @@ interface NbtPath {
      * the extra tag path is the sub path for a related tag path for the class, which is presented as:
      * `./rootName/[extra class paths]/`
      *
-     * eg: if result is `["tag1","tag2","tag3"]`, Converter will find tag1/tag2/tag3/
-     * starts at root tag passed in [TagConverter.toValue] method; else if result is empty array,
+     * eg: if result is `["tag1","tag2","tag3"]`, Converter will find `./<root>/tag1/tag2/tag3/`
+     * starts at tag named `<root>` passed in [TagConverter.toValue] method; else if result is empty array,
      * converter will regard tag passed in [TagConverter.toValue] as tag of target class
      *
      * if it is happen in [TagConverter.createTag] method, it will create the structure like:
@@ -51,18 +52,18 @@ interface NbtPath {
     /**
      * @return a map recording field name->related path.
      * all value in map is stored as Array<String>, we can rewrite related nbt path by these array as:
-     * `./[extra field path]/field`. The `[extra field path]` is optional
+     * `./[extra field path]/field`. The `[extra field path]` is optional.
      *
      * The related path is path related to result from [getClassExtraPath].
      * if we look for the field enclosed class, the field related nbt path is like: `./root/[extra class path]/[extra field path]/field`
      *
      * eg: if a field related path is ["subTag1","subTag2"], where class related path is ["tag1", "tag2"],
-     * then reflective converter will try find root/tag1/tag2/subTag1/subTag2 at root tag passed in
+     * then reflective converter will try find `<root>/tag1/tag2/subTag1/subTag2` at tag named `<root>` passed in
      *
      * @throws IndexOutOfBoundsException if some array is empty.
      * Which means should at least one element represent field name in the array
      */
-    fun getFieldsPaths():Map<String, Array<String>>
+    fun getFieldsPaths():Map<Field, Array<String>>
 
-    fun getFieldsTagType():Map<String, Byte>
+    fun getFieldsTagType():Map<Field, Byte>
 }

@@ -23,8 +23,8 @@ class CompoundTagCodec(override var proxy: Codec<Any>):
         val bitsCache = ArrayList<ByteArray>()
         var bitsLen = TagIdPayload // payload for TagEnd
         value.onEach {
-            checkNotNull(it.name) // name should not be null
-            val feedback = proxy.encode(it, proxyIntent) as EncodedBytesFeedback
+            checkNotNull(it.value.name) // name should not be null
+            val feedback = proxy.encode(it.value, proxyIntent) as EncodedBytesFeedback
             bitsCache.add(feedback.bytes)
             bitsLen += feedback.bytes.size
         }
@@ -44,11 +44,11 @@ class CompoundTagCodec(override var proxy: Codec<Any>):
         intent as DecodeFromBytes
         val parents = (intent as CodecRecordParents).parents
         var subTagId = intent.data[intent.pointer]
-        val compound = mutableSetOf<Tag<out Any>>()
+        val compound = mutableMapOf<String, Tag<out Any>>()
         while (subTagId != IdTagEnd) {
             val proxyIntent = proxyDecodeFromBytesIntent(true, parents, subTagId, intent)
             val feedback = proxy.decode(proxyIntent)
-            compound.add(feedback.tag)
+            compound[feedback.tag.name!!] = feedback.tag
             subTagId = intent.data[intent.pointer]
         }
         intent.pointer += TagIdPayload // skip tag End

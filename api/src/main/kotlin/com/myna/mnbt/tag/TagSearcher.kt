@@ -50,10 +50,11 @@ object TagSearcher {
         var current = tag
         accessQueue.onEach { subName->
             val value = current.value
-            if (value !is Iterable<*>) return null
-            val subTag = value.find { element->
-                element is Tag<*> && element.name==subName
-            }?: return null
+            if (value !is Map<*,*>) return null
+            val subTag = value[subName]?: return null
+//            val subTag = value.find { element->
+//                element is Tag<*> && element.name==subName
+//            }?: return null
             current = subTag as Tag<out Any>
         }
         return current

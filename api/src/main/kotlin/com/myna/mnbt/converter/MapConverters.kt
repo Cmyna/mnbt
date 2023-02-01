@@ -1,6 +1,5 @@
 package com.myna.mnbt.converter
 
-import com.google.common.reflect.TypeToken
 import com.myna.mnbt.Tag
 import com.myna.mnbt.exceptions.*
 import com.myna.mnbt.reflect.MTypeToken
@@ -34,22 +33,22 @@ object MapConverters {
                 // try to get specific type delegate if there is
                 val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
                 value as Map<String, Any>
-                val set: AnyCompound = mutableSetOf()
+                val map: AnyCompound = mutableMapOf()
                 value.onEach {
                     val subValue = it.value
                     val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, nestCIntent(intent.parents, false))?:
                     proxy.createTag(it.key, subValue, MTypeToken.of(subValue::class.java) as MTypeToken<out Any>, nestCIntent(intent.parents, true))?: return@onEach
                     //set[it.key] = tag
-                    set.add(tag)
+                    map[tag.name!!] = tag
                 }
-                return CompoundTag(name, set)
+                return CompoundTag(name, map)
             }
 
             override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
                 intent as RecordParents; intent as ToValueTypeToken
                 // check tagValue is MutableMap or not
-                if (tag.value !is Collection<*>) return null
-                val value = tag.value as Collection<Tag<out Any>>
+                if (tag.value !is Map<*,*>) return null
+                val value = tag.value as Map<String, Tag<out Any>>
                 // if ignoreTypeToken is true, toValue as default Map type
                 val actualTypeTokenIn = if (intent.ignore) mapTypeToken else typeToken
                 // check type token is subtype of map or not
@@ -59,7 +58,8 @@ object MapConverters {
                 val newMap = newMapInstance(actualTypeTokenIn)?: return null //TODO: may better calling ways to get map instance
                 newMap as MutableMap<String, Any>
 
-                value.onEach { subTag->
+                value.onEach { entry->
+                    val subTag = entry.value
                     checkNotNull(subTag.name)
                     val subTagValueTypeToken = MTypeToken.of(subTag.value::class.java) as MTypeToken<out Any>
                     // just let proxy try two kinds of type token with subTagValue

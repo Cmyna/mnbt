@@ -9,6 +9,8 @@ import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.lang.reflect.Field
+import kotlin.reflect.jvm.javaField
 
 class ReflectiveConverterTest {
 
@@ -33,8 +35,8 @@ class ReflectiveConverterTest {
         val testClassB = TestClassB(testClassA, 23, 5.0, 0.8887f)
         val testClassB2 = TestClassB(testClassA, 555, 0.3, 55555f)
         val aComp = getClassACompound(testClassA)
-        val tag2 = aComp.value.find {tag->tag.name == "tag2"} as CompoundTag
-        val tag3 = tag2.value.find {tag->tag.name=="tag3"} as CompoundTag
+        val tag2 = aComp.value["tag2"] as CompoundTag
+        val tag3 = tag2.value["tag3"] as CompoundTag
         val bCompName = "test class B tag"
         val bComp = CompoundTag(bCompName).also { bComp->
             CompoundTag("class A tag").also {
@@ -65,7 +67,6 @@ class ReflectiveConverterTest {
         assertTrue(res["i"]!!.isEmpty())
         assertTrue(res["k"]!!.isEmpty())
 
-        testClassAFieldsPath["null"] = arrayOf()
         helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
     }
 
@@ -90,11 +91,11 @@ class ReflectiveConverterTest {
         override fun getClassExtraPath(): Array<String> {
             return testClassAPath
         }
-        override fun getFieldsPaths(): Map<String, Array<String>> {
+        override fun getFieldsPaths(): Map<Field, Array<String>> {
             return testClassAFieldsPath
         }
 
-        override fun getFieldsTagType(): Map<String, Byte> {
+        override fun getFieldsTagType(): Map<Field, Byte> {
             return testClassAFieldsType
         }
     }
@@ -104,20 +105,20 @@ class ReflectiveConverterTest {
             return arrayOf()
         }
 
-        override fun getFieldsPaths(): Map<String, Array<String>> {
+        override fun getFieldsPaths(): Map<Field, Array<String>> {
             return mapOf(
-                    "classA" to arrayOf("class A tag"),
-                    "n" to arrayOf("class A tag", "tag1", "short tag"),
-                    "d" to arrayOf("class A tag", "tag1", "tag2", "tag3", "double tag")
+                    TestClassB::classA.javaField!! to arrayOf("class A tag"),
+                    TestClassB::n.javaField!! to arrayOf("class A tag", "tag1", "short tag"),
+                    TestClassB::d.javaField!! to arrayOf("class A tag", "tag1", "tag2", "tag3", "double tag")
             )
         }
 
-        override fun getFieldsTagType(): Map<String, Byte> {
+        override fun getFieldsTagType(): Map<Field, Byte> {
             return mapOf(
-                    TestClassB::classA.name to IdTagCompound,
-                    TestClassB::n.name to IdTagShort,
-                    TestClassB::d.name to IdTagDouble,
-                    TestClassB::f.name to IdTagFloat
+                    TestClassB::classA.javaField!! to IdTagCompound,
+                    TestClassB::n.javaField!! to IdTagShort,
+                    TestClassB::d.javaField!! to IdTagDouble,
+                    TestClassB::f.javaField!! to IdTagFloat
             )
         }
     }
@@ -126,18 +127,18 @@ class ReflectiveConverterTest {
     companion object {
         val testClassAPath = arrayOf("tag1", "tag2")
 
-        val testClassAFieldsPath = HashMap<String, Array<String>>().also {
-            it["i"] = arrayOf("int tag")
-            it["valj"] = arrayOf("tag3","string tag")
-            it["k"] = arrayOf("long tag")
-            it["m"] = arrayOf("tag3","tag4", "byte tag")
+        val testClassAFieldsPath = HashMap<Field, Array<String>>().also {
+            it[TestClassA::i.javaField!!] = arrayOf("int tag")
+            it[TestClassA::valj.javaField!!] = arrayOf("tag3","string tag")
+            it[TestClassA::k.javaField!!] = arrayOf("long tag")
+            it[TestClassA::m.javaField!!] = arrayOf("tag3","tag4", "byte tag")
         }
 
         val testClassAFieldsType = mapOf(
-                "i" to IdTagInt,
-                "valj" to IdTagString,
-                "k" to IdTagLong,
-                "m" to IdTagByte
+                TestClassA::i.javaField!! to IdTagInt,
+                TestClassA::valj.javaField!! to IdTagString,
+                TestClassA::k.javaField!! to IdTagLong,
+                TestClassA::m.javaField!! to IdTagByte
         )
     }
 }

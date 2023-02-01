@@ -218,8 +218,8 @@ object BinaryCodecInstances {
                 val parents = (intent as CodecRecordParents).parents
                 val proxyIntent = toProxyIntent(true, parents, intent.outputStream)
                 value.onEach {
-                    checkNotNull(it.name) // name should not be null
-                    proxy.encode(it, proxyIntent)
+                    checkNotNull(it.value.name) // name should not be null
+                    proxy.encode(it.value, proxyIntent)
                 }
                 // write TagEnd
                 intent.outputStream.write(IdTagEnd.toInt())
@@ -230,11 +230,11 @@ object BinaryCodecInstances {
                 val parents = (intent as CodecRecordParents).parents
                 val inputStream = intent.inputStream
                 var subTagId = intent.tryGetId()
-                val compound = mutableSetOf<Tag<out Any>>()
+                val compound = mutableMapOf<String, Tag<out Any>>()
                 while (subTagId != IdTagEnd) {
                     val proxyIntent = toProxyIntent(true, parents, subTagId, inputStream, true)
                     val feedback = proxy.decode(proxyIntent)
-                    compound.add(feedback.tag)
+                    compound[feedback.tag.name!!] = feedback.tag
                     subTagId = intent.tryGetId()
                 }
                 //inputStream.read()

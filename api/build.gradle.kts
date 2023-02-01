@@ -45,6 +45,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.8.6")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
 
     // annotation
     implementation(project(":annotation"))
