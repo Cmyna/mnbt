@@ -1,8 +1,12 @@
 package com.myna.mnbt.converter
 
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.tag.CompoundTag
+import java.lang.IllegalArgumentException
+import java.lang.StringBuilder
 import java.util.Deque
+import kotlin.math.abs
 
 /**
  * default intent to TagConverter
@@ -38,14 +42,38 @@ interface TagLocator:CreateTagIntent {
      * link a new tag with an absolute parent path
      */
     fun linkTagAt(absolutePath: String, tag:Tag<out Any>):Boolean
+
+    /**
+     * build hierarchical tag structure by input absolute path.
+     * @return the tag related to the last directory in the path
+     * @throws IllegalArgumentException if first path segment is not equal to the root name in TagLocator,
+     * or it is not a absolute path,
+     * or a path segment related tag already exists in tag structure, but tag type is not as expected
+     */
+    fun buildPath(absolutePath: String):Tag<out Any>
 }
 
-fun TagLocator.toPath(vararg relatedPath: String):String {
-    TODO()
+fun TagLocator.toRelatedPath(vararg relatedPath: String):String {
+    val builder = StringBuilder("./")
+    relatedPath.onEach {
+        builder.append("/")
+        builder.append(it)
+    }
+    return builder.toString()
 }
 
 fun TagLocator.combine(absolutePath: String, relatedPath:String):String {
-    TODO()
+    absolutePath.substring(0, TagLocatorInstance.scheme.length).also {
+        if (it != TagLocatorInstance.scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
+    }
+    relatedPath.substring(0, 2).also {
+        if (it != "./") throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
+    }
+    val builder = StringBuilder()
+    builder.append(absolutePath)
+    if (absolutePath.last() != '/') builder.append("/")
+    builder.append(relatedPath.substring(2, relatedPath.length))
+    return builder.toString()
 }
 
 interface ParentTagsInfo:CreateTagIntent {

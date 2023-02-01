@@ -148,7 +148,11 @@ object ApiTestTool {
             field.trySetAccessible()
             val selfValue = field.get(self)
             val otherValue = field.get(other)
-            if (!valueEqFun(selfValue, otherValue)) return false
+            if (!valueEqFun(selfValue, otherValue)) {
+                println("$self not equals to $other")
+                println("the field ${field.name} not equals")
+                return false
+            }
         }
         return true
     }
@@ -182,7 +186,9 @@ object ApiTestTool {
             while (aIt.hasNext()) {
                 val anext = aIt.next()
                 val bnext = bIt.next()
-                if (!valueEqFun(anext, bnext)) return false
+                if (!valueEqFun(anext, bnext)) {
+                    return false
+                }
             }
             if (bIt.hasNext()) return false
             return true
@@ -196,8 +202,12 @@ object ApiTestTool {
             }
             return true
         }
-        else if (aClass.isPrimitive || bClass.isPrimitive) return a==b
-        else return a==b
+        else if (aClass.isPrimitive || bClass.isPrimitive) {
+            return a==b
+        }
+        else {
+            return a==b
+        }
     }
 
     class Template {
@@ -338,6 +348,8 @@ object ApiTestTool {
         var expectedTag:Tag<out Any>? = null
         var testMnbt:Boolean = true
 
+        private val soft = SoftAssertions()
+
         fun <V:Any> apiTest(converter: TagConverter<Any, out ConverterCallerIntent>,
                             name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
             val tag1 = converter.createTag(name1, value1, typeToken)!!
@@ -348,16 +360,17 @@ object ApiTestTool {
             val fromTag2 = converter.toValue(tag2, typeToken)!!
             val fromTag4 = tag4?.let { TestMnbt.inst.fromTag(it, typeToken)!! }
             if (!noAssertions) {
-                if (assertValueNotEquals) assertNotEquals(tag1, tag2)
-                if (assertNameNotEquals) assertNotEquals(tag1, tag3)
-                if (assertNameNotEquals && assertNameNotEquals) assertNotEquals(tag2, tag3)
-                assertTrue(valueEqFun(value1, fromTag1.second))
-                assertTrue(valueEqFun(value2, fromTag2.second))
-                if (expectedTag!=null) assertEquals(tag1, expectedTag)
+                if (assertValueNotEquals) soft.assertThat(tag1).isNotEqualTo(tag2)
+                if (assertNameNotEquals) soft.assertThat(tag1).isNotEqualTo(tag3)
+                if (assertNameNotEquals && assertNameNotEquals) soft.assertThat(tag2).isNotEqualTo(tag3)
+                soft.assertThat(valueEqFun(value1, fromTag1.second))
+                soft.assertThat(valueEqFun(value2, fromTag2.second))
+                if (expectedTag!=null)  soft.assertThat(tag1).isEqualTo(expectedTag)
                 if (testMnbt) {
-                    assertEquals(tag1, tag4)
-                    assertTrue(valueEqFun(fromTag1.second, fromTag4!!.second))
+                    soft.assertThat(tag1).isEqualTo(tag4)
+                    soft.assertThat(valueEqFun(fromTag1.second, fromTag4!!.second))
                 }
+                soft.assertAll()
             }
         }
 

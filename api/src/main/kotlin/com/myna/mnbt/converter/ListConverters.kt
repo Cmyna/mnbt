@@ -71,7 +71,6 @@ object ListConverters {
             value as Iterable<out Any>
             // try declared parameterized type
             val declaredElementType = typeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
-
             //val size = value.size
 
             var firstElementType:Class<*>? = null
@@ -81,8 +80,9 @@ object ListConverters {
                 // try get first element type
                 if (firstElementType==null) firstElementType = element::class.java
                 // try to convert value by declared parameterized type or first element actual type
-                val convertedValue = proxy.createTag(null, element, declaredElementType, intent) ?:
-                firstElementType?.let { proxy.createTag(null, element, MTypeToken.of(firstElementType!!) as MTypeToken<out Any>, nestCIntent(intent.parents, true)) } ?: return@onEach
+                val toProxyIntent = nestCIntent(intent.parents, true)
+                val convertedValue = proxy.createTag(null, element, declaredElementType, toProxyIntent) ?:
+                firstElementType?.let { proxy.createTag(null, element, MTypeToken.of(firstElementType!!) as MTypeToken<out Any>, toProxyIntent) } ?: return@onEach
                 if (elementId == (-1).toByte()) elementId = convertedValue.id
                 list.add(convertedValue)
             }

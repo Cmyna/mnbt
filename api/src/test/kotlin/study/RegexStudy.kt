@@ -29,7 +29,28 @@ class RegexStudy {
         regex.assertStudy2("a\\.bc.ddd", "a.bc")
         regex.assertStudy2("name\\..", "name.")
         regex.assertStudy2("aaa\\.bbb\\.ccc.ddd\\.ee..", "aaa.bbb.ccc")
+    }
 
+    @Test
+    fun regexFindAllValidation() {
+        val regex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+        regex.findAllValidation("abc/abcc", "abc", "abcc")
+        regex.findAllValidation("abc//中文字符/", "abc", "中文字符")
+        regex.findAllValidation("abc/\\/ascd\\/\\//.*++", "abc", "\\/ascd\\/\\/", ".*++")
+    }
+
+    private fun Regex.findAllValidation(str:String, vararg subStrs:String) {
+        var i = 0
+
+        this.findAll(str).forEach {
+            assertEquals(subStrs[i], it.value)
+            println(it.value)
+            i += 1
+        }
+//        val all = this.findAll(str).asIterable().toList().toTypedArray()
+//        for (i in subStrs.indices) {
+//            assertEquals(subStrs[i], all[i].value)
+//        }
     }
 
 

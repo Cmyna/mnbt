@@ -1,7 +1,10 @@
 package mnbt.converterTest
 
 import com.myna.mnbt.*
+import com.myna.mnbt.converter.ReflectiveConverter
+import com.myna.mnbt.converter.TagLocator
 import com.myna.mnbt.converter.meta.NbtPath
+import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.ApiTestTool
@@ -52,22 +55,58 @@ class ReflectiveConverterTest {
         template.apiTest(TestMnbt.inst.refConverterProxy, bCompName, "root2", testClassB, testClassB2, object:MTypeToken<TestClassB>() {})
     }
 
+    @Test
+    fun testBuildRootToDataEntry() {
+        val funBuildToDataEntry = ReflectiveConverter::class.java.declaredMethods.find { it.name=="buildRootToDataEntry" }!!
+        val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
+        funBuildToDataEntry.trySetAccessible()
+        val locator = TagLocatorInstance(CompoundTag("root"))
+        val root = locator.findAt("mnbt://root", IdTagCompound) as CompoundTag
+
+        val path = arrayOf("tag1", "tag2", "tag3")
+        val compoundArr1 = arrayOfNulls<CompoundTag?>(3)
+
+        funBuildToDataEntry.invoke(reflectiveConverter, path, compoundArr1, locator, "mnbt://root/")
+        assertEquals("tag1", compoundArr1[0]!!.name)
+        assertEquals("tag2", compoundArr1[1]!!.name)
+        assertEquals("tag3", compoundArr1[2]!!.name)
+        assertEquals(compoundArr1[0]!!, root.value["tag1"])
+
+        val path2 = arrayOf("tag2", "tag3")
+        val compArr2 = arrayOfNulls<CompoundTag?>(2)
+        funBuildToDataEntry.invoke(reflectiveConverter, path2, compArr2, locator, "mnbt://root/tag1")
+        assertEquals(compoundArr1[1]!!, compArr2[0]!!)
+        assertEquals(compoundArr1[2]!!, compArr2[1]!!)
+
+        val path3 = arrayOf("tag4", "tag5")
+        val compArr3 = arrayOfNulls<CompoundTag?>(2)
+        funBuildToDataEntry.invoke(reflectiveConverter, path3, compArr3, locator, "mnbt://root/tag1/")
+        assertEquals("tag4", compArr3[0]!!.name)
+        assertEquals("tag5", compArr3[1]!!.name)
+
+        val path4 = arrayOf("tag6", "tag7")
+        val compArr4 = arrayOfNulls<CompoundTag?>(2)
+        funBuildToDataEntry.invoke(reflectiveConverter, path4, compArr4, locator, "mnbt://root/tag1/tag2/tag3")
+        assertEquals("tag6", compArr4[0]!!.name)
+        assertEquals("tag7", compArr4[1]!!.name)
+    }
 
     @Test
     fun testFieldConversionHelper() {
         val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
-        val helper = reflectiveConverter::class.java.getDeclaredMethod("buildFieldTagContainers", Map::class.java)
+        val helper = reflectiveConverter::class.java.declaredMethods.find { it.name == "buildFieldTagContainers"}!!
         helper.trySetAccessible()
-        val res = helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
-        assertEquals(res["valj"]!!.size, 1)
-        assertEquals(res["m"]!!.size, 2)
-        assertEquals(res["valj"]!![0], res["m"]!![0])
-        assertEquals(res["valj"]!![0].name, "tag3")
-        assertEquals(res["m"]!![1].name, "tag4")
-        assertTrue(res["i"]!!.isEmpty())
-        assertTrue(res["k"]!!.isEmpty())
+        val locator = TagLocatorInstance(CompoundTag())
+        val res = helper.invoke(reflectiveConverter, testClassAFieldsPath, locator) as Map<Field, Array<CompoundTag>>
+        assertEquals(res[TestClassA::valj.javaField!!]!!.size, 1)
+        assertEquals(res[TestClassA::m.javaField!!]!!.size, 2)
+        assertEquals(res[TestClassA::valj.javaField!!]!![0], res[TestClassA::m.javaField!!]!![0])
+        assertEquals(res[TestClassA::valj.javaField!!]!![0].name, "tag3")
+        assertEquals(res[TestClassA::m.javaField!!]!![1].name, "tag4")
+        assertTrue(res[TestClassA::i.javaField!!]!!.isEmpty())
+        assertTrue(res[TestClassA::k.javaField!!]!!.isEmpty())
 
-        helper.invoke(reflectiveConverter, testClassAFieldsPath) as Map<String, Array<CompoundTag>>
+        helper.invoke(reflectiveConverter, testClassAFieldsPath, locator) as Map<String, Array<CompoundTag>>
     }
 
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {

@@ -14,6 +14,8 @@ import com.myna.mnbt.tag.TagSearcher
 import java.lang.Exception
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * this Converter is used for some simple POJO class,
@@ -48,31 +50,34 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
         val rootPath = if (intent is ParentTagsInfo) intent.getRootPath() else "mnbt://$name"
         try {
+            val root = CompoundTag(name) // root is the final output
 
             // get tag locator, else build a new one
-//            val tagLocatorIntent = if (intent is TagLocator) intent else {
-//                TagLocatorInstance(CompoundTag(name))
-//            }
-            //val root = tagLocatorIntent.findAt(rootPath, IdTagCompound) as CompoundTag // root is the final output
-            val root = CompoundTag(name)
+            val tagLocatorIntent = if (intent is TagLocator) {
+                val rootParentPath = rootPath.substring(0, rootPath.length-name!!.length)
+                intent.linkTagAt(rootParentPath, root)
+                intent
+            } else {
+                TagLocatorInstance(root)
+            }
 
             // dataEntry is the tag stores the result of value conversion (object conversion)
             // if no extra tag insert(no redirect path), dataEntry == root, else dataEntry is the tag contain link end
-            var dataEntryTag: CompoundTag = root
             var fieldsPath:Map<Field, Array<String>>? = null
-            var fieldsCompound:Map<String, Array<CompoundTag>>? = null
+
+            var dataEntryAbsPath = rootPath // class data entry absolute path
 
             if (value is NbtPath) { // check value class implements NbtPath or not
                 // construct target by nbt path
-                val classMapPath = value.getClassExtraPath()
+                val classExtraPath = value.getClassExtraPath()
                 fieldsPath = value.getFieldsPaths()
-                fieldsCompound = buildFieldTagContainers(fieldsPath)
-                if (classMapPath!=null && classMapPath.isNotEmpty()) {
-                    val compounds = arrayOfNulls<CompoundTag>(classMapPath.size)
+                if (classExtraPath!=null && classExtraPath.isNotEmpty()) {
+                    dataEntryAbsPath = tagLocatorIntent.toRelatedPath(*classExtraPath).let {
+                        tagLocatorIntent.combine(rootPath, it)
+                    }
+                    val compounds = arrayOfNulls<CompoundTag>(classExtraPath.size)
                     //buildRootToDataEntry(classMapPath, compounds as Array<Tag<out Any>?>, tagLocatorIntent, rootPath)
-                    buildRootToDataEntry(classMapPath, compounds as Array<CompoundTag?>)
-                    root.add(compounds[0]!!)
-                    dataEntryTag = compounds[classMapPath.size-1]!!
+                    buildRootToDataEntry(classExtraPath, compounds, tagLocatorIntent, rootPath)
                 }
             }
 
@@ -83,23 +88,36 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
                 val actualValue = field.get(value) ?: return@onEach // actual value is null, skip this field
 
+                // get field's parent absolute tag path
+                val fieldParentsAbsPath = fieldsPath?.get(field)?.let { arrTypePath->
+                    // if fieldsPath is not null, combine related path with data entry path
+                    // remove last one in array, because that is target field tag
+                    val relatedPath = tagLocatorIntent.toRelatedPath(*arrTypePath.copyOfRange(0, arrTypePath.size-1))
+                    tagLocatorIntent.combine(dataEntryAbsPath, relatedPath)
+                }?: dataEntryAbsPath
+
+                // build compounds with field's parent tag absolute path
+                val parentTag = tagLocatorIntent.buildPath(fieldParentsAbsPath) as CompoundTag
+
                 // get actual name to to field tag (try get path last tag name, else use field name)
                 val fieldTagName:String = fieldsPath?.get(field)?.let {
                     if (it.isEmpty()) null
                     else it.last()
                 }?: field.name
 
+                val fieldIntent = object: RecordParents, ToValueTypeToken, ParentTagsInfo, TagLocator by tagLocatorIntent {
+                    override val parents: Deque<Any> = callerIntent.parents
+                    override val ignore: Boolean = false
+                    override fun getRootPath(): String {
+                        return "$fieldParentsAbsPath/$fieldTagName"
+                    }
+                }
+
                 // try let proxy handle sub tag, if null then ignore this field
-                val subTag = proxy.createTag(fieldTagName, actualValue, fieldTk, nestCIntent(callerIntent.parents, false))
+                val subTag = proxy.createTag(fieldTagName, actualValue, fieldTk, fieldIntent)
                         ?:return@onEach
 
-                // if fieldsCompound has build path related structure, add subTag to it, else add to target
-                if (fieldsCompound != null && fieldsCompound[field.name]?.isNotEmpty() == true) {
-                    val containersChain = fieldsCompound[field.name]!!
-                    val container = containersChain.last()
-                    container.add(subTag)
-                    dataEntryTag.add(containersChain.first())
-                } else dataEntryTag.add(subTag)
+                parentTag.add(subTag)
             }
 
             // if value is NbtPath (so root will not be null), return path root tag
@@ -185,7 +203,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val targetTag = if (fieldPath!=null) {
             val tag = TagSearcher.findTag(sourceTag, fieldPath.asIterable(), fieldTypeId!!)
             if (tag==null) {
-                val pathStr = fieldPath.fold("") { last,cur -> "$last.$cur"}
+                val pathStr = fieldPath.fold(".") { last,cur -> "$last/$cur"}
                 throw ConversionException("Can not find matched Tag with name:$pathStr and nbt container type:${IdTagCompound}")
             }
             tag
@@ -211,22 +229,21 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
     }
 
-    private fun buildRootToDataEntry(path: Array<String>, link:Array<CompoundTag?>) {
-
+    private fun buildRootToDataEntry(path: Array<String>, link:Array<CompoundTag?>, locator:TagLocator, rootPath: String) {
         var pointer = 0
         // construct remain
+        var last:CompoundTag = locator.findAt(rootPath, IdTagCompound) as CompoundTag
         while (pointer < link.size) {
-//            val subPath = path.copyOfRange(0, pointer+1)
-//            val tagRelatedPath = locator.toPath(*subPath)
-//            val tagAbsPath = locator.combine(rootPath, tagRelatedPath)
-//            val tag = locator.findAt(tagAbsPath, IdTagCompound)?: CompoundTag(path[pointer])
-//            locator.linkTagAt(tagAbsPath, tag)
-            val tag = CompoundTag(path[pointer])
-            link[pointer] = tag
+            val subPath = path.copyOfRange(0, pointer+1)
+            val tagRelatedPath = locator.toRelatedPath(*subPath)
+            val tagAbsPath = locator.combine(rootPath, tagRelatedPath)
+            val tag = locator.findAt(tagAbsPath, IdTagCompound)?: CompoundTag(path[pointer])
+            locator.linkTagAt(tagAbsPath, tag)
+            link[pointer] = tag as CompoundTag
+            last.add(tag)
+            last = tag
             pointer += 1
         }
-
-        //return locator
     }
 
     /**
@@ -236,7 +253,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     data class FieldCompounds(val compounds: Array<CompoundTag?>)
 
 
-    private fun buildFieldTagContainers(paths:Map<Field, Array<String>>):Map<String, Array<CompoundTag>> {
+    private fun buildFieldTagContainers(paths:Map<Field, Array<String>>, locator: TagLocator):Map<Field, Array<CompoundTag>> {
         val popLast = paths.mapValues {
             // remove bottom, because bottom is field target tag, should let proxy handle it
             if (it.value.isNotEmpty()) it.value.copyOfRange(0, it.value.size-1)
@@ -248,20 +265,20 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val helperBuild = popLast.mapValues {
             FieldCompounds(arrayOfNulls(it.value.size))
         }
-        buildFieldTagContainersHelper(pathsForHelper, helperBuild)
+        buildFieldTagContainersHelper(pathsForHelper, helperBuild, locator)
 
         return helperBuild.mapValues {
             if (it.value.compounds.isEmpty()) return@mapValues it.value.compounds
             it.value.compounds.reduce { pre, cur ->
                 // build contain chain
-                pre!!.add(cur!!)
+                if (pre!!.value[cur!!.name] == null) pre.add(cur)
                 cur
             }
             it.value.compounds
-        } as Map<String, Array<CompoundTag>>
+        } as Map<Field, Array<CompoundTag>>
     }
 
-    private fun buildFieldTagContainersHelper(paths:List<FieldPath>, helperBuild:Map<Field, FieldCompounds>) {
+    private fun buildFieldTagContainersHelper(paths:List<FieldPath>, helperBuild:Map<Field, FieldCompounds>, locator: TagLocator) {
         paths.groupBy {
             // group fields by their current top package name (at pointer)
             // if pointer over path size, group to null(no package handle)
@@ -282,7 +299,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             }
 
             // build sub path
-            buildFieldTagContainersHelper(it.value, helperBuild)
+            buildFieldTagContainersHelper(it.value, helperBuild, locator)
         }
     }
 
