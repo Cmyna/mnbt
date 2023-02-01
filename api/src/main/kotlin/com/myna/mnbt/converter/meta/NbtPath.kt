@@ -2,6 +2,8 @@ package com.myna.mnbt.converter.meta
 
 import com.myna.mnbt.converter.ReflectiveConverter
 import com.myna.mnbt.converter.TagConverter
+import java.lang.IllegalArgumentException
+import java.lang.StringBuilder
 import java.lang.reflect.Field
 
 /**
@@ -66,4 +68,39 @@ interface NbtPath {
     fun getFieldsPaths():Map<Field, Array<String>>
 
     fun getFieldsTagType():Map<Field, Byte>
+
+    companion object {
+
+        fun toRelatedPath(vararg relatedPath: String):String {
+            val builder = StringBuilder("./")
+            var firstOnEach = true
+            relatedPath.onEach {
+                if (!firstOnEach) builder.append("/")
+                if (firstOnEach) {
+                    firstOnEach = false
+                }
+                builder.append(it)
+            }
+            return builder.toString()
+        }
+
+        fun combine(absolutePath: String, relatedPath:String):String {
+            absolutePath.substring(0, TagLocatorInstance.scheme.length).also {
+                if (it != TagLocatorInstance.scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
+            }
+            relatedPath.substring(0, 2).also {
+                if (it != "./") throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
+            }
+            val builder = StringBuilder()
+            builder.append(absolutePath)
+            if (absolutePath.last() != '/') builder.append("/")
+            builder.append(relatedPath.substring(2, relatedPath.length))
+            return builder.toString()
+        }
+
+        fun appendSubDir(absolutePath: String, subDir:String):String {
+            return if (absolutePath.last() != '/') "$absolutePath/$subDir"
+            else "$absolutePath$subDir"
+        }
+    }
 }

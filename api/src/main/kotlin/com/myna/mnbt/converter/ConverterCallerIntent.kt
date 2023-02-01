@@ -53,34 +53,10 @@ interface TagLocator:CreateTagIntent {
     fun buildPath(absolutePath: String):Tag<out Any>
 }
 
-fun TagLocator.toRelatedPath(vararg relatedPath: String):String {
-    val builder = StringBuilder("./")
-    relatedPath.onEach {
-        builder.append("/")
-        builder.append(it)
-    }
-    return builder.toString()
-}
 
-fun TagLocator.combine(absolutePath: String, relatedPath:String):String {
-    absolutePath.substring(0, TagLocatorInstance.scheme.length).also {
-        if (it != TagLocatorInstance.scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
-    }
-    relatedPath.substring(0, 2).also {
-        if (it != "./") throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
-    }
-    val builder = StringBuilder()
-    builder.append(absolutePath)
-    if (absolutePath.last() != '/') builder.append("/")
-    builder.append(relatedPath.substring(2, relatedPath.length))
-    return builder.toString()
-}
 
 interface ParentTagsInfo:CreateTagIntent {
-    /**
-     * @return an complete mnbt format url
-     */
-    fun getRootPath():String
+    val rootContainerPath:String
 }
 
 interface ToValueIntent:ConverterCallerIntent

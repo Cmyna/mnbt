@@ -91,24 +91,6 @@ class ReflectiveConverterTest {
         assertEquals("tag7", compArr4[1]!!.name)
     }
 
-    @Test
-    fun testFieldConversionHelper() {
-        val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
-        val helper = reflectiveConverter::class.java.declaredMethods.find { it.name == "buildFieldTagContainers"}!!
-        helper.trySetAccessible()
-        val locator = TagLocatorInstance(CompoundTag())
-        val res = helper.invoke(reflectiveConverter, testClassAFieldsPath, locator) as Map<Field, Array<CompoundTag>>
-        assertEquals(res[TestClassA::valj.javaField!!]!!.size, 1)
-        assertEquals(res[TestClassA::m.javaField!!]!!.size, 2)
-        assertEquals(res[TestClassA::valj.javaField!!]!![0], res[TestClassA::m.javaField!!]!![0])
-        assertEquals(res[TestClassA::valj.javaField!!]!![0].name, "tag3")
-        assertEquals(res[TestClassA::m.javaField!!]!![1].name, "tag4")
-        assertTrue(res[TestClassA::i.javaField!!]!!.isEmpty())
-        assertTrue(res[TestClassA::k.javaField!!]!!.isEmpty())
-
-        helper.invoke(reflectiveConverter, testClassAFieldsPath, locator) as Map<String, Array<CompoundTag>>
-    }
-
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
         val classADataContainerTag = CompoundTag("tag2").also { comp->
             ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
