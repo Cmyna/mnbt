@@ -56,7 +56,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
             if (value is NbtPath) { // check value class implements NbtPath or not
                 // construct target by nbt path
-                val classMapPath = value.getClassNbtPath()
+                val classMapPath = value.getClassExtraPath()
                 fieldsPath = value.getFieldsPaths()
                 fieldsCompound = buildFieldTagContainers(fieldsPath)
                 if (classMapPath.isNotEmpty()) {
@@ -125,7 +125,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         var fieldsPath:Map<String, Array<String>>? = null
         var fieldsId:Map<String, Byte>? = null
         if (instance is NbtPath) {
-            classMapPath = instance.getClassNbtPath()
+            classMapPath = instance.getClassExtraPath()
             fieldsPath = instance.getFieldsPaths()
             fieldsId = instance.getFieldsTagType()
         }

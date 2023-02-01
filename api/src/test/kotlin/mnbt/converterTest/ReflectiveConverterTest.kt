@@ -87,7 +87,7 @@ class ReflectiveConverterTest {
 
 
     data class TestClassA(val i:Int, val valj:String, val k:Long, val m:Byte):NbtPath {
-        override fun getClassNbtPath(): Array<String> {
+        override fun getClassExtraPath(): Array<String> {
             return testClassAPath
         }
         override fun getFieldsPaths(): Map<String, Array<String>> {
@@ -100,7 +100,7 @@ class ReflectiveConverterTest {
     }
 
     data class TestClassB(val classA:TestClassA, val n:Short, val d:Double, val f:Float):NbtPath {
-        override fun getClassNbtPath(): Array<String> {
+        override fun getClassExtraPath(): Array<String> {
             return arrayOf()
         }
 
