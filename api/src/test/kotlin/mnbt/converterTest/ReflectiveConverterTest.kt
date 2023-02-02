@@ -86,43 +86,6 @@ class ReflectiveConverterTest {
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<DataClass3>() {})
     }
 
-
-    @Test
-    fun testBuildRootToDataEntry() {
-        val funBuildToDataEntry = ReflectiveConverter::class.java.declaredMethods.find { it.name=="buildRootToDataEntry" }!!
-        val reflectiveConverter = TestMnbt.inst.refReflectiveConverter
-        funBuildToDataEntry.trySetAccessible()
-        val locator = TagLocatorInstance(CompoundTag("root"))
-        val root = locator.findAt("mnbt://root", IdTagCompound) as CompoundTag
-
-        val path = arrayOf("tag1", "tag2", "tag3")
-        val compoundArr1 = arrayOfNulls<CompoundTag?>(3)
-
-        funBuildToDataEntry.invoke(reflectiveConverter, path, compoundArr1, locator, "mnbt://root/")
-        assertEquals("tag1", compoundArr1[0]!!.name)
-        assertEquals("tag2", compoundArr1[1]!!.name)
-        assertEquals("tag3", compoundArr1[2]!!.name)
-        assertEquals(compoundArr1[0]!!, root.value["tag1"])
-
-        val path2 = arrayOf("tag2", "tag3")
-        val compArr2 = arrayOfNulls<CompoundTag?>(2)
-        funBuildToDataEntry.invoke(reflectiveConverter, path2, compArr2, locator, "mnbt://root/tag1")
-        assertEquals(compoundArr1[1]!!, compArr2[0]!!)
-        assertEquals(compoundArr1[2]!!, compArr2[1]!!)
-
-        val path3 = arrayOf("tag4", "tag5")
-        val compArr3 = arrayOfNulls<CompoundTag?>(2)
-        funBuildToDataEntry.invoke(reflectiveConverter, path3, compArr3, locator, "mnbt://root/tag1/")
-        assertEquals("tag4", compArr3[0]!!.name)
-        assertEquals("tag5", compArr3[1]!!.name)
-
-        val path4 = arrayOf("tag6", "tag7")
-        val compArr4 = arrayOfNulls<CompoundTag?>(2)
-        funBuildToDataEntry.invoke(reflectiveConverter, path4, compArr4, locator, "mnbt://root/tag1/tag2/tag3")
-        assertEquals("tag6", compArr4[0]!!.name)
-        assertEquals("tag7", compArr4[1]!!.name)
-    }
-
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
         val classADataContainerTag = CompoundTag("tag2").also { comp->
             ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
@@ -154,9 +117,6 @@ class ReflectiveConverterTest {
     }
 
     data class TestClassB(val classA:TestClassA, val n:Short, val d:Double, val f:Float):NbtPath {
-        override fun getClassExtraPath(): Array<String> {
-            return arrayOf()
-        }
 
         override fun getFieldsPaths(): Map<Field, Array<String>> {
             return mapOf(
@@ -178,7 +138,7 @@ class ReflectiveConverterTest {
 
 
     companion object {
-        val testClassAPath = arrayOf("tag1", "tag2")
+        val testClassAPath = arrayOf("tag1","tag2")
 
         val testClassAFieldsPath = HashMap<Field, Array<String>>().also {
             it[TestClassA::i.javaField!!] = arrayOf("int tag")

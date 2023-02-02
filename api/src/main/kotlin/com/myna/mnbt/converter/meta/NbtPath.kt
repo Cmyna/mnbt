@@ -1,5 +1,6 @@
 package com.myna.mnbt.converter.meta
 
+import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.ReflectiveConverter
 import com.myna.mnbt.converter.TagConverter
 import java.lang.IllegalArgumentException
@@ -49,7 +50,7 @@ interface NbtPath {
      * "./root/tag1/tag2/tag3" where root is the root compound tag with name parameter "root" passed in method;
      * it result is empty array, then tag named "root" will be regard as target tag for the class object
      */
-    fun getClassExtraPath():Array<String>?
+    fun getClassExtraPath():Array<String> = arrayOf()
 
     /**
      * @return a map recording field name->related path.
@@ -71,6 +72,9 @@ interface NbtPath {
 
     companion object {
 
+        const val scheme = "mnbt://"
+        val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+
         fun toRelatedPath(vararg relatedPath: String):String {
             val builder = StringBuilder("./")
             var firstOnEach = true
@@ -85,8 +89,8 @@ interface NbtPath {
         }
 
         fun combine(absolutePath: String, relatedPath:String):String {
-            absolutePath.substring(0, TagLocatorInstance.scheme.length).also {
-                if (it != TagLocatorInstance.scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
+            absolutePath.substring(0, scheme.length).also {
+                if (it != scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
             }
             relatedPath.substring(0, 2).also {
                 if (it != "./") throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
@@ -101,6 +105,39 @@ interface NbtPath {
         fun appendSubDir(absolutePath: String, subDir:String):String {
             return if (absolutePath.last() != '/') "$absolutePath/$subDir"
             else "$absolutePath$subDir"
+        }
+
+        fun isAbsolutePath(path:String):Boolean {
+            path.substring(0, scheme.length).also {
+                return it == scheme
+            }
+        }
+
+        fun isRelatedPath(path:String):Boolean {
+            return path.length>=2 && path.first()=='.' && path.get(1)=='/'
+        }
+
+        fun toAccessQueue(path:String):Sequence<String> {
+            val pathValue = if (isAbsolutePath(path)) path.substring(scheme.length, path.length)
+            else if (isRelatedPath(path)) path.substring(2, path.length)
+            else path
+            return tagNameRegex.findAll(pathValue).map {
+                it.value
+            }
+        }
+
+        fun findTag(source:Tag<out Any>, accessQueue:Sequence<String>, targetTagId:Byte): Tag<out Any>? {
+            var current: Tag<out Any>? = source
+            var sequenceMatchFlag = true
+            accessQueue.forEach { subTagName->
+                sequenceMatchFlag = false
+                val value = current!!.value
+                if (value !is Map<*,*>) return@forEach
+                val subTag = value[subTagName]?: return@forEach
+                current = subTag as Tag<out Any>
+                sequenceMatchFlag = true
+            }
+            return if (sequenceMatchFlag && current?.id == targetTagId) current else null
         }
     }
 }

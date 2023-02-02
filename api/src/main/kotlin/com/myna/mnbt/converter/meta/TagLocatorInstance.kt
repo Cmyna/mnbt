@@ -3,6 +3,8 @@ package com.myna.mnbt.converter.meta
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.TagLocator
+import com.myna.mnbt.converter.meta.NbtPath.Companion.scheme
+import com.myna.mnbt.converter.meta.NbtPath.Companion.tagNameRegex
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import java.lang.IllegalArgumentException
@@ -13,9 +15,11 @@ class TagLocatorInstance
 
     override fun findAt(absolutePath: String, id:Byte): Tag<out Any>? {
         checkIsAbsolutePath(absolutePath)
-        val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
-        val accessSeq = tagNameRegex.findAll(pathValue)
-        return findTag(accessSeq)
+        val accessSeq = NbtPath.toAccessQueue(absolutePath)
+        if (accessSeq.first() != root.name) {
+            throw IllegalArgumentException("path root tag name ${accessSeq.first()} is not equals to locator root (${root.name})!")
+        }
+        return NbtPath.findTag(root, accessSeq.drop(1), id)
     }
 
     override fun linkTagAt(absolutePath: String, tag: Tag<out Any>): Boolean {
@@ -34,7 +38,7 @@ class TagLocatorInstance
         val accessSeq = tagNameRegex.findAll(pathValue)
         val pathRoot = accessSeq.first().value
         if (pathRoot != root.name && pathRoot!="null" && root.name!=null) {
-            throw IllegalArgumentException("the first segment of path passed in ($absolutePath) is not equal to the root name (${root.name}) in locator!")
+            throw IllegalArgumentException("path root tag name (path url: $absolutePath) is not equals to locator root (${root.name})!")
         }
         var current:Tag<out Any>? = null
         accessSeq.forEach { match ->
@@ -61,37 +65,7 @@ class TagLocatorInstance
         return current!!
     }
 
-    /**
-     * @param accessQueue list of tag names, specifies the access sequences
-     */
-    private fun findTag(accessQueue:Sequence<MatchResult>):Tag<out Any>? {
-        var current:Tag<out Any>? = null
-        var sequenceMatchFlag = false
-        accessQueue.forEach { match->
-            if (current == null) {
-                current = root
-                sequenceMatchFlag = true
-                return@forEach
-            }
-            sequenceMatchFlag = false
-            val subTagName = match.value
-            val value = current!!.value
-            if (value !is Map<*,*>) return@forEach
-            val subTag = value[subTagName]?: return@forEach
-            current = subTag as Tag<out Any>
-            sequenceMatchFlag = true
-        }
-        return if (sequenceMatchFlag) current else null
-    }
-
     private fun checkIsAbsolutePath(path:String) {
-        path.substring(0, scheme.length).also {
-            if (it != scheme) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
-        }
-    }
-
-    companion object {
-        const val scheme = "mnbt://"
-        private val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+        if (!NbtPath.isAbsolutePath(path)) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
     }
 }

@@ -18,8 +18,8 @@ class LevelLoadingTest {
             val hardcore:Boolean,
             val LevelName:String,
             val BorderCenterX:Double,
-            @MapTo("Version.Name", IdTagString) val name:String,
-            )
+            @MapTo("Version/Name", IdTagString) val name:String,
+    )
 
     @Test
     fun loadByMnbtTest() {
