@@ -15,7 +15,7 @@ import java.lang.reflect.Field
  *
  * you can use related tag path, which is started at "./", or access the parent tag by using "../"
  *
- * to represent a list index in path, use "[index]" as a separate tag name between two "/" without any other symbol,
+ * to represent a list index in path, use "#index" as a separate tag name between two "/" without any other symbol,
  * where "index" is a number to a list index
  *
  * if the path is ended with "/", means the last tag name is a hierarchical tag (eg: a compound tag or a list tag),

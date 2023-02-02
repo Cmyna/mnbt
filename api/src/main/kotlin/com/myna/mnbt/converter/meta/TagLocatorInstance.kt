@@ -1,5 +1,6 @@
 package com.myna.mnbt.converter.meta
 
+import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.TagLocator
 import com.myna.mnbt.tag.AnyCompound
@@ -11,11 +12,14 @@ class TagLocatorInstance
 
 
     override fun findAt(absolutePath: String, id:Byte): Tag<out Any>? {
-        return findTag(absolutePath)
+        checkIsAbsolutePath(absolutePath)
+        val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
+        val accessSeq = tagNameRegex.findAll(pathValue)
+        return findTag(accessSeq)
     }
 
     override fun linkTagAt(absolutePath: String, tag: Tag<out Any>): Boolean {
-        val parent = findTag(absolutePath)?: return false
+        val parent = findAt(absolutePath, IdTagCompound)?: return false
         val parentContainer = parent.value
         if (parentContainer !is MutableMap<*,*>) return false
         parentContainer as MutableMap<String, Tag<out Any>>
@@ -25,9 +29,7 @@ class TagLocatorInstance
     }
 
     override fun buildPath(absolutePath: String): Tag<out Any> {
-        absolutePath.substring(0, scheme.length).also {
-            if (it != scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
-        }
+        checkIsAbsolutePath(absolutePath)
         val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
         val accessSeq = tagNameRegex.findAll(pathValue)
         val pathRoot = accessSeq.first().value
@@ -43,6 +45,7 @@ class TagLocatorInstance
             val pathSeg = match.value
             val value = current!!.value
             if (value !is MutableMap<*,*>) {
+                // TODO: more clear exception throws
                 throw IllegalArgumentException("the path segment $pathSeg " +
                         "related Tag type (tag with value type${value::class.java}) found in whole exists structure is not as expected")
             }
@@ -56,15 +59,6 @@ class TagLocatorInstance
             }
         }
         return current!!
-    }
-
-    private fun findTag(path:String):Tag<out Any>? {
-        path.substring(0, scheme.length).also {
-            if (it != scheme) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
-        }
-        val pathValue = path.substring(scheme.length, path.length)
-        val accessSeq = tagNameRegex.findAll(pathValue)
-        return findTag(accessSeq)
     }
 
     /**
@@ -88,6 +82,12 @@ class TagLocatorInstance
             sequenceMatchFlag = true
         }
         return if (sequenceMatchFlag) current else null
+    }
+
+    private fun checkIsAbsolutePath(path:String) {
+        path.substring(0, scheme.length).also {
+            if (it != scheme) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
+        }
     }
 
     companion object {

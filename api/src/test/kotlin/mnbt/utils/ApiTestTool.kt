@@ -350,6 +350,11 @@ object ApiTestTool {
 
         private val soft = SoftAssertions()
 
+        fun <V:Any> apiTest(name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
+            this.testMnbt = false
+            apiTest(TestMnbt.inst.asserterConverterProxy, name1, name2, value1, value2, typeToken)
+        }
+
         fun <V:Any> apiTest(converter: TagConverter<Any, out ConverterCallerIntent>,
                             name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
             val tag1 = converter.createTag(name1, value1, typeToken)!!

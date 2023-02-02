@@ -7,12 +7,11 @@ import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
-import mnbt.utils.ApiTestTool
-import mnbt.utils.ApiTestValueBuildTool
-import mnbt.utils.TestMnbt
+import mnbt.utils.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Field
+import kotlin.random.Random
 import kotlin.reflect.jvm.javaField
 
 class ReflectiveConverterTest {
@@ -54,6 +53,39 @@ class ReflectiveConverterTest {
         template.expectedTag = bComp
         template.apiTest(TestMnbt.inst.refConverterProxy, bCompName, "root2", testClassB, testClassB2, object:MTypeToken<TestClassB>() {})
     }
+
+    @Test
+    fun complicateDataClassesTest() {
+        var c = 0
+        var dc1Creation:()->DataClass1 = {
+            c += 1
+            DataClass1(Random.nextInt()+c, RandomValueTool.bitStrC(5)()+c)
+        }
+        var dc2Creation:()->DataClass2 = {
+            val dc1 = dc1Creation()
+            c += 1
+            DataClass2(dc1, Random.nextDouble()+c)
+        }
+        var dc3Creation:(num:Int)->DataClass3 = { num->
+            val list = ArrayList<DataClass2>().also { list->
+                repeat(num) {
+                    list.add(dc2Creation())
+                }
+            }
+            c += 1
+            DataClass3(list, Random.nextLong()+c)
+        }
+
+        val value1 = dc3Creation(10)
+        val value2 = dc3Creation(8)
+        val name1 = "Data Class 3-1"
+        val name2 = "Data Class 3-2"
+        val expectedTag = value1.toCompound(name1)
+        val template = ApiTestTool.ConverterTestTemplate()
+        template.expectedTag = expectedTag
+        template.apiTest(name1, name2, value1, value2, object:MTypeToken<DataClass3>() {})
+    }
+
 
     @Test
     fun testBuildRootToDataEntry() {

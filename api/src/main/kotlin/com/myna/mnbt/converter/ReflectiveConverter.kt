@@ -60,14 +60,14 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 TagLocatorInstance(root)
             }
 
+            var fieldsPath:Map<Field, Array<String>>? = null
+
             // dataEntry is the tag stores the result of value conversion (object conversion)
             // if no extra tag insert(no redirect path), dataEntry == root,
             // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
-            var fieldsPath:Map<Field, Array<String>>? = null
-
-            // class data entry absolute path
             // TODO: fix name nullable problem
-            var dataEntryAbsPath = NbtPath.appendSubDir(rootContainerPath, name?:"")
+            // temporal design: if name is null, set it as '#'
+            var dataEntryAbsPath = NbtPath.appendSubDir(rootContainerPath, name?:"#")
 
             if (value is NbtPath) {
                 // construct data entry tag and provide fields paths
@@ -93,7 +93,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 // get field's container tag absolute path
                 // if fieldsPath is not null, combine related path with data entry path
                 val fieldTagContainerPath = fieldsPath?.get(field)?.let { arrTypePath->
-                    // remove last one in array, because that is target field tag let proxy create
+                    // remove last one in array, because that is target field tag which should let proxy create it
                     val relatedPath = NbtPath.toRelatedPath(*arrTypePath.copyOfRange(0, arrTypePath.size-1))
                     NbtPath.combine(dataEntryAbsPath, relatedPath)
                 }?: dataEntryAbsPath
