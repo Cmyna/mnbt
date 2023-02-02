@@ -126,7 +126,10 @@ interface NbtPath {
             }
         }
 
-        fun findTag(source:Tag<out Any>, accessQueue:Sequence<String>, targetTagId:Byte): Tag<out Any>? {
+        /**
+         * @param targetTagId nullable parameter, if it is null, not check found tag id type
+         */
+        fun findTag(source:Tag<out Any>, accessQueue:Sequence<String>, targetTagId:Byte? = null): Tag<out Any>? {
             var current: Tag<out Any>? = source
             var sequenceMatchFlag = true
             accessQueue.forEach { subTagName->
@@ -137,7 +140,8 @@ interface NbtPath {
                 current = subTag as Tag<out Any>
                 sequenceMatchFlag = true
             }
-            return if (sequenceMatchFlag && current?.id == targetTagId) current else null
+            val idMatch = if (current!=null && targetTagId!=null) current!!.id==targetTagId else true
+            return if (sequenceMatchFlag && idMatch) current else null
         }
     }
 }

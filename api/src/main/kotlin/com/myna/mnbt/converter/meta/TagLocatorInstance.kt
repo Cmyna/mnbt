@@ -14,12 +14,8 @@ class TagLocatorInstance
 
 
     override fun findAt(absolutePath: String, id:Byte): Tag<out Any>? {
-        checkIsAbsolutePath(absolutePath)
-        val accessSeq = NbtPath.toAccessQueue(absolutePath)
-        if (accessSeq.first() != root.name) {
-            throw IllegalArgumentException("path root tag name ${accessSeq.first()} is not equals to locator root (${root.name})!")
-        }
-        return NbtPath.findTag(root, accessSeq.drop(1), id)
+        val accessSeq = buildSequencesWithoutRoot(absolutePath)
+        return NbtPath.findTag(root, accessSeq, id)
     }
 
     override fun linkTagAt(absolutePath: String, tag: Tag<out Any>): Boolean {
@@ -33,20 +29,10 @@ class TagLocatorInstance
     }
 
     override fun buildPath(absolutePath: String): Tag<out Any> {
-        checkIsAbsolutePath(absolutePath)
-        val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
-        val accessSeq = tagNameRegex.findAll(pathValue)
-        val pathRoot = accessSeq.first().value
-        if (pathRoot != root.name && pathRoot!="null" && root.name!=null) {
-            throw IllegalArgumentException("path root tag name (path url: $absolutePath) is not equals to locator root (${root.name})!")
-        }
-        var current:Tag<out Any>? = null
-        accessSeq.forEach { match ->
-            if (current == null) {
-                current = root
-                return@forEach
-            }
-            val pathSeg = match.value
+        val accessSeq = buildSequencesWithoutRoot(absolutePath)
+        var current:Tag<out Any>? = root
+        // drop root tag
+        accessSeq.forEach { pathSeg ->
             val value = current!!.value
             if (value !is MutableMap<*,*>) {
                 // TODO: more clear exception throws
@@ -54,15 +40,23 @@ class TagLocatorInstance
                         "related Tag type (tag with value type${value::class.java}) found in whole exists structure is not as expected")
             }
             value as AnyCompound
-            if (value[pathSeg] == null) {
-                val newSubTag = CompoundTag(pathSeg)
-                value[pathSeg] = newSubTag
-                current = newSubTag
-            } else {
-                current = value[pathSeg] as Tag<out Any>
-            }
+            val subTag = value[pathSeg]?: CompoundTag(pathSeg)
+            value[pathSeg] = subTag
+            current = subTag
         }
         return current!!
+    }
+
+    private fun buildSequencesWithoutRoot(absolutePath: String):Sequence<String> {
+        checkIsAbsolutePath(absolutePath)
+        val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
+        val accessSeq = tagNameRegex.findAll(pathValue)
+        val pathRoot = accessSeq.first().value
+        val rootNameIsNull = pathRoot.first()=='#' && root.name==null
+        if (pathRoot != root.name && !rootNameIsNull) {
+            throw IllegalArgumentException("path root tag name (path url: $absolutePath) is not equals to locator root (${root.name})!")
+        }
+        return accessSeq.drop(1).map { it.value }
     }
 
     private fun checkIsAbsolutePath(path:String) {
