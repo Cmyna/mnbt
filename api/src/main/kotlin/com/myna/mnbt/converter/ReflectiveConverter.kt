@@ -88,13 +88,13 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val parentTag = tagLocatorIntent.buildPath(fieldTagContainerPath) as CompoundTag
 
                 // get actual name to to field tag (try get path last tag name, else use field name)
-                val fieldTagName:String = if (fieldRelatedPath==null || fieldRelatedPath.isEmpty()) field.name else fieldRelatedPath.last()
+                val specifyFieldName = fieldRelatedPath!=null && fieldRelatedPath.isNotEmpty()
+                val fieldTagName:String = if (!specifyFieldName) field.name else fieldRelatedPath!!.last()
 
                 val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
 
                 // try let proxy handle sub tag, if null then ignore this field
-                val subTag = proxy.createTag(fieldTagName, actualValue, fieldTk, fieldIntent)
-                        ?:return@onEach
+                val subTag = proxy.createTag(fieldTagName, actualValue, fieldTk, fieldIntent) ?:return@onEach
 
                 parentTag.add(subTag)
             }
@@ -102,6 +102,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
         catch(e:Exception) {
             if (outputDebugInfo) e.printStackTrace()
+            // TODO clear link in intent
             return null
         }
     }
@@ -147,29 +148,31 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         var fieldsPath:Map<Field, Array<String>>? = null
         var fieldsId:Map<Field, Byte>? = null
         if (instance is NbtPath) {
-            classPath = instance.getClassExtraPath().let { NbtPath.combine("mnbt://", NbtPath.toRelatedPath(*it))}
+            classPath = instance.getClassExtraPath().let {
+                NbtPath.combine("mnbt://", NbtPath.toRelatedPath(*it))
+            }
             fieldsPath = instance.getFieldsPaths()
             fieldsId = instance.getFieldsTagType()
         }
 
         try {
-            fields.associateBy { field->
+            fields.associateWith { field->
                 val accessible = field.trySetAccessible()
                 // if can not access field, and also require non nullable properties, return null
                 if (!accessible && !returnObjectWithNullableProperties) return null
-                field
-            }.mapValues { entry ->
-                val field = entry.key
+
                 // build field path
                 val fieldPath = fieldsPath?.get(field)?.let {
                     val relatedPath = NbtPath.toRelatedPath(*it)
-                    NbtPath.combine(classPath?:"mnbt://", relatedPath)
+                    NbtPath.combine(classPath!!, relatedPath)
                 }
 
                 val value = handleField(tag, field, intent, fieldPath, fieldsId?.get(field))
+
                 // if null and require non nullable properties, it means failed conversion, return null from 'toValue' function
                 if (!returnObjectWithNullableProperties && value==null) return null
-                else if (value == null) return@mapValues null // if nullable properties, then set value to null
+                else if (value == null) return@associateWith null // if nullable properties, then set value to null
+
                 value.second
             }.onEach { entry-> // set field into instance
                 if (entry.value==null) return@onEach
@@ -180,7 +183,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             }
         } catch (exc:Exception) {
             if (outputDebugInfo) exc.printStackTrace()
-            // TODO clear link in intent
             return null
         }
         return Pair(tag.name, instance)
@@ -196,7 +198,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
         val targetTag = if (fieldPath!=null || mapToAnn!=null) {
             val runtimeFieldPath = fieldPath?: mapToAnn.path
-            NbtPath.toAccessQueue(runtimeFieldPath).let { NbtPath.findTag(sourceTag, it, fieldTypeId)}
+            val accessQueue = NbtPath.toAccessQueue(runtimeFieldPath)
+            NbtPath.findTag(sourceTag, accessQueue, fieldTypeId)
                     ?: throw ConversionException("Can not find matched Tag with name:$fieldPath and value type:$fieldTypeId")
         } else {
             (sourceTag.value as Map<String, Tag<out Any>>)[field.name]
