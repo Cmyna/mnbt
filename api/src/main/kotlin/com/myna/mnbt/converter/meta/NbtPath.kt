@@ -76,25 +76,18 @@ interface NbtPath {
         val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
 
         fun toRelatedPath(vararg relatedPath: String):String {
-            val builder = StringBuilder("./")
-            var firstOnEach = true
-            relatedPath.onEach {
-                if (!firstOnEach) builder.append("/")
-                if (firstOnEach) {
-                    firstOnEach = false
-                }
+            val builder = StringBuilder("./${relatedPath.first()}")
+            relatedPath.asSequence().drop(1).forEach {
+                builder.append("/")
                 builder.append(it)
             }
             return builder.toString()
         }
 
         fun combine(absolutePath: String, relatedPath:String):String {
-            absolutePath.substring(0, scheme.length).also {
-                if (it != scheme) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
-            }
-            relatedPath.substring(0, 2).also {
-                if (it != "./") throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
-            }
+            if (!isAbsolutePath(absolutePath)) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
+            if (!isRelatedPath(relatedPath)) throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
+
             val builder = StringBuilder()
             builder.append(absolutePath)
             if (absolutePath.last() != '/') builder.append("/")
@@ -121,9 +114,7 @@ interface NbtPath {
             val pathValue = if (isAbsolutePath(path)) path.substring(scheme.length, path.length)
             else if (isRelatedPath(path)) path.substring(2, path.length)
             else path
-            return tagNameRegex.findAll(pathValue).map {
-                it.value
-            }
+            return tagNameRegex.findAll(pathValue).map { it.value }
         }
 
         /**
