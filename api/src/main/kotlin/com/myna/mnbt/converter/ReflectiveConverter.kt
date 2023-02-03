@@ -1,10 +1,9 @@
 package com.myna.mnbt.converter
 
-import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
-import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.annotations.LinkTo
 import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.exceptions.ConversionException
@@ -55,8 +54,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // dataEntry is the tag stores the result of value conversion (object conversion)
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
-        // TODO: fix name nullable problem
-        // temporal design: if name is null, set it as '#'
+        // temporal: if name is null, set it as '#'
         var dataEntryAbsPath = NbtPath.appendSubDir(rootContainerPath, name?:"#")
         var fieldsRelatedPath:Map<Field, Array<String>>? = null
         if (value is NbtPath) {
@@ -194,7 +192,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     private fun handleField(sourceTag:Tag<out Any>, field: Field, intent: RecordParents, fieldPath:String?, fieldTypeId:Byte?):Pair<String?, Any>? {
         // TODO duplicate code: findTag(which is also used in proxy)
         // check field annotation
-        val mapToAnn = field.getAnnotation(MapTo::class.java)
+        val mapToAnn = field.getAnnotation(LinkTo::class.java)
 
         val targetTag = if (fieldPath!=null || mapToAnn!=null) {
             val runtimeFieldPath = fieldPath?: mapToAnn.path

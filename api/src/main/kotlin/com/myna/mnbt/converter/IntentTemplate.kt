@@ -1,6 +1,6 @@
 package com.myna.mnbt.converter
 
-import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.annotations.LinkTo
 import java.util.*
 
 fun nestCIntent(parents: Deque<Any>, ignoreTypeToken:Boolean): RecordParents {
@@ -17,7 +17,7 @@ fun converterCallerIntent(ignoreTypeToken:Boolean = false): ConverterCallerInten
     }
 }
 
-fun conversionWithStartAtIntent(parents: Deque<Any>, ignoreTypeToken:Boolean, annotation: MapTo): ConverterCallerIntent {
+fun conversionWithStartAtIntent(parents: Deque<Any>, ignoreTypeToken:Boolean, annotation: LinkTo): ConverterCallerIntent {
     return object: ToValueTypeToken,StartAt,RecordParents {
         override val parents: Deque<Any> = ArrayDeque()
         override val ignore = ignoreTypeToken

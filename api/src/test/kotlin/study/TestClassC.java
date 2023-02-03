@@ -1,7 +1,7 @@
 package study;
 
-import com.myna.mnbt.annotations.MapTo;
+import com.myna.mnbt.annotations.LinkTo;
 
-@MapTo(path = "sampleTag")
+@LinkTo(path = "sampleTag")
 public class TestClassC {
 }

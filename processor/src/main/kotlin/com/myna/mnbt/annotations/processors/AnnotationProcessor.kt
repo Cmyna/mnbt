@@ -1,6 +1,6 @@
 package com.myna.mnbt.annotations.processors
 
-import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.annotations.LinkTo
 import java.lang.IllegalStateException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
@@ -9,24 +9,28 @@ import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 import javax.tools.Diagnostic
 
-private const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
+const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
 
 @SupportedOptions(KAPT_KOTLIN_GENERATED_OPTION_NAME)
 class AnnotationProcessor: AbstractProcessor() {
 
     private var messager:Messager? = null
+    private val linkToProcessor = LinkToProcessor()
 
     override fun getSupportedSourceVersion(): SourceVersion {
         return SourceVersion.latest()
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return mutableSetOf(MapTo::class.java.canonicalName)
+        return mutableSetOf(LinkTo::class.java.canonicalName)
     }
 
     override fun init(processingEnv: ProcessingEnvironment?) {
         super.init(processingEnv)
         messager = processingEnv!!.messager
+
+        this.linkToProcessor.elementUtils = processingEnv.elementUtils
+        this.linkToProcessor.messager = this.messager!!
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "Mnbt Processor is inited")
     }
 
@@ -34,22 +38,11 @@ class AnnotationProcessor: AbstractProcessor() {
     // if it is a class, auto make this class implement an interface, use an static final companion object store interfaces related static data
     // if it is a field, find enclosed class and handle with the class
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
+        this.linkToProcessor.processingEnv = this.processingEnv
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "Hello!")
-        val annotated = roundEnv?.getElementsAnnotatedWith(MapTo::class.java)
+        val annotated = roundEnv?.getElementsAnnotatedWith(LinkTo::class.java)!!
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "annotated element num: ${annotated?.size?:0}")
-        val group = group(annotated!!)
-        annotated.onEach {
-            this.messager!!.printMessage(Diagnostic.Kind.NOTE, "enclosindClass: ${it.enclosingElement.simpleName}")
-            this.messager!!.printMessage(Diagnostic.Kind.NOTE, "kind: ${it.kind}")
-            this.messager!!.printMessage(Diagnostic.Kind.NOTE, "class type: ${it.kind.declaringClass}")
-            // Element Subinterfaces see: https://docs.oracle.com/javase/9/docs/api/javax/lang/model/element/class-use/Element.html
-            if (it is VariableElement) {
-                this.messager!!.printMessage(Diagnostic.Kind.NOTE, "field name: ${it.simpleName}")
-                this.messager!!.printMessage(Diagnostic.Kind.NOTE, "class type: ${it.asType()}")
-            } else if (it is TypeElement) {
-                this.messager!!.printMessage(Diagnostic.Kind.NOTE, "class name: ${it.qualifiedName}")
-            }
-        }
+        linkToProcessor.writeNbtPath(annotated)
 
         return true
     }

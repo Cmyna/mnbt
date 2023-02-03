@@ -1,8 +1,8 @@
 package study
 
-import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.annotations.LinkTo
 
-@MapTo("testTag")
+@LinkTo("testTag")
 class TestClassB {
     val i:Int = 5
     val str:String = "some string"

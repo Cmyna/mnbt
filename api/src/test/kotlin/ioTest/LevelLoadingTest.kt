@@ -2,7 +2,7 @@ package ioTest
 
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.IdTagString
-import com.myna.mnbt.annotations.MapTo
+import com.myna.mnbt.annotations.LinkTo
 import com.myna.mnbt.reflect.MTypeToken
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,12 +13,12 @@ import java.util.zip.GZIPInputStream
 
 class LevelLoadingTest {
 
-    @MapTo("Data", IdTagCompound)
+    @LinkTo("Data", IdTagCompound)
     data class LevelClassForTest(
             val hardcore:Boolean,
             val LevelName:String,
             val BorderCenterX:Double,
-            @MapTo("Version/Name", IdTagString) val name:String,
+            @LinkTo("Version/Name", IdTagString) val name:String,
     )
 
     @Test
