@@ -31,10 +31,10 @@ object CodecIntentExentions {
 
     fun DecodeHead.decodeHead(id: Byte): String? {
         val ignoreId = this.ignoreIdWhenDecoding
-        return if (decodeHead && this is DecodeOnStream) {
+        return if (this is DecodeOnStream) {
             if(!ignoreId) CodecTool.checkNbtFormat(inputStream, id)
             CodecTool.readNbtName(inputStream)
-        } else if (decodeHead && this is DecodeFromBytes) {
+        } else if (this is DecodeFromBytes) {
             if(!ignoreId) CodecTool.checkNbtFormat(data, pointer, id)
             val pair = CodecTool.readNbtName(data, pointer)
             pointer = pair.second

@@ -166,7 +166,7 @@ object BinaryCodecInstances {
         override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent):CodecFeedback {
             intent as EncodeHead; intent as EncodeOnStream
             val hasHead = intent.encodeHead
-            val parents = (intent as CodecRecordParents).parents
+            val parents = (intent as RecordParentsWhenEncoding).parents
             if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
             val name = if (hasHead) tag.name?: throw NullPointerException("want serialize tag with tag head, but name was null!") else null
             if (name != null) CodecTool.writeTagHead(id, name, intent.outputStream)
@@ -184,16 +184,15 @@ object BinaryCodecInstances {
         }
 
         override fun decode(intent: CodecCallerIntent): TagFeedback<AnyTagList> {
-            intent as DecodeOnStream; intent as CodecRecordParents; intent as DecodeHead
-            val parents = intent.parents
+            intent as DecodeOnStream;
             // read tag head if intent wants
-            val name = intent.decodeHead(id)
+            val name = if (intent is DecodeHead) intent.decodeHead(id) else null
             // read element id
             val elementId = intent.inputStream.read().toByte()
             // read list size
             val size = intent.inputStream.readNBytes(4).toBasic(0,0)
             val nbtlist = ListTag<Any>(elementId, name)
-            val proxyIntent = toProxyIntent(false, parents, elementId, intent.inputStream)
+            val proxyIntent = toProxyIntent(intent, false, elementId)
             for (i in 0 until size) {
                 val feedback = proxy.decode(proxyIntent)
                 nbtlist.add(feedback.tag)
@@ -212,7 +211,7 @@ object BinaryCodecInstances {
             }
 
             override fun encodeValue(value: AnyCompound, intent: EncodeOnStream):CodecFeedback {
-                val parents = (intent as CodecRecordParents).parents
+                val parents = (intent as RecordParentsWhenEncoding).parents
                 val proxyIntent = toProxyIntent(true, parents, intent.outputStream)
                 value.onEach {
                     checkNotNull(it.value.name) // name should not be null
@@ -224,12 +223,10 @@ object BinaryCodecInstances {
             }
 
             override fun decodeToValue(intent: DecodeOnStream): AnyCompound {
-                val parents = (intent as CodecRecordParents).parents
-                val inputStream = intent.inputStream
                 var subTagId = intent.tryGetId()
                 val compound = mutableMapOf<String, Tag<out Any>>()
                 while (subTagId != IdTagEnd) {
-                    val proxyIntent = toProxyIntent(true, parents, subTagId, inputStream, true)
+                    val proxyIntent = toProxyIntent(intent, true, subTagId, true)
                     val feedback = proxy.decode(proxyIntent)
                     compound[feedback.tag.name!!] = feedback.tag
                     subTagId = intent.tryGetId()

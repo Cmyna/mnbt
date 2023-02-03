@@ -27,8 +27,8 @@ abstract class DefaultCodec<NbtRelatedType:Any>(override val id: Byte, override 
     }
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<NbtRelatedType> {
-        intent as DecodeOnStream; intent as DecodeHead
-        val name = intent.decodeHead(id)
+        intent as DecodeOnStream
+        val name = if (intent is DecodeHead) intent.decodeHead(id) else null
         return object:TagFeedback<NbtRelatedType> {
             override val tag: Tag<NbtRelatedType> = createTag(name, decodeToValue(intent))
         }

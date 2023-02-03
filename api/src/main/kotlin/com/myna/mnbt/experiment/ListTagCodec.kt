@@ -19,7 +19,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
     override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent): CodecFeedback {
         intent as EncodeHead
         val hasHead = intent.encodeHead
-        val parents = (intent as CodecRecordParents).parents
+        val parents = (intent as RecordParentsWhenEncoding).parents
         if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
         val name = if (hasHead) tag.name?: throw NullPointerException("want serialize tag with tag head, but name was null!") else null
         var bitsLen = if (hasHead) TagIdPayload else 0
@@ -71,7 +71,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<AnyTagList> {
         intent as DecodeIntent; intent as DecodeFromBytes
-        val parents = (intent as CodecRecordParents).parents
+        val parents = (intent as RecordParentsWhenEncoding).parents
         // read tag head if intent wants
         val name = TagHeadDecoder.decodeHead(id, intent)
         // read element id

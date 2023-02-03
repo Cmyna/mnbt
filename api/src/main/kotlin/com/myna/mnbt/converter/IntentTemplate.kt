@@ -3,6 +3,8 @@ package com.myna.mnbt.converter
 import com.myna.mnbt.annotations.LinkTo
 import java.util.*
 
+//TODO: change all intent creation called from Converter to dynamic proxy
+
 fun nestCIntent(parents: Deque<Any>, ignoreTypeToken:Boolean): RecordParents {
     return object: RecordParents, ToValueTypeToken {
         override val parents: Deque<Any> = parents

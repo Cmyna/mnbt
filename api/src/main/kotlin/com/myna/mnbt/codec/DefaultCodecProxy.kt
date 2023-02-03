@@ -60,11 +60,17 @@ class DefaultCodecProxy(): Codec<Any> {
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<Any> {
         //TODO: decode should handle tree depth
-        intent as DecodeOnStream; intent as DecodeHead
-        val parents = (intent as CodecRecordParents).parents
+        intent as DecodeOnStream; intent as DecodeTreeDepth
         var intentId = if (intent is SpecifyIdWhenDecoding) intent.id else null
 
-        if (!intent.decodeHead && intentId==null) throw IllegalArgumentException("specify no tag head, but no tag id passed in!")
+        intent.depth += 1 // increase depth
+        // check decode tree depth
+        if (intent.depth >= defaultTreeDepthLimit) {
+            throw MaxNbtTreeDepthException(intent.depth+1, "tree depth limit reach when decode binary data;")
+        }
+
+
+        if (intent !is DecodeHead && intentId==null) throw IllegalArgumentException("specify no tag head, but no tag id passed in!")
         var ignoreId = intent is SpecifyIdWhenDecoding
         if (intentId == null) {
             intentId = intent.tryGetId()
@@ -79,14 +85,17 @@ class DefaultCodecProxy(): Codec<Any> {
         val newIntent = Proxy.newProxyInstance(
                 intent::class.java.classLoader,
                 intent::class.java.interfaces
-        ) { proxy, method, args->
+        ) { _, method, args->
             when (method) {
                 DecodeHead::ignoreIdWhenDecoding.javaGetter -> return@newProxyInstance ignoreId
                 else -> return@newProxyInstance method.invoke(intent, *args.orEmpty())
             }
             return@newProxyInstance null
         } as DecodeIntent
-        return codec.decode(newIntent)
+        val result = codec.decode(newIntent)
+
+        intent.depth -= 1
+        return result
     }
 
 }

@@ -32,7 +32,7 @@ interface EncodeHead:EncodeIntent{
     val encodeHead:Boolean
 }
 
-interface CodecRecordParents:CodecCallerIntent {
+interface RecordParentsWhenEncoding:EncodeIntent {
     /**
      * pass parents tag info to HierarchicalCodec
      *
@@ -48,7 +48,7 @@ interface EncodeOnStream:EncodeIntent {
     val outputStream: OutputStream
 }
 
-interface OnStreamToDelegatorEncodeIntent:EncodeHead,EncodeOnStream,CodecRecordParents
+interface OnStreamToDelegatorEncodeIntent:EncodeHead,EncodeOnStream,RecordParentsWhenEncoding
 
 /**
  * an interface specifies that encode tag to ByteArray,
@@ -56,13 +56,21 @@ interface OnStreamToDelegatorEncodeIntent:EncodeHead,EncodeOnStream,CodecRecordP
  */
 interface EncodeToBytes:EncodeIntent
 
-interface OnBytesToProxyEncodeIntent:EncodeHead,EncodeToBytes,CodecRecordParents
+interface OnBytesToProxyEncodeIntent:EncodeHead,EncodeToBytes,RecordParentsWhenEncoding
 
 
 interface DecodeIntent:CodecCallerIntent
 
+/**
+ * decode head or not where tag head contains id+tag name.
+ * if use this interface, which means input binary data has tag head info
+ */
 interface DecodeHead:DecodeIntent {
-    val decodeHead:Boolean
+
+    /**
+     * ignore id when decode head is true, if it is true,
+     * the binary tag head data has id at front, else no tag id info in binary data
+     */
     val ignoreIdWhenDecoding:Boolean
 }
 
@@ -73,7 +81,10 @@ interface DecodeOnStream:DecodeIntent {
     val inputStream: InputStream
 }
 
-interface decodeTreeDepth:DecodeIntent {
+/**
+ * record binary data tree depth when decoding
+ */
+interface DecodeTreeDepth:DecodeIntent {
     var depth:Int
 }
 
