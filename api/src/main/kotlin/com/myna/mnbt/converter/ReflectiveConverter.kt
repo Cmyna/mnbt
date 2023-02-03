@@ -1,5 +1,6 @@
 package com.myna.mnbt.converter
 
+import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
@@ -10,6 +11,7 @@ import com.myna.mnbt.exceptions.ConversionException
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
 import java.lang.Exception
+import java.lang.IllegalArgumentException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -59,13 +61,18 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         var dataEntryAbsPath = if (name != null) NbtPath.appendSubDir(rootContainerPath, name) else "mnbt://#/"
         var fieldsRelatedPath:Map<Field, Array<String>>? = null
 
-
+        val mapToAnn = typeToken.rawType.getAnnotation(LinkTo::class.java)
         if (value is NbtPath) {
             // construct data entry tag and provide fields paths
             dataEntryAbsPath = value.getClassExtraPath().let { arrTypePath->
                 NbtPath.combine(dataEntryAbsPath, NbtPath.toRelatedPath(*arrTypePath))
             }
             fieldsRelatedPath = value.getFieldsPaths()
+        } else if ( mapToAnn != null) {
+            // type id not match
+            if (mapToAnn.typeId != IdTagCompound) throw IllegalArgumentException()
+            dataEntryAbsPath = NbtPath.combine(dataEntryAbsPath, mapToAnn.path)
+
         }
 
         // get tag locator, else build a new one
@@ -145,34 +152,47 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
         // try get NbtPath implementation
         val mapToAnn = typeToken.rawType.getAnnotation(com.myna.mnbt.annotations.LinkTo::class.java)
-        var classPath:String? = null
-        var fieldsPath:Map<Field, Array<String>>? = null
+        val classPath: String?
         var fieldsId:Map<Field, Byte>? = null
         if (instance is NbtPath) {
             classPath = instance.getClassExtraPath().let {
                 NbtPath.combine("mnbt://", NbtPath.toRelatedPath(*it))
             }
-            fieldsPath = instance.getFieldsPaths()
             fieldsId = instance.getFieldsTagType()
-        }
+        } else if ( mapToAnn != null) {
+            // type id not match
+            if (mapToAnn.typeId != IdTagCompound) throw IllegalArgumentException()
+            classPath = NbtPath.combine("mnbt://", NbtPath.format(mapToAnn.path))
+        } else classPath = "mnbt://${tag.name?:"#"}"
 
         try {
-            fields.associateWith { field->
+            fields.associateWith { field-> // build field path
+                val fieldLinkToAnn = field.getAnnotation(LinkTo::class.java)
+                val fieldPath = when {
+                    instance is NbtPath -> {
+                        instance.getFieldsPaths()[field]?.let {
+                            val relatedPath = NbtPath.toRelatedPath(*it)
+                            NbtPath.combine(classPath, relatedPath)
+                        }
+                    }
+                    fieldLinkToAnn != null -> {
+                        NbtPath.combine(classPath, NbtPath.format(fieldLinkToAnn.path))
+                    }
+                    else -> NbtPath.appendSubDir(classPath, field.name)
+                }
+                fieldPath
+            }.mapValues {
+                val field = it.key
+                val fieldPath = it.value
                 val accessible = field.trySetAccessible()
                 // if can not access field, and also require non nullable properties, return null
                 if (!accessible && !returnObjectWithNullableProperties) return null
-
-                // build field path
-                val fieldPath = fieldsPath?.get(field)?.let {
-                    val relatedPath = NbtPath.toRelatedPath(*it)
-                    NbtPath.combine(classPath!!, relatedPath)
-                }
 
                 val value = handleField(tag, field, intent, fieldPath, fieldsId?.get(field))
 
                 // if null and require non nullable properties, it means failed conversion, return null from 'toValue' function
                 if (!returnObjectWithNullableProperties && value==null) return null
-                else if (value == null) return@associateWith null // if nullable properties, then set value to null
+                else if (value == null) return@mapValues null // if nullable properties, then set value to null
 
                 value.second
             }.onEach { entry-> // set field into instance
@@ -190,18 +210,16 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     }
 
     /**
-     * @param instance: new instance from toValue, if instance implements NbtPath, then pass in, else null
+     * @param fieldPath
      */
     private fun handleField(sourceTag:Tag<out Any>, field: Field, intent: ToValueIntent, fieldPath:String?, fieldTypeId:Byte?):Pair<String?, Any>? {
-        // TODO duplicate code: findTag(which is also used in proxy)
-        // check field annotation
-        val mapToAnn = field.getAnnotation(LinkTo::class.java)
 
-        val targetTag = if (fieldPath!=null || mapToAnn!=null) {
-            val runtimeFieldPath = fieldPath?: mapToAnn.path
-            val accessQueue = NbtPath.toAccessQueue(runtimeFieldPath)
+        // TODO: null check is a kind of mess
+        val targetTag = if (fieldPath!=null) {
+            val accessQueue = NbtPath.toAccessQueue(fieldPath)
             NbtPath.findTag(sourceTag, accessQueue, fieldTypeId)
-                    ?: throw ConversionException("Can not find matched Tag with name:$fieldPath and value type:$fieldTypeId")
+                    ?: return null
+                    //?: throw ConversionException("Can not find matched Tag with name:$fieldPath and value type:$fieldTypeId")
         } else {
             (sourceTag.value as Map<String, Tag<out Any>>)[field.name]
         }

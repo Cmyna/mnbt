@@ -65,16 +65,10 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
     }
 
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
-        val startedTag = if (intent is StartAt) {
-            val accessQueue = TagSearcher.toAccessQueue(intent.path)
-            findTag(tag, accessQueue, intent.tagTypeId)?: throw ConversionException(
-                    "Can not find matched Tag with name:${intent.path} and value type:${intent.tagTypeId}"
-            )
-        } else tag
         // restrict typeToken to tag.value::class.java if typeToken.rawType is Any
         val restrictedTypeToken = (if (typeToken.rawType==Any::class.java) MTypeToken.of(tag.value::class.java) else typeToken) as MTypeToken<V>
         for (delegate in delegateList) {
-            return delegate.toValue(startedTag, restrictedTypeToken, intent) ?: continue
+            return delegate.toValue(tag, restrictedTypeToken, intent) ?: continue
         }
         return null
     }

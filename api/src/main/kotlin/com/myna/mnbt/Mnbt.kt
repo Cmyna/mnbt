@@ -55,7 +55,6 @@ open class Mnbt {
     protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
     protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
     protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
-    protected val annotationHandlerConverter = AnnotationHandlerConverter(this.converterProxy)
     protected val mapTypeTagConverter = MapConverters.MapTypeConverter(this.converterProxy)
 
     protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
@@ -213,7 +212,6 @@ open class Mnbt {
         this.converterProxy.registerToLast(listTypeConverter)
         this.converterProxy.registerToLast(mapTypeTagConverter)
 
-        this.converterProxy.registerToLast(annotationHandlerConverter)
         this.converterProxy.registerToLast(reflectiveConverter)
     }
 

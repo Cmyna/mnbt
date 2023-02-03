@@ -153,5 +153,11 @@ interface NbtPath {
             val idMatch = if (current!=null && targetTagId!=null) current!!.id==targetTagId else true
             return if (sequenceMatchFlag && idMatch) current else null
         }
+
+        fun format(str:String):String {
+            if (str.length>=2 && str.first()!='.' && str[1] != '/') return "./$str"
+            else if (str.isNotEmpty() && str.first()=='/') return ".$str"
+            return str
+        }
     }
 }

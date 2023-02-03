@@ -70,11 +70,3 @@ interface ToValueIntent:ConverterCallerIntent
  */
 interface IgnoreValueTypeToken:ToValueIntent
 
-/**
- * this interface specify the returned value is converted start at which Tag in the whole Tag structure
- */
-interface StartAt:ToValueIntent {
-    val path:String
-    val tagTypeId:Byte
-}
-

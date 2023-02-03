@@ -35,7 +35,7 @@ class LevelLoadingTest {
         val level = gzipStream.use {
             TestMnbt.inst.fromStream(object: MTypeToken<LevelClassForTest>() {}, gzipStream)
         }!!
-        assertEquals("Data", level.first)
+        assertEquals("", level.first)
         assertEquals(testData.hardcore, level.second.hardcore)
         assertEquals(testData.levelName, level.second.LevelName)
         assertEquals(testData.borderCenterX, level.second.BorderCenterX, Double.MIN_VALUE)
