@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken
 import com.myna.mnbt.defaultTreeDepthLimit
 import com.myna.mnbt.exceptions.MaxNbtTreeDepthException
 import com.myna.mnbt.Tag
+import com.myna.mnbt.exceptions.CircularReferenceException
 import com.myna.mnbt.exceptions.ConversionException
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.TagSearcher
@@ -21,6 +22,8 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
     override var proxy: TagConverter<Any, ConverterCallerIntent> = this
 
     private val delegateList = ArrayDeque<TagConverter<Any,in ConverterCallerIntent>>()
+
+    var throwCircularReferenceException = false
 
     /**
      * register converter with bottom priority (if no other converter register last after)
@@ -46,7 +49,11 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
         if (intent.parents.size > defaultTreeDepthLimit-1) throw MaxNbtTreeDepthException(intent.parents.size)
         // check circular reference
         val circularRef = intent.parents.find { value===it }
-        if (circularRef != null) return null //TODO: add more choice, like throws Exception
+        if (circularRef != null) {
+            if (throwCircularReferenceException) throw CircularReferenceException(value)
+            else return null
+        }
+
         intent.parents.push(value)
         var tag: Tag<out Any>? = null
         for (delegate in delegateList) {

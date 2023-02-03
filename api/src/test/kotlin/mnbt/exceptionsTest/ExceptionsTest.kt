@@ -60,6 +60,12 @@ class ExceptionsTest {
             TestMnbt.inst.refCodecProxy.encode(compound1, userEncodeIntent(outputStream))
         }.also {println("Exception throws: ${it.message}\n")}
 
+        // test exception throws in hierarchical codec
+        assertThrows<CircularReferenceException> {
+            val outputStream = ByteArrayOutputStream()
+            TestMnbt.inst.refCompoundCodec.encode(compound1, userEncodeIntent(outputStream))
+        }.also {println("Exception throws: ${it.message}\n")}
+
         val compound3 = CompoundTag("comp3")
         compound3.add(compound3)
         assertThrows<CircularReferenceException> {

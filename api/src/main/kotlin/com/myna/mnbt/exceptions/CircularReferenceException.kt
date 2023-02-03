@@ -2,9 +2,12 @@ package com.myna.mnbt.exceptions
 
 import java.lang.RuntimeException
 
-class CircularReferenceException(tagValue: Any):RuntimeException() {
+/**
+ * @param value object that holds itself directly or indirectly
+ */
+class CircularReferenceException(value: Any):RuntimeException() {
 
-    override val message: String? = "found circular reference in TagValue Structure\n" +
-            "circular Instance: ${tagValue}, circular TagValue Type: ${tagValue::class.java}"
+    override val message: String? = "found circular reference \n" +
+            "circular reference Instance: ${value}, circular object Type: ${value::class.java}"
 
 }

@@ -34,10 +34,11 @@ class TagLocatorInstance
         // drop root tag
         accessSeq.forEach { pathSeg ->
             val value = current!!.value
+            // TODO: make it can handle ListTag
             if (value !is MutableMap<*,*>) {
-                // TODO: more clear exception throws
-                throw IllegalArgumentException("the path segment $pathSeg " +
-                        "related Tag type (tag with value type${value::class.java}) found in whole exists structure is not as expected")
+                throw IllegalArgumentException(
+                        "found tag by $pathSeg in $absolutePath ->" +
+                        "the tag (with value type ${value::class.java}) found is not an Hierarchical Tag")
             }
             value as AnyCompound
             val subTag = value[pathSeg]?: CompoundTag(pathSeg)

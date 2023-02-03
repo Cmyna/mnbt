@@ -47,10 +47,11 @@ interface TagLocator:CreateTagIntent {
 
     /**
      * build hierarchical tag structure by input absolute path.
+     * All path segment related tag is regarded as a Hierarchical Tag
      * @return the tag related to the last directory in the path
      * @throws IllegalArgumentException if first path segment is not equal to the root name in TagLocator,
      * or it is not a absolute path,
-     * or a path segment related tag already exists in tag structure, but tag type is not as expected
+     * or a path segment related tag already exists in tag structure, but it is not an Hierarchical Tag
      */
     fun buildPath(absolutePath: String):Tag<out Any>
 }

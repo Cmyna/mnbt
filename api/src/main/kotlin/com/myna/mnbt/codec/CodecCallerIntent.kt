@@ -73,6 +73,10 @@ interface DecodeOnStream:DecodeIntent {
     val inputStream: InputStream
 }
 
+interface decodeTreeDepth:DecodeIntent {
+    var depth:Int
+}
+
 interface SpecifyIdWhenDecoding:DecodeIntent {
     /**
      * used for deserialization, caller specifies tag id in binary nbt data, typical use case: delegate deserialization to proxy when hasHead is false

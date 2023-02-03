@@ -62,7 +62,7 @@ object Extensions {
             is Long -> this.toLong().toBytes()
             is Float -> this.toFloat().toBits().toBytes()
             is Double -> this.toDouble().toBits().toBytes()
-            else -> TODO()
+            else -> throw NotImplementedError()
         }
     }
 
@@ -78,7 +78,7 @@ object Extensions {
             is Byte -> this[start]
             is Float -> this.toInt(start).let {Float.fromBits(it)}
             is Double -> this.toLong(start).let {Double.fromBits(it)}
-            else -> TODO()
+            else -> throw NotImplementedError()
         } as T
     }
 

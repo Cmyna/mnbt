@@ -7,7 +7,9 @@ import com.myna.mnbt.exceptions.*
 import com.myna.mnbt.tag.NullTag
 import com.myna.mnbt.utils.CodecIntentExentions.tryGetId
 import java.io.*
+import java.lang.reflect.Proxy
 import java.util.*
+import kotlin.reflect.jvm.javaGetter
 
 class DefaultCodecProxy(): Codec<Any> {
 
@@ -38,24 +40,26 @@ class DefaultCodecProxy(): Codec<Any> {
         // check null tag
         val tag2 = tag as Tag<*>
         if (tag2 is NullTag || tag2.value is Nothing || tag2.value==null) return codecMap[IdTagEnd]!!.encode(tag as Tag<Nothing>, intent)
-        val Codec = codecMap[tag.id]?: throw NullPointerException("can not find Codec be tag id:${tag.id} with value ${tag.value}).")
+        val codec = codecMap[tag.id]?: throw NullPointerException("can not find Codec be tag id:${tag.id} with value ${tag.value}).")
 
         // if parents.size reach tree depth limit (consider the tag passed in, data structure will over tree depth limit)
         // throw Exception
         if (parents.size >= defaultTreeDepthLimit) throw MaxNbtTreeDepthException(parents.size)
         // circular check
         // TODO: may can change ways to handle circular reference, like return empty ByteArray when found circular ref
-        parents.onEach { if (tag === it) throw CircularReferenceException(tag) }
+        val foundCirRef = parents.any { tag === it }
+        if (foundCirRef) throw CircularReferenceException(tag)
         // need to push tagValue in stack before pass to delegate, then pop it
         parents.push(tag)
         // run time cast
-        val castedCodec = Codec as Codec<Any>
+        val castedCodec = codec as Codec<Any>
         val feedback = castedCodec.encode(tag, intent)
         parents.pop()
         return feedback
     }
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<Any> {
+        //TODO: decode should handle tree depth
         intent as DecodeOnStream; intent as DecodeHead
         val parents = (intent as CodecRecordParents).parents
         var intentId = if (intent is SpecifyIdWhenDecoding) intent.id else null
@@ -64,19 +68,24 @@ class DefaultCodecProxy(): Codec<Any> {
         var ignoreId = intent is SpecifyIdWhenDecoding
         if (intentId == null) {
             intentId = intent.tryGetId()
-            if (intentId == invalidFlag) throw NullPointerException("Input Stream has reached the end, while deserialization is keep going!")
+            if (intentId == invalidFlag) throw NullPointerException("Input Stream has reached the end, while decode is still in progress!")
             ignoreId = true
         }
         // find Codec by id
         val codec = codecMap[intentId]?: throw IllegalArgumentException("can not find Codec with related id $intentId")
         codec as Codec<Any> // runtime cast
+
         // decoding
-        val newIntent = object: CodecRecordParents,DecodeOnStream,DecodeHead {
-            override val inputStream: InputStream = (intent as DecodeOnStream).inputStream
-            override val parents = parents
-            override val decodeHead: Boolean = intent.decodeHead
-            override val ignoreIdWhenDecoding: Boolean = ignoreId
-        }
+        val newIntent = Proxy.newProxyInstance(
+                intent::class.java.classLoader,
+                intent::class.java.interfaces
+        ) { proxy, method, args->
+            when (method) {
+                DecodeHead::ignoreIdWhenDecoding.javaGetter -> return@newProxyInstance ignoreId
+                else -> return@newProxyInstance method.invoke(intent, *args.orEmpty())
+            }
+            return@newProxyInstance null
+        } as DecodeIntent
         return codec.decode(newIntent)
     }
 

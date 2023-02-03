@@ -75,6 +75,9 @@ interface NbtPath {
         const val scheme = "mnbt://"
         val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
 
+        /**
+         * doc: TODO
+         */
         fun toRelatedPath(vararg relatedPath: String):String {
             if (relatedPath.isEmpty()) return "./"
             val builder = StringBuilder("./${relatedPath.first()}")
@@ -85,6 +88,9 @@ interface NbtPath {
             return builder.toString()
         }
 
+        /**
+         * doc: TODO
+         */
         fun combine(absolutePath: String, relatedPath:String):String {
             if (!isAbsolutePath(absolutePath)) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
             if (!isRelatedPath(relatedPath)) throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
@@ -96,21 +102,33 @@ interface NbtPath {
             return builder.toString()
         }
 
+        /**
+         * doc: TODO
+         */
         fun appendSubDir(absolutePath: String, subDir:String):String {
             return if (absolutePath.last() != '/') "$absolutePath/$subDir"
             else "$absolutePath$subDir"
         }
 
+        /**
+         * doc: TODO
+         */
         fun isAbsolutePath(path:String):Boolean {
             path.substring(0, scheme.length).also {
                 return it == scheme
             }
         }
 
+        /**
+         * doc: TODO
+         */
         fun isRelatedPath(path:String):Boolean {
             return path.length>=2 && path.first()=='.' && path.get(1)=='/'
         }
 
+        /**
+         * doc: TODO
+         */
         fun toAccessQueue(path:String):Sequence<String> {
             val pathValue = if (isAbsolutePath(path)) path.substring(scheme.length, path.length)
             else if (isRelatedPath(path)) path.substring(2, path.length)
