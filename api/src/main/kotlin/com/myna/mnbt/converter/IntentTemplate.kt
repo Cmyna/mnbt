@@ -1,29 +1,26 @@
 package com.myna.mnbt.converter
 
-import com.myna.mnbt.annotations.LinkTo
+import java.lang.reflect.Proxy
 import java.util.*
 
 //TODO: change all intent creation called from Converter to dynamic proxy
 
-fun nestCIntent(parents: Deque<Any>, ignoreTypeToken:Boolean): RecordParents {
-    return object: RecordParents, ToValueTypeToken {
-        override val parents: Deque<Any> = parents
-        override val ignore: Boolean = ignoreTypeToken
+fun nestCIntent(intent: ToValueIntent, ignoreTypeToken:Boolean): ToValueIntent {
+    val interfaces = intent::class.java.interfaces.toMutableSet()
+    if (ignoreTypeToken) interfaces.add(IgnoreValueTypeToken::class.java)
+    else interfaces.remove(IgnoreValueTypeToken::class.java)
+    interfaces.remove(StartAt::class.java)
+    return Proxy.newProxyInstance(intent::class.java.classLoader, interfaces.toTypedArray()) {
+        _, method, args ->
+        return@newProxyInstance method.invoke(intent, *args.orEmpty())
+    } as ToValueIntent
+}
+
+fun converterCallerIntent(ignoreTypeToken:Boolean = false): ToValueIntent {
+    return if (ignoreTypeToken) object: IgnoreValueTypeToken,RecordParents {
+        override val parents: Deque<Any> = ArrayDeque()
+    } else object:RecordParents,ToValueIntent {
+        override val parents: Deque<Any> = ArrayDeque()
     }
 }
 
-fun converterCallerIntent(ignoreTypeToken:Boolean = false): ConverterCallerIntent {
-    return object: ToValueTypeToken,RecordParents {
-        override val parents: Deque<Any> = ArrayDeque()
-        override val ignore: Boolean = ignoreTypeToken
-    }
-}
-
-fun conversionWithStartAtIntent(parents: Deque<Any>, ignoreTypeToken:Boolean, annotation: LinkTo): ConverterCallerIntent {
-    return object: ToValueTypeToken,StartAt,RecordParents {
-        override val parents: Deque<Any> = ArrayDeque()
-        override val ignore = ignoreTypeToken
-        override val path = annotation.path
-        override val tagTypeId = annotation.typeId
-    }
-}

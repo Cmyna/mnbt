@@ -96,7 +96,7 @@ open class Mnbt {
     fun <V:Any> fromBytes(bytes:ByteArray, start:Int, typeToken: MTypeToken<out V>? = null):Pair<String, V>? {
         val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
         val feedback = onByteCodecProxy.decode(userOnBytesDecodeIntent(bytes, start))
-        val converterCallerIntent = if (typeToken == null)  nestCIntent(ArrayDeque(), true) else nestCIntent(ArrayDeque(), false)
+        val converterCallerIntent = if (typeToken == null)  converterCallerIntent(true) else converterCallerIntent(false)
         val res = converterProxy.toValue(feedback.tag, actualTypeToken, converterCallerIntent)
         if (res?.first==null) throw NullPointerException()
         return res as Pair<String, V>? // runtime check

@@ -33,7 +33,7 @@ object ListConverters {
             var elementId:Byte = -1
             for (i in IntRange(0, size-1)) {
                 val v = java.lang.reflect.Array.get(value, i)
-                val subTag = proxy.createTag(null, v, compType, nestCIntent(intent.parents, false))?: continue
+                val subTag = proxy.createTag(null, v, compType, intent)?: continue
                 if (elementId==(-1).toByte()) elementId = subTag.id
                 listTagContent.add(subTag)
             }
@@ -44,14 +44,14 @@ object ListConverters {
 
 
         override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ConverterCallerIntent): Pair<String?, ARR>? {
-            intent as RecordParents
+            intent as RecordParents; intent as ToValueIntent
             if (tag.value !is List<*>) return null
             val value = tag.value as MutableList<out Tag<out Any>>
             if (!typeToken.isArray) return null
             val arrComp = typeToken.componentType?: return null
             val array = java.lang.reflect.Array.newInstance(arrComp.rawType, value.size)
             value.onEachIndexed { i, element ->
-                val v = proxy.toValue(element, arrComp, nestCIntent(intent.parents, false))?:return@onEachIndexed
+                val v = proxy.toValue(element, arrComp, nestCIntent(intent, false))?:return@onEachIndexed
                 java.lang.reflect.Array.set(array, i, v.second)
             }
             return Pair(tag.name, array as ARR)
@@ -80,9 +80,8 @@ object ListConverters {
                 // try get first element type
                 if (firstElementType==null) firstElementType = element::class.java
                 // try to convert value by declared parameterized type or first element actual type
-                val toProxyIntent = nestCIntent(intent.parents, true)
-                val convertedValue = proxy.createTag(null, element, declaredElementType, toProxyIntent) ?:
-                firstElementType?.let { proxy.createTag(null, element, MTypeToken.of(firstElementType!!) as MTypeToken<out Any>, toProxyIntent) } ?: return@onEach
+                val convertedValue = proxy.createTag(null, element, declaredElementType, intent) ?:
+                firstElementType?.let { proxy.createTag(null, element, MTypeToken.of(firstElementType!!) as MTypeToken<out Any>, intent) } ?: return@onEach
                 if (elementId == (-1).toByte()) elementId = convertedValue.id
                 list.add(convertedValue)
             }
@@ -90,12 +89,12 @@ object ListConverters {
         }
 
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
-            intent as RecordParents; intent as ToValueTypeToken
+            intent as RecordParents; intent as ToValueIntent
             // check tagValue is List
             if (tag.value !is List<*>) return null
             val value = tag.value as AnyTagList
             // if ignore typeToken, then set typeToken as default List
-            val actualTypeToken = if (intent.ignore) iterableType else typeToken
+            val actualTypeToken = if (intent is IgnoreValueTypeToken) iterableType else typeToken
             if (!actualTypeToken.isSubtypeOf(iterableType)) return null
             val declaredElementType = actualTypeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
             // try get list instance from typetoken
@@ -105,7 +104,7 @@ object ListConverters {
                 val elementType = if(value.size>0) value.get(0).let{MTypeToken.of(it.value::class.java)} else null
                 elementType as MTypeToken<out Any>
                 val metaTargetElement = proxy.toValue(elementTagValue, declaredElementType, intent) ?:
-                proxy.toValue(elementTagValue, elementType, nestCIntent(intent.parents, true)) ?: return@onEach
+                proxy.toValue(elementTagValue, elementType, nestCIntent(intent, true)) ?: return@onEach
                 list.add(metaTargetElement.second)
             }
             return Pair(tag.name, list as V)

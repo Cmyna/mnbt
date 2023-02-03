@@ -36,7 +36,7 @@ abstract class HierarchicalTagConverter<NbtRelatedType:Any>: TagConverter<NbtRel
     // in general, the delegator should not care about what actual type token in, just let proxy handle it
     abstract var proxy: TagConverter<Any, ConverterCallerIntent>
     override fun defaultIntent(): ConverterCallerIntent {
-        return nestCIntent(ArrayDeque(), false)
+        return converterCallerIntent(false)
     }
 }
 

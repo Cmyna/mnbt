@@ -64,13 +64,11 @@ interface ParentTagsInfo:CreateTagIntent {
 
 interface ToValueIntent:ConverterCallerIntent
 
-interface ToValueTypeToken:ToValueIntent {
-    /**
-    * ignore the typeToken in, which means converter will handle value type by itself.
-    * Typical usage: let Converter return default value when calling toValue
-    */
-    val ignore:Boolean
-}
+/**
+ * ignore the typeToken in, which means converter will handle value type by itself.
+ * Typical usage: let Converter return default value when calling toValue
+ */
+interface IgnoreValueTypeToken:ToValueIntent
 
 /**
  * this interface specify the returned value is converted start at which Tag in the whole Tag structure

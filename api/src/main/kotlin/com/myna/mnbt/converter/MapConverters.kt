@@ -36,8 +36,8 @@ object MapConverters {
                 val map: AnyCompound = mutableMapOf()
                 value.onEach {
                     val subValue = it.value
-                    val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, nestCIntent(intent.parents, false))?:
-                    proxy.createTag(it.key, subValue, MTypeToken.of(subValue::class.java) as MTypeToken<out Any>, nestCIntent(intent.parents, true))?: return@onEach
+                    val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, intent)?:
+                    proxy.createTag(it.key, subValue, MTypeToken.of(subValue::class.java) as MTypeToken<out Any>, intent)?: return@onEach
                     //set[it.key] = tag
                     map[tag.name!!] = tag
                 }
@@ -45,12 +45,12 @@ object MapConverters {
             }
 
             override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
-                intent as RecordParents; intent as ToValueTypeToken
+                intent as RecordParents; intent as ToValueIntent
                 // check tagValue is MutableMap or not
                 if (tag.value !is Map<*,*>) return null
                 val value = tag.value as Map<String, Tag<out Any>>
                 // if ignoreTypeToken is true, toValue as default Map type
-                val actualTypeTokenIn = if (intent.ignore) mapTypeToken else typeToken
+                val actualTypeTokenIn = if (intent is IgnoreValueTypeToken) mapTypeToken else typeToken
                 // check type token is subtype of map or not
                 if (!actualTypeTokenIn.isSubtypeOf(mapTypeToken)) return null
                 // try get fix delegate from typeToken declaration
@@ -63,8 +63,8 @@ object MapConverters {
                     checkNotNull(subTag.name)
                     val subTagValueTypeToken = MTypeToken.of(subTag.value::class.java) as MTypeToken<out Any>
                     // just let proxy try two kinds of type token with subTagValue
-                    val res = proxy.toValue(subTag, declaredValueTypeToken, nestCIntent(intent.parents, false))?:
-                    proxy.toValue(subTag, subTagValueTypeToken, nestCIntent(intent.parents, true)) ?: return@onEach
+                    val res = proxy.toValue(subTag, declaredValueTypeToken, nestCIntent(intent, false))?:
+                    proxy.toValue(subTag, subTagValueTypeToken, nestCIntent(intent, true)) ?: return@onEach
                     newMap[subTag.name!!] = res.second
                 }
 

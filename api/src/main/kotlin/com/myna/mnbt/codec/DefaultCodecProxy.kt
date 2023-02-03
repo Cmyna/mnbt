@@ -59,7 +59,6 @@ class DefaultCodecProxy(): Codec<Any> {
     }
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<Any> {
-        //TODO: decode should handle tree depth
         intent as DecodeOnStream; intent as DecodeTreeDepth
         var intentId = if (intent is SpecifyIdWhenDecoding) intent.id else null
 

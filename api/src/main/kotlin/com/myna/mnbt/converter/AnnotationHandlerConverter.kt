@@ -15,7 +15,7 @@ class AnnotationHandlerConverter(override var proxy: TagConverter<Any, Converter
     }
 
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
-        intent as ToValueTypeToken; intent as RecordParents
+        intent as RecordParents; intent as ToValueIntent
         val mapToAnn = typeToken.rawType.getAnnotation(com.myna.mnbt.annotations.LinkTo::class.java)
 //        if (mapToAnn!=null) {
 //            val startedTag = TagSearcher.findTag(tag, mapToAnn.path, mapToAnn.typeId) ?: throw ConversionException(

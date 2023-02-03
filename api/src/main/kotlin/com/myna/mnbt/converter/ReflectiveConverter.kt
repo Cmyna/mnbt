@@ -41,6 +41,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
     var outputDebugInfo:Boolean = false
 
+    // TODO: refact temporal design that name is null will rebuild TagLocator
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
         // parameters check
         val callerIntent = intent as RecordParents
@@ -55,8 +56,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
         // temporal: if name is null, set it as '#'
-        var dataEntryAbsPath = NbtPath.appendSubDir(rootContainerPath, name?:"#")
+        var dataEntryAbsPath = if (name != null) NbtPath.appendSubDir(rootContainerPath, name) else "mnbt://#/"
         var fieldsRelatedPath:Map<Field, Array<String>>? = null
+
+
         if (value is NbtPath) {
             // construct data entry tag and provide fields paths
             dataEntryAbsPath = value.getClassExtraPath().let { arrTypePath->
@@ -66,7 +69,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
 
         // get tag locator, else build a new one
-        val tagLocatorIntent = if (intent is TagLocator) {
+        val tagLocatorIntent = if (name != null && intent is TagLocator) {
             intent.linkTagAt(rootContainerPath, root)
             intent
         } else {
@@ -116,9 +119,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     }
 
     private fun buildSubTagCreationIntent(fieldTagContainerPath:String, createTagIntent: RecordParents, tagLocator: TagLocator):CreateTagIntent {
-        return object: RecordParents, ToValueTypeToken, ParentTagsInfo, TagLocator by tagLocator {
+        return object: RecordParents, ParentTagsInfo, TagLocator by tagLocator {
             override val parents: Deque<Any> = createTagIntent.parents
-            override val ignore: Boolean = false
             override val rootContainerPath = fieldTagContainerPath
         }
     }
@@ -129,7 +131,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     // if can not construct instance, return null
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
         // parameter check
-        intent as RecordParents
+        intent as RecordParents; intent as ToValueIntent
         val tagValue = tag.value
         if (tagValue !is Map<*,*>) return null
         val declaredRawType = typeToken.rawType
@@ -142,6 +144,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val fields = ObjectInstanceHandler.getAllFields(declaredRawType)
 
         // try get NbtPath implementation
+        val mapToAnn = typeToken.rawType.getAnnotation(com.myna.mnbt.annotations.LinkTo::class.java)
         var classPath:String? = null
         var fieldsPath:Map<Field, Array<String>>? = null
         var fieldsId:Map<Field, Byte>? = null
@@ -189,7 +192,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     /**
      * @param instance: new instance from toValue, if instance implements NbtPath, then pass in, else null
      */
-    private fun handleField(sourceTag:Tag<out Any>, field: Field, intent: RecordParents, fieldPath:String?, fieldTypeId:Byte?):Pair<String?, Any>? {
+    private fun handleField(sourceTag:Tag<out Any>, field: Field, intent: ToValueIntent, fieldPath:String?, fieldTypeId:Byte?):Pair<String?, Any>? {
         // TODO duplicate code: findTag(which is also used in proxy)
         // check field annotation
         val mapToAnn = field.getAnnotation(LinkTo::class.java)
@@ -205,7 +208,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         if (targetTag==null) return null
 
         val fieldTypeToken = MTypeToken.of(field.genericType)
-        return proxy.toValue(targetTag, fieldTypeToken, nestCIntent(intent.parents, false))
+        return proxy.toValue(targetTag, fieldTypeToken, nestCIntent(intent, false))
     }
 
     /**
