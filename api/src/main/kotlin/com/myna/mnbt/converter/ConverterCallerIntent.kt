@@ -40,6 +40,8 @@ interface TagLocator:CreateTagIntent {
 
     /**
      * link a new tag with an absolute parent path
+     * @param tag the tag want to linked
+     * @param absolutePath: the parent path to target [tag]
      */
     fun linkTagAt(absolutePath: String, tag:Tag<out Any>):Boolean
 

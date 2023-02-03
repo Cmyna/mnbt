@@ -44,21 +44,21 @@ object BinaryCodecInstances {
     val stringCodec = StringCodec() as DefaultCodec<String>
     val byteArrayCodec = FixPayloadArrayTagFlatCodec<Byte, ByteArray>(
             IdTagByteArray, 1, { name, value-> ArrayTag.ByteArrayTag(name, value)},
-            {data:ByteArray, start:Int -> data.toBasic(start, 0.toByte())},
-            {element-> byteArrayOf(element)},
+            {bytes,pointer,arr,i -> arr[i] = bytes.toBasic(pointer, 0.toByte())},
+            {arr,i-> arr[i].toBytes()},
             BitsArrayLengthGetter::defaultToInt,
             ByteArray::class.java
     ) as DefaultCodec<ByteArray>
     val intArrayCodec = FixPayloadArrayTagFlatCodec<Int, IntArray>(
             IdTagIntArray, 4, { name, value-> ArrayTag.IntArrayTag(name, value)},
-            {data:ByteArray, start:Int -> data.toBasic(start, 0)},
-            {element-> element.toBytes()},
+            {bytes,pointer,arr,i -> arr[i] = bytes.toBasic(pointer, 0)},
+            {arr,i-> arr[i].toBytes()},
             BitsArrayLengthGetter::defaultToInt,
             IntArray::class.java) as DefaultCodec<IntArray>
     val longArrayCodec = FixPayloadArrayTagFlatCodec<Long, LongArray>(
             IdTagLongArray, 8, { name, value-> ArrayTag.LongArrayTag(name, value)},
-            {data:ByteArray, start:Int -> data.toBasic(start, 0.toLong())},
-            {element-> element.toBytes()},
+            {bytes,pointer,arr,i -> arr[i] = bytes.toBasic(pointer, 0.toLong())},
+            {arr,i-> arr[i].toBytes()},
             BitsArrayLengthGetter::defaultToInt,
             LongArray::class.java) as DefaultCodec<LongArray>
 
@@ -102,8 +102,6 @@ object BinaryCodecInstances {
         }
     }
 
-
-    // TODO: optimization: replace RArray.get/set
     /**
      * here restrict the Tag sub-class related generic type is an array by check generic type ET of input parameters clazz
      */
@@ -112,10 +110,10 @@ object BinaryCodecInstances {
             id:Byte,
             val elementSize:Int,
             val tagCreation: (name: String?, value: ARR) -> Tag<ARR>,
-            val bitsToElement: (data:ByteArray, start:Int)->E,
-            val elementToBits: (element:E)->ByteArray,
-
+            val setBytesElementToArray: (data:ByteArray, start:Int, arrInst:ARR, elementIndex:Int)->Unit,
+            val elementToBits: (elementArr:ARR, index:Int)->ByteArray,
             val bitsToArrayLength: (data:ByteArray, start:Int)->Int, // bits to array length function
+
             valueTypeToken:Class<ARR>,
             ) : DefaultCodec<ARR>(id, valueTypeToken) {
 
@@ -137,8 +135,8 @@ object BinaryCodecInstances {
             val elementNum = RArray.getLength(value)
             val outputStream = intent.outputStream
             outputStream.write(elementNum.toBytes())
-            for (i in IntRange(0, elementNum-1)) {
-                val elementBits = elementToBits(RArray.get(value, i) as E)
+            for (i in 0 until elementNum) {
+                val elementBits = elementToBits(value, i)
                 outputStream.write(elementBits)
             }
             return object:CodecFeedback {}
@@ -153,8 +151,7 @@ object BinaryCodecInstances {
             if (size < 0) throw IllegalArgumentException("get invalid binary Nbt data, array size $size is negative!")
             val array = RArray.newInstance(valueTypeToken.componentType, size) as ARR
             for (i in 0 until size) {
-                val element = bitsToElement(inputStream.readNBytes(elementSize), 0)
-                RArray.set(array, i, element)
+                setBytesElementToArray(inputStream.readNBytes(elementSize), 0, array, i)
             }
             return array
         }

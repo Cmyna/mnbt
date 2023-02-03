@@ -391,7 +391,7 @@ class PerformanceProfiling {
             start += System.nanoTime()
             return Pair(bits, start)
         }
-        TODO()
+        throw NotImplementedError()
     }
 
 

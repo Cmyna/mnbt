@@ -50,10 +50,10 @@ dependencies {
     // annotation
     implementation(project(":annotation"))
     // annotation processor
-    annotationProcessor(project(":processor"))
-    testAnnotationProcessor(project(":processor"))
-    kapt(project(":processor"))
-    kaptTest(project(":processor"))
+//    annotationProcessor(project(":processor"))
+//    testAnnotationProcessor(project(":processor"))
+//    kapt(project(":processor"))
+//    kaptTest(project(":processor"))
 }
 
 //kapt {

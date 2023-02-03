@@ -76,6 +76,7 @@ interface NbtPath {
         val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
 
         fun toRelatedPath(vararg relatedPath: String):String {
+            if (relatedPath.isEmpty()) return "./"
             val builder = StringBuilder("./${relatedPath.first()}")
             relatedPath.asSequence().drop(1).forEach {
                 builder.append("/")
