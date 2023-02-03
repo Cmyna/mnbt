@@ -24,6 +24,7 @@ class TagLocatorInstance
         if (parentContainer !is MutableMap<*,*>) return false
         parentContainer as MutableMap<String, Tag<out Any>>
         if (tag.name == null) return false
+        //if (parentContainer[tag.name!!] != null) throw RuntimeException()
         parentContainer[tag.name!!] = tag
         return true
     }

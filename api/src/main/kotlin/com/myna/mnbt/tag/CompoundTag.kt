@@ -23,4 +23,8 @@ class CompoundTag(
     fun add(value: Tag<out Any>):Tag<out Any>? {
         return this.value.put(value.name!!, value)
     }
+
+    operator fun get(name: String):Tag<out Any>? {
+        return this.value[name]
+    }
 }
