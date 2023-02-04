@@ -23,6 +23,8 @@ import kotlin.random.Random
 
 typealias RArray = java.lang.reflect.Array
 
+// TODO: add log output when equals function returns false (for locating where comes wrong)
+
 @Suppress("UnstableApiUsage")
 object ApiTestTool {
 
