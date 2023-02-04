@@ -29,7 +29,7 @@ class ListTag<NbtRelatedType:Any>(
         // because NbtRelatedType is from other object
         // the equals function may not perform as expected
         // we need to get the related encapsulated Tag instance and use its equals function
-        if (!PrimitiveTag.isTagAndEqName(this, other)) return false
+        if (!isTagAndEqName(this, other)) return false
         if (other !is ListTag<*>) return false
         return listEqFun(value as List<Tag<Any>>, other.value)
     }

@@ -2,15 +2,9 @@ package com.myna.mnbt.tag
 
 import com.myna.mnbt.*
 import com.myna.mnbt.Tag
+import com.myna.mnbt.Tag.Companion.isTagAndEqName
 
 object PrimitiveTag {
-
-    fun isTagAndEqName(tag: Tag<*>, other: Any?):Boolean {
-        if (other==null) return false
-        if (other !is Tag<*>) return false
-        if (tag.name != other.name) return false
-        return true
-    }
 
     fun primitiveEqFun(tag: Tag<*>, other:Any?):Boolean {
         if (!isTagAndEqName(tag, other)) return false

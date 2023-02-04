@@ -17,6 +17,15 @@ abstract class Tag<NbtRelatedType> {
      * the nbt data type id of a tag
      */
     abstract val id:Byte
+
+    companion object {
+        fun isTagAndEqName(tag: Tag<*>, other: Any?):Boolean {
+            if (other==null) return false
+            if (other !is Tag<*>) return false
+            if (tag.name != other.name) return false
+            return true
+        }
+    }
 }
 
 

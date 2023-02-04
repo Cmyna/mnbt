@@ -14,7 +14,7 @@ class CompoundTag(
     constructor(name:String?=null):this(name, mutableMapOf())
 
     override fun equals(other: Any?): Boolean {
-        if (!PrimitiveTag.isTagAndEqName(this, other)) return false
+        if (!isTagAndEqName(this, other)) return false
         other as Tag<AnyCompound>
         //if (value.size != other.value.size) return false
         return value == other.value

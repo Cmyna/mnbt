@@ -8,7 +8,7 @@ import com.myna.mnbt.Tag
 object ArrayTag {
 
     fun reflectiveArrayTagEq(tag: Tag<*>, other: Any?):Boolean {
-        if(!PrimitiveTag.isTagAndEqName(tag, other)) return false
+        if(!Tag.isTagAndEqName(tag, other)) return false
         other as Tag<*>
         return reflectArrayTagValueEq(tag.value, other.value)
     }
