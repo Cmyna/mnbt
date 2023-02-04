@@ -11,7 +11,6 @@ import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
 import java.lang.Exception
 import java.lang.IllegalArgumentException
-import java.lang.RuntimeException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -60,22 +59,19 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
 
-        // create root tag
-        //TODO: fix issue that root tag already created before call createTag
+        // create root tag and get TagLocator intent
         val rootContainerPath = if (intent is ParentTagsInfo) intent.rootContainerPath else "mnbt://"
-        val root:CompoundTag? // root is the final return
-
-        val fields = ObjectInstanceHandler.getAllFields(value::class.java)
-
         // get tag locator, else build a new one
-        val tagLocatorIntent = if (name != null && intent is TagLocator) {
+        val (root,tagLocatorIntent) = if (name != null && intent is TagLocator) {
+            // TODO: findAt return check, rootContainer[name] tag type check
             val rootContainer = intent.findAt(rootContainerPath, IdTagCompound) as CompoundTag
-            root = (rootContainer[name]?:CompoundTag(name)) as CompoundTag
-            intent.linkTagAt(rootContainerPath, root)
-            intent
+            val gotRoot = (rootContainer[name]?:CompoundTag(name)) as CompoundTag
+            intent.linkTagAt(rootContainerPath, gotRoot)
+            Pair(gotRoot, intent)
         } else {
-            root = CompoundTag(name)
-            TagLocatorInstance(root)
+            val newRoot = CompoundTag(name)
+            val newIntent = TagLocatorInstance(newRoot)
+            Pair(newRoot, newIntent)
         }
 
         // dataEntry is the tag stores the result of value conversion (object conversion)
@@ -105,7 +101,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val fieldTypeToken: MTypeToken<out Any>
                 )
 
-
+        val fields = ObjectInstanceHandler.getAllFields(value::class.java)
         try {
             val createSubTagsArgsMap = fields.mapNotNull { field->
                 val accessible = field.trySetAccessible()

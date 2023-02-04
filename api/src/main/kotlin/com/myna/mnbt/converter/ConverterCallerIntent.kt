@@ -33,7 +33,9 @@ interface CreateTagIntent:ConverterCallerIntent
  */
 interface TagLocator:CreateTagIntent {
     /**
+     * find a tag in TagLocator by absolute path passed in
      * @param absolutePath mnbt format absolute URL String
+     * @return target tag. Returns null if path incorrect or found a tag in path but id incorrect
      */
     fun findAt(absolutePath: String, id:Byte):Tag<out Any>?
 
