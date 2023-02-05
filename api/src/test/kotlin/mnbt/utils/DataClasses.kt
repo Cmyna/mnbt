@@ -13,14 +13,16 @@ open class UseBeanObjEqFun {
 
 data class DataClass1 (
     var i:Int,
-    var j:String
+    var j:String,
+    var k:Long? = null // nullable member
 ): UseBeanObjEqFun()
 
 fun DataClass1.toCompound(name:String?): CompoundTag {
-    return CompoundTag(name).also { root->
-        ApiTestValueBuildTool.prepareTag2("i", this.i).also { root.add(it) }
-        ApiTestValueBuildTool.prepareTag2("j", this.j).also { root.add(it) }
-    }
+    val comp = CompoundTag(name)
+    ApiTestValueBuildTool.prepareTag2("i", this.i).also { comp.add(it) }
+    ApiTestValueBuildTool.prepareTag2("j", this.j).also { comp.add(it) }
+    this.k?.apply { ApiTestValueBuildTool.prepareTag2("j", this).also { comp.add(it) } }
+    return comp
 }
 
 data class DataClass2 (

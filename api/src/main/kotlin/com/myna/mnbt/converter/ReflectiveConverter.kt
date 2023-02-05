@@ -120,12 +120,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
                 val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
 
-                // try let proxy handle sub tag, if null then ignore this field
-//                val subTag = proxy.createTag(fieldTagName, fieldValue, fieldTk, fieldIntent) ?:return@mapNotNull null
-//                val a = subTagEntry.add(subTag)
-//                if (a != null && subTag!=a) throw RuntimeException("$fieldTagName $a $subTag ")
-
-
                 CreateSubTagArgs(fieldValue, fieldTagName, subTagEntry, fieldIntent, fieldTk)
             }
 
@@ -133,29 +127,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val subTag = proxy.createTag(it.subTagName, it.value, it.fieldTypeToken, it.createSubTagIntent) ?:return@onEach
                 it.subTagEntry.add(subTag)
             }
-//            fields.onEach { field-> // try set field accessible
-//                val accessible = field.trySetAccessible()
-//                if (!accessible) return@onEach // if try set Accessible return false, it may be a static final member
-//                val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
-//                val actualValue = field.get(value) ?: return@onEach // actual value is null, skip this field
-//
-//                val fieldRelatedPath = fieldsRelatedPath?.get(field)
-//                val fieldTagContainerPath = getSubTagContainerPath(field, dataEntryAbsPath, fieldRelatedPath)
-//
-//                // build compounds with field's parent tag absolute path
-//                val parentTag = tagLocatorIntent.buildPath(fieldTagContainerPath) as CompoundTag
-//
-//                // get actual name to to field tag (try get path last tag name, else use field name)
-//                val specifyFieldName = fieldRelatedPath!=null && fieldRelatedPath.isNotEmpty()
-//                val fieldTagName:String = if (!specifyFieldName) field.name else fieldRelatedPath!!.last()
-//
-//                val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
-//
-//                // try let proxy handle sub tag, if null then ignore this field
-//                val subTag = proxy.createTag(fieldTagName, actualValue, fieldTk, fieldIntent) ?:return@onEach
-//
-//                parentTag.add(subTag)
-//            }
             return root
         }
         catch(e:Exception) {
@@ -201,7 +172,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val fields = ObjectInstanceHandler.getAllFields(declaredRawType)
 
         // try get NbtPath implementation
-        val mapToAnn = typeToken.rawType.getAnnotation(com.myna.mnbt.annotations.LinkTo::class.java)
+        val mapToAnn = typeToken.rawType.getAnnotation(LinkTo::class.java)
         val classPath: String?
         var fieldsId:Map<Field, Byte>? = null
         if (instance is NbtPath) {
