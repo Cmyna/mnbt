@@ -94,4 +94,6 @@ class TestUtilTest {
         bean9.bean3Int = 555
         assertTrue(!beanEq(bean8, bean9))
     }
+
+
 }

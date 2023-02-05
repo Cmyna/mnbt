@@ -1,5 +1,7 @@
 package com.myna.mnbt
 
+
+
 /**
  * tag head payload: 3 bytes(1 bytes for id, two bytes for name len)
  */
@@ -117,3 +119,19 @@ const val IdTagLongArray:Byte = 12
  * default max depth:512
  */
 const val defaultTreeDepthLimit = 512
+
+val idNameMapper = mapOf(
+        IdTagEnd to "End Tag",
+        IdTagCompound to "Compound Tag",
+        IdTagByteArray to "ByteArray Tag",
+        IdTagByte to "Byte Tag",
+        IdTagFloat to "Float Tag",
+        IdTagShort to "Short Tag",
+        IdTagString to "String Tag",
+        IdTagLong to "Long Tag",
+        IdTagInt to "Int Tag",
+        IdTagList to "List Tag",
+        IdTagLongArray to "LongArray Tag",
+        IdTagDouble to "Double Tag",
+        IdTagIntArray to "Int Array Tag",
+)

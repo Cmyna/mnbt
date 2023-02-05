@@ -229,6 +229,8 @@ object ApiTestTool {
 
         val soft = SoftAssertions()
 
+        private val mockTagEq = MockTagEquals()
+
         fun <NbtT:Any, VT:Any> apiTest(
                 tagConverter: TagConverter<NbtT, out ConverterCallerIntent>, codec: Codec<NbtT>,
                 valueBitsLen: Int, typeToken: MTypeToken<VT>, valueCreation:()->VT) {
@@ -266,7 +268,7 @@ object ApiTestTool {
                 if (!noPrint) println("\traw type equals: ${typeToken.rawType==resRawType}")
             }
             if (testMnbt) {
-                assertEquals(tag1, tagFromMnbt)
+                assertTrue(mockTagEq.equals(tag1, tagFromMnbt))
                 mnbtTest(actualName1, value1, typeToken, valueBitsLen)
             }
         }
@@ -310,7 +312,7 @@ object ApiTestTool {
                 soft.assertThat(tag2).`as`("assert tag2 tag3 not Eq").isNotEqualTo(tag3) // assert name and value both not equals, final not equals
                 soft.assertThat(tagLen).`as`("assert bits len as expected").isEqualTo(bytes.size) // assert bits len size
                 soft.assertThat(inputStream.available()).`as`("assert pointer after deserialization as expected").isEqualTo(0) // check pointer after deserialization
-                soft.assertThat(tag1).`as`("assert tag1 decoded tag Eq").isEqualTo(desTag) // check decoded tag as expected
+                soft.assertThat(mockTagEq.equals(tag1, desTag)).`as`("assert tag1 decoded tag Eq") // check decoded tag as expected
                 //soft.assertThat(desTag).`as`("assert on bytes result equals to on Stream result").isEqualTo(desTag2)
                 //soft.assertThat(bytes.size).`as`("assert on bytes result bits len equals to on stream result").isEqualTo(bytes2.size)
                 soft.assertThat(tag3).`as`("assert tag3 decoded tag not Eq").isNotEqualTo(desTag)
@@ -353,6 +355,7 @@ object ApiTestTool {
         var testMnbt:Boolean = true
 
         private val soft = SoftAssertions()
+        private val mockTagEq = MockTagEquals()
 
         fun <V:Any> apiTest(name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
             this.testMnbt = false
@@ -374,10 +377,10 @@ object ApiTestTool {
                 if (assertNameNotEquals && assertNameNotEquals) soft.assertThat(tag2).isNotEqualTo(tag3)
                 soft.assertThat(valueEqFun(value1, fromTag1.second))
                 soft.assertThat(valueEqFun(value2, fromTag2.second))
-                if (expectedTag!=null)  soft.assertThat(tag1).isEqualTo(expectedTag)
+                if (expectedTag!=null) soft.assertThat(mockTagEq.equals(tag1, expectedTag)).`as`("assert converted tag is as expected")
                 if (testMnbt) {
-                    soft.assertThat(tag1).isEqualTo(tag4)
-                    soft.assertThat(valueEqFun(fromTag1.second, fromTag4!!.second))
+                    soft.assertThat(mockTagEq.equals(tag1, tag4))
+                    soft.assertThat(valueEqFun(fromTag1.second, fromTag4!!.second)).`as`("assert converted tag (by Mnbt) is as expected")
                 }
                 soft.assertAll()
             }

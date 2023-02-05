@@ -1,14 +1,10 @@
 package mnbt.converterTest
 
 import com.myna.mnbt.*
-import com.myna.mnbt.converter.ReflectiveConverter
-import com.myna.mnbt.converter.TagLocator
 import com.myna.mnbt.converter.meta.NbtPath
-import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Field
 import kotlin.random.Random
