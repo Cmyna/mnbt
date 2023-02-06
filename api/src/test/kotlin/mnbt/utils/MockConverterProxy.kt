@@ -14,11 +14,11 @@ class MockConverterProxy(realProxy:TagConverter<Any, ConverterCallerIntent>):Hie
 
     data class CreateTagMockFeedback(val asReturn:Boolean, val result:Tag<out Any>?)
 
-    val createMockTagSupplier:MutableList<MockTagSupplier> = ArrayList()
+    val createMockTagSupplier:MutableMap<String, MockTagSupplier> = HashMap()
 
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<out Any>? {
         createMockTagSupplier.onEach {
-            val feedback = it(name, value, typeToken, intent)
+            val feedback = it.value(name, value, typeToken, intent)
             if (feedback.asReturn) return feedback.result
         }
         return proxy.createTag(name, value, typeToken, intent)

@@ -353,7 +353,7 @@ object ApiTestTool {
         var noAssertions = false
         var expectedTag:Tag<out Any>? = null
         var testMnbt:Boolean = true
-        val mnbtInst = TestMnbt.inst
+        val mnbtInst = TestMnbt()
 
         private val soft = SoftAssertions()
         private val mockTagEq = MockTagEquals()

@@ -3,8 +3,8 @@ package com.myna.mnbt.converter.meta
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.TagLocator
-import com.myna.mnbt.converter.meta.NbtPath.Companion.scheme
-import com.myna.mnbt.converter.meta.NbtPath.Companion.tagNameRegex
+import com.myna.mnbt.converter.meta.NbtPathTool.scheme
+import com.myna.mnbt.converter.meta.NbtPathTool.tagNameRegex
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import java.lang.IllegalArgumentException
@@ -15,7 +15,7 @@ class TagLocatorInstance
 
     override fun findAt(absolutePath: String, id:Byte): Tag<out Any>? {
         val accessSeq = buildSequencesWithoutRoot(absolutePath)
-        return NbtPath.findTag(root, accessSeq, id)
+        return NbtPathTool.findTag(root, accessSeq, id)
     }
 
     override fun linkTagAt(absolutePath: String, tag: Tag<out Any>): Boolean {
@@ -66,6 +66,6 @@ class TagLocatorInstance
     }
 
     private fun checkIsAbsolutePath(path:String) {
-        if (!NbtPath.isAbsolutePath(path)) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
+        if (!NbtPathTool.isAbsolutePath(path)) throw IllegalArgumentException("the path URL ($path) passed in is not an absolute path!")
     }
 }
