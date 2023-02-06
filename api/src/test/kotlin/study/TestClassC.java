@@ -1,7 +1,7 @@
 package study;
 
-import com.myna.mnbt.annotations.LinkTo;
+import com.myna.mnbt.annotations.LocateAt;
 
-@LinkTo(path = "sampleTag")
+@LocateAt(path = "sampleTag")
 public class TestClassC {
 }

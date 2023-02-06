@@ -1,8 +1,8 @@
 package study
 
-import com.myna.mnbt.annotations.LinkTo
+import com.myna.mnbt.annotations.LocateAt
 
-@LinkTo("testTag")
+@LocateAt("testTag")
 class TestClassB {
     val i:Int = 5
     val str:String = "some string"

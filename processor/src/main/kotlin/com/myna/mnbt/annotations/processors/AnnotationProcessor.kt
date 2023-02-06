@@ -1,12 +1,11 @@
 package com.myna.mnbt.annotations.processors
 
-import com.myna.mnbt.annotations.LinkTo
+import com.myna.mnbt.annotations.LocateAt
 import java.lang.IllegalStateException
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
 import javax.tools.Diagnostic
 
 const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
@@ -22,7 +21,7 @@ class AnnotationProcessor: AbstractProcessor() {
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return mutableSetOf(LinkTo::class.java.canonicalName)
+        return mutableSetOf(LocateAt::class.java.canonicalName)
     }
 
     override fun init(processingEnv: ProcessingEnvironment?) {
@@ -40,7 +39,7 @@ class AnnotationProcessor: AbstractProcessor() {
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnv: RoundEnvironment?): Boolean {
         this.linkToProcessor.processingEnv = this.processingEnv
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "Hello!")
-        val annotated = roundEnv?.getElementsAnnotatedWith(LinkTo::class.java)!!
+        val annotated = roundEnv?.getElementsAnnotatedWith(LocateAt::class.java)!!
         this.messager!!.printMessage(Diagnostic.Kind.NOTE, "annotated element num: ${annotated?.size?:0}")
         linkToProcessor.writeNbtPath(annotated)
 

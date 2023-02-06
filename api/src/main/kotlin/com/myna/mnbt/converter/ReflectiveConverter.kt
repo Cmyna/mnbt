@@ -4,7 +4,7 @@ import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
-import com.myna.mnbt.annotations.LinkTo
+import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.converter.meta.NbtPath
 import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.reflect.MTypeToken
@@ -81,7 +81,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         var dataEntryAbsPath = if (name != null) NbtPath.appendSubDir(rootContainerPath, name) else "mnbt://#/"
         var fieldsRelatedPath:Map<Field, Array<String>>? = null
 
-        val mapToAnn = typeToken.rawType.getAnnotation(LinkTo::class.java)
+        val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
         if (value is NbtPath) {
             // construct data entry tag and provide fields paths
             dataEntryAbsPath = value.getClassExtraPath().let { arrTypePath->
@@ -172,7 +172,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val fields = ObjectInstanceHandler.getAllFields(declaredRawType)
 
         // try get NbtPath implementation
-        val mapToAnn = typeToken.rawType.getAnnotation(LinkTo::class.java)
+        val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
         val classPath: String?
         var fieldsId:Map<Field, Byte>? = null
         if (instance is NbtPath) {
@@ -188,7 +188,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
         try {
             fields.associateWith { field-> // build field path
-                val fieldLinkToAnn = field.getAnnotation(LinkTo::class.java)
+                val fieldLinkToAnn = field.getAnnotation(LocateAt::class.java)
                 val fieldPath = when {
                     instance is NbtPath -> {
                         instance.getFieldsPaths()[field]?.let {
