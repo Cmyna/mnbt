@@ -1,14 +1,13 @@
 package mnbt.converterTest
 
 import com.myna.mnbt.*
-import com.myna.mnbt.converter.meta.NbtPath
+import com.myna.mnbt.annotations.LocateAt
+
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
 import org.junit.jupiter.api.Test
-import java.lang.reflect.Field
 import kotlin.random.Random
-import kotlin.reflect.jvm.javaField
 
 class ReflectiveConverterTest {
 
@@ -53,16 +52,16 @@ class ReflectiveConverterTest {
     @Test
     fun complicateDataClassesTest() {
         var c = 0
-        var dc1Creation:()->DataClass1 = {
+        val dc1Creation:()->DataClass1 = {
             c += 1
             DataClass1(Random.nextInt()+c, RandomValueTool.bitStrC(5)()+c)
         }
-        var dc2Creation:()->DataClass2 = {
+        val dc2Creation:()->DataClass2 = {
             val dc1 = dc1Creation()
             c += 1
             DataClass2(dc1, Random.nextDouble()+c)
         }
-        var dc3Creation:(num:Int)->DataClass3 = { num->
+        val dc3Creation:(num:Int)->DataClass3 = { num->
             val list = ArrayList<DataClass2>().also { list->
                 repeat(num) {
                     list.add(dc2Creation())
@@ -82,6 +81,28 @@ class ReflectiveConverterTest {
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<DataClass3>() {})
     }
 
+    @Test
+    fun cleanRedundantTagTest() {
+        val value1 = TestClassC(5)
+        val value2 = TestClassC(2)
+        val name1 = "Test Class C-1"
+        val name2 = "Test Class C-2"
+
+        val template = ApiTestTool.ConverterTestTemplate()
+        template.assertValueNotEquals = false
+
+        val mockConverterProxy = template.mnbtInst.mockConverterProxy
+        mockConverterProxy.createMockTagSupplier.add { name,_,_,_->
+            if (name=="tag2") MockConverterProxy.CreateTagMockFeedback(true, null)
+            else MockConverterProxy.CreateTagMockFeedback(false, null)
+        }
+
+        val expectedTag = CompoundTag(name1)
+        template.expectedTag = expectedTag
+
+        template.apiTest(name1, name2, value1, value2, object:MTypeToken<TestClassC>() {})
+    }
+
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
         val classADataContainerTag = CompoundTag("tag2").also { comp->
             ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
@@ -99,57 +120,22 @@ class ReflectiveConverterTest {
     }
 
 
-    data class TestClassA(val i:Int, val valj:String, val k:Long, val m:Byte):NbtPath {
-        override fun getClassExtraPath(): Array<String> {
-            return testClassAPath
-        }
-        override fun getFieldsPaths(): Map<Field, Array<String>> {
-            return testClassAFieldsPath
-        }
+    @LocateAt("./tag1/tag2")
+    data class TestClassA(
+            @LocateAt("int tag", IdTagInt) val i:Int,
+            @LocateAt("./tag3/string tag", IdTagString) val valj:String,
+            @LocateAt("long tag", IdTagLong) val k:Long,
+            @LocateAt("./tag3/tag4/byte tag", IdTagByte) val m:Byte)
 
-        override fun getFieldsTagType(): Map<Field, Byte> {
-            return testClassAFieldsType
-        }
-    }
+    data class TestClassB(
+            @LocateAt("class A tag") val classA:TestClassA,
+            @LocateAt("./class A tag/tag1/short tag", IdTagShort) val n:Short,
+            @LocateAt("./class A tag/tag1/tag2/tag3/double tag", IdTagDouble) val d:Double,
+            val f:Float)
 
-    data class TestClassB(val classA:TestClassA, val n:Short, val d:Double, val f:Float):NbtPath {
-
-        override fun getFieldsPaths(): Map<Field, Array<String>> {
-            return mapOf(
-                    TestClassB::classA.javaField!! to arrayOf("class A tag"),
-                    TestClassB::n.javaField!! to arrayOf("class A tag", "tag1", "short tag"),
-                    TestClassB::d.javaField!! to arrayOf("class A tag", "tag1", "tag2", "tag3", "double tag")
-            )
-        }
-
-        override fun getFieldsTagType(): Map<Field, Byte> {
-            return mapOf(
-                    TestClassB::classA.javaField!! to IdTagCompound,
-                    TestClassB::n.javaField!! to IdTagShort,
-                    TestClassB::d.javaField!! to IdTagDouble,
-                    TestClassB::f.javaField!! to IdTagFloat
-            )
-        }
-    }
-
-
-    companion object {
-        val testClassAPath = arrayOf("tag1","tag2")
-
-        val testClassAFieldsPath = HashMap<Field, Array<String>>().also {
-            it[TestClassA::i.javaField!!] = arrayOf("int tag")
-            it[TestClassA::valj.javaField!!] = arrayOf("tag3","string tag")
-            it[TestClassA::k.javaField!!] = arrayOf("long tag")
-            it[TestClassA::m.javaField!!] = arrayOf("tag3","tag4", "byte tag")
-        }
-
-        val testClassAFieldsType = mapOf(
-                TestClassA::i.javaField!! to IdTagInt,
-                TestClassA::valj.javaField!! to IdTagString,
-                TestClassA::k.javaField!! to IdTagLong,
-                TestClassA::m.javaField!! to IdTagByte
-        )
-    }
+    data class TestClassC(
+            @LocateAt("./tag1/tag2/tag3/int tag", IdTagInt) val v1:Int
+    )
 }
 
 

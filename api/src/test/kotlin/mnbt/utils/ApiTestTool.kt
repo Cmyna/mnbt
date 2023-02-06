@@ -353,13 +353,14 @@ object ApiTestTool {
         var noAssertions = false
         var expectedTag:Tag<out Any>? = null
         var testMnbt:Boolean = true
+        val mnbtInst = TestMnbt.inst
 
         private val soft = SoftAssertions()
         private val mockTagEq = MockTagEquals()
 
         fun <V:Any> apiTest(name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
             this.testMnbt = false
-            apiTest(TestMnbt.inst.asserterConverterProxy, name1, name2, value1, value2, typeToken)
+            apiTest(TestMnbt.inst.mockConverterProxy, name1, name2, value1, value2, typeToken)
         }
 
         fun <V:Any> apiTest(converter: TagConverter<Any, out ConverterCallerIntent>,
@@ -377,7 +378,7 @@ object ApiTestTool {
                 if (assertNameNotEquals && assertNameNotEquals) soft.assertThat(tag2).isNotEqualTo(tag3)
                 soft.assertThat(valueEqFun(value1, fromTag1.second))
                 soft.assertThat(valueEqFun(value2, fromTag2.second))
-                if (expectedTag!=null) soft.assertThat(mockTagEq.equals(tag1, expectedTag)).`as`("assert converted tag is as expected")
+                if (expectedTag!=null) soft.assertThat(mockTagEq.equals(tag1, expectedTag)).`as`("assert converted tag is as expected").isTrue
                 if (testMnbt) {
                     soft.assertThat(mockTagEq.equals(tag1, tag4))
                     soft.assertThat(valueEqFun(fromTag1.second, fromTag4!!.second)).`as`("assert converted tag (by Mnbt) is as expected")

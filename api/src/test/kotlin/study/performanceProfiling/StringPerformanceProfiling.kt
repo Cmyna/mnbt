@@ -3,7 +3,7 @@ package study.performanceProfiling
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
-class ArrayStringOrStringCompare {
+class StringPerformanceProfiling {
 
     data class ListString(val list:ArrayList<String>)
 
@@ -18,7 +18,7 @@ class ArrayStringOrStringCompare {
     }
 
     @Test
-    fun test() {
+    fun stringCreationTest() {
         val data = Array<String>(10000) {randomString()}
 
         val stringList = ArrayList<String>()

@@ -10,7 +10,7 @@ import com.myna.mnbt.tag.CompoundTag
 import java.lang.IllegalArgumentException
 
 class TagLocatorInstance
-    (private val root:Tag<out Any>) :TagLocator {
+    (override val root:Tag<out Any>) :TagLocator {
 
 
     override fun findAt(absolutePath: String, id:Byte): Tag<out Any>? {
@@ -50,6 +50,10 @@ class TagLocatorInstance
     }
 
     private fun buildSequencesWithoutRoot(absolutePath: String):Sequence<String> {
+        return buildSequences(absolutePath).drop(1)
+    }
+
+    private fun buildSequences(absolutePath: String):Sequence<String> {
         checkIsAbsolutePath(absolutePath)
         val pathValue = absolutePath.substring(scheme.length, absolutePath.length)
         val accessSeq = tagNameRegex.findAll(pathValue)
@@ -58,7 +62,7 @@ class TagLocatorInstance
         if (pathRoot != root.name && !rootNameIsNull) {
             throw IllegalArgumentException("path root tag name (path url: $absolutePath) is not equals to locator root (${root.name})!")
         }
-        return accessSeq.drop(1).map { it.value }
+        return accessSeq.map { it.value }
     }
 
     private fun checkIsAbsolutePath(path:String) {

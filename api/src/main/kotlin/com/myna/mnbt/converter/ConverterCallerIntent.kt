@@ -56,6 +56,8 @@ interface TagLocator:CreateTagIntent {
      * or a path segment related tag already exists in tag structure, but it is not an Hierarchical Tag
      */
     fun buildPath(absolutePath: String):Tag<out Any>
+
+    val root:Tag<out Any>
 }
 
 

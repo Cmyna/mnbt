@@ -7,6 +7,8 @@ import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 import java.lang.reflect.Field
 
+// TODO: deprecate NbtPath
+@Deprecated("")
 /**
  * this interface is used in reflective conversion that [ReflectiveConverter]
  * can reconstruct tag structure from class TypeToken with its field passed in [TagConverter.createTag]/[TagConverter.toValue] function
@@ -100,6 +102,7 @@ interface NbtPath {
          * doc: TODO
          */
         fun isAbsolutePath(path:String):Boolean {
+            if (path.length < scheme.length) return false
             path.substring(0, scheme.length).also {
                 return it == scheme
             }
@@ -115,11 +118,20 @@ interface NbtPath {
         /**
          * doc: TODO
          */
-        fun toAccessQueue(path:String):Sequence<String> {
+        fun toAccessQueue(path: String): Sequence<String> {
             val pathValue = if (isAbsolutePath(path)) path.substring(scheme.length, path.length)
             else if (isRelatedPath(path)) path.substring(2, path.length)
             else path
             return tagNameRegex.findAll(pathValue).map { it.value }
+        }
+
+        fun findTag(source:Tag<out Any>, path:String, targetTagId: Byte? = null):Tag<out Any>? {
+            val accessSeq = toAccessQueue(path)
+            val rootName = accessSeq.firstOrNull()?: return null
+            // TODO: refact code logic
+            val rootNameIsNull = rootName.first()=='#' && source.name==null
+            if (rootName != source.name && !rootNameIsNull) return null
+            return findTag(source, accessSeq.drop(1), targetTagId)
         }
 
         /**
@@ -139,6 +151,7 @@ interface NbtPath {
             val idMatch = if (current!=null && targetTagId!=null) current!!.id==targetTagId else true
             return if (sequenceMatchFlag && idMatch) current else null
         }
+
 
         fun format(str:String):String {
             if (str.length>=2 && str.first()!='.' && str[1] != '/') return "./$str"

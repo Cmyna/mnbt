@@ -11,6 +11,7 @@ import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
 import java.lang.Exception
 import java.lang.IllegalArgumentException
+import java.lang.RuntimeException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -42,6 +43,12 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
     var outputDebugInfo:Boolean = false
 
+    data class CreateSubTagArgs(
+            val value:Any, val subTagName:String,
+            val subTagEntry:CompoundTag, val createSubTagIntent: CreateTagIntent,
+            val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?
+    )
+
     // Conversion to CompoundTag procedure:
     //      create rootTag with name parameter passed in
     //      create dataEntryTag
@@ -52,21 +59,29 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      (=> means directly/indirectly contains, -> means directly contains)
     // TODO: refact temporal design that name is null will rebuild TagLocator
+    // TODO: throw appropriate exception when [LocateAt] specify wrong id
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
-
         // parameters check
         val callerIntent = intent as RecordParents
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
 
+        var forExtraClassCleanUpStart:CompoundTag? = null
+        var forExtraClassCleanName:String? = null
+
         // create root tag and get TagLocator intent
         val rootContainerPath = if (intent is ParentTagsInfo) intent.rootContainerPath else "mnbt://"
+        val rootPath = if (name != null) NbtPath.appendSubDir(rootContainerPath, name) else "mnbt://#/"
         // get tag locator, else build a new one
         val (root,tagLocatorIntent) = if (name != null && intent is TagLocator) {
             // TODO: findAt return check, rootContainer[name] tag type check
-            val rootContainer = intent.findAt(rootContainerPath, IdTagCompound) as CompoundTag
+            val rootContainer = NbtPath.findTag(intent.root, rootContainerPath, IdTagCompound) as CompoundTag
             val gotRoot = (rootContainer[name]?:CompoundTag(name)) as CompoundTag
-            intent.linkTagAt(rootContainerPath, gotRoot)
+            if (rootContainer[name]==null) {
+                rootContainer.add(gotRoot)
+                forExtraClassCleanUpStart = rootContainer
+                forExtraClassCleanName = gotRoot.name
+            }
             Pair(gotRoot, intent)
         } else {
             val newRoot = CompoundTag(name)
@@ -78,53 +93,38 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
         // temporal: if name is null, set it as '#'
-        var dataEntryAbsPath = if (name != null) NbtPath.appendSubDir(rootContainerPath, name) else "mnbt://#/"
-        var fieldsRelatedPath:Map<Field, Array<String>>? = null
-
         val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
-        if (value is NbtPath) {
+        val dataEntryAbsPath:String = if (value is NbtPath) {
             // construct data entry tag and provide fields paths
-            dataEntryAbsPath = value.getClassExtraPath().let { arrTypePath->
-                NbtPath.combine(dataEntryAbsPath, NbtPath.toRelatedPath(*arrTypePath))
+            value.getClassExtraPath().let { arrTypePath->
+                NbtPath.combine(rootPath, NbtPath.toRelatedPath(*arrTypePath))
             }
-            fieldsRelatedPath = value.getFieldsPaths()
         } else if ( mapToAnn != null) {
             // type id not match
             if (mapToAnn.typeId != IdTagCompound) throw IllegalArgumentException()
-            dataEntryAbsPath = NbtPath.combine(dataEntryAbsPath, mapToAnn.path)
-        }
+            NbtPath.combine(rootPath, mapToAnn.path)
+        } else rootPath
+
+
+
         val dataEntryTag = tagLocatorIntent.buildPath(dataEntryAbsPath)
 
-        data class CreateSubTagArgs(
-                val value:Any, val subTagName:String,
-                val subTagEntry:CompoundTag, val createSubTagIntent: CreateTagIntent,
-                val fieldTypeToken: MTypeToken<out Any>
-                )
-
         val fields = ObjectInstanceHandler.getAllFields(value::class.java)
+
+        val fieldsInfo = fields.map { field ->
+            val locateAtAnn = field.getAnnotation(LocateAt::class.java)
+            if (locateAtAnn!=null) {
+                Triple(field, locateAtAnn.path, locateAtAnn.typeId)
+            } else Triple(field, field.name, null)
+        }
         try {
-            val createSubTagsArgsMap = fields.mapNotNull { field->
-                val accessible = field.trySetAccessible()
-                if (!accessible) return@mapNotNull null // if try set Accessible return false, it may be a static final member
-                val fieldValue = field.get(value) ?: return@mapNotNull null // actual value is null, skip this field
-
-                val fieldRelatedPath = fieldsRelatedPath?.get(field)
-                val fieldTagContainerPath = getSubTagContainerPath(field, dataEntryAbsPath, fieldRelatedPath)
-                val subTagEntry = tagLocatorIntent.buildPath(fieldTagContainerPath) as CompoundTag
-
-                // get actual name to to field tag (try get path last tag name, else use field name)
-                val specifyFieldName = fieldRelatedPath!=null && fieldRelatedPath.isNotEmpty()
-                val fieldTagName:String = if (specifyFieldName) fieldRelatedPath!!.last() else field.name
-
-                val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
-
-                val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
-
-                CreateSubTagArgs(fieldValue, fieldTagName, subTagEntry, fieldIntent, fieldTk)
+            val createSubTagsArgs = fieldsInfo.mapNotNull { (field,stringPath,targetId)->
+                val arrayPath = NbtPath.toAccessQueue(stringPath).toList().toTypedArray()
+                createSubTagArgs(field, value, tagLocatorIntent, intent, dataEntryAbsPath, arrayPath, targetId)
             }
-
-            createSubTagsArgsMap.onEach {
+            createSubTagsArgs.onEach {
                 val subTag = proxy.createTag(it.subTagName, it.value, it.fieldTypeToken, it.createSubTagIntent) ?:return@onEach
+                if ( it.subTagTargetId!=null && subTag.id!=it.subTagTargetId) throw RuntimeException() //TODO: refact naive verification
                 it.subTagEntry.add(subTag)
             }
             return root
@@ -134,6 +134,29 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             // TODO clear link in intent
             return null
         }
+    }
+
+    private fun createSubTagArgs(
+            field: Field, value:Any,
+            tagLocator: TagLocator, callerIntent: RecordParents,
+            dataEntryAbsPath: String, fieldRelatedPath:Array<String>, targetTagId:Byte?
+    ):CreateSubTagArgs? {
+        val accessible = field.trySetAccessible()
+        if (!accessible) return null // if try set Accessible return false, it may be a static final member
+        val fieldValue = field.get(value) ?: return null // actual value is null, skip this field
+
+        val fieldTagContainerPath = getSubTagContainerPath(field, dataEntryAbsPath, fieldRelatedPath)
+        val subTagEntry = tagLocator.buildPath(fieldTagContainerPath) as CompoundTag
+
+        // get actual name to to field tag (try get path last tag name, else use field name)
+        val specifyFieldName = fieldRelatedPath.isNotEmpty()
+        val fieldTagName:String = if (specifyFieldName) fieldRelatedPath.last() else field.name
+
+        val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocator)
+
+        val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
+
+        return CreateSubTagArgs(fieldValue, fieldTagName, subTagEntry, fieldIntent, fieldTk, targetTagId)
     }
 
     private fun getSubTagContainerPath(field:Field, dataEntryAbsPath:String, fieldPath: Array<String>?):String {

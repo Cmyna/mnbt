@@ -4,8 +4,8 @@ import com.myna.mnbt.Mnbt
 
 class TestMnbt: Mnbt() {
 
-    val asserterConverterProxy = AsserterConverterProxy(super.converterProxy)
-    val asserterCodecProxy = AsserterCodecProxy(super.codecProxy)
+    val mockConverterProxy = MockConverterProxy(super.converterProxy)
+    val mockCodecProxy = MockCodecProxy(super.codecProxy)
 
     val refConverterProxy = super.converterProxy
     val refCodecProxy = super.codecProxy
@@ -18,13 +18,13 @@ class TestMnbt: Mnbt() {
     val refListCodec = super.listCodec
 
     init {
-        super.reflectiveConverter.proxy = asserterConverterProxy
-        super.arrayTypeListTagConverter.proxy = asserterConverterProxy
-        super.mapTypeTagConverter.proxy = asserterConverterProxy
-        super.listTypeConverter.proxy = asserterConverterProxy
+        super.reflectiveConverter.proxy = mockConverterProxy
+        super.arrayTypeListTagConverter.proxy = mockConverterProxy
+        super.mapTypeTagConverter.proxy = mockConverterProxy
+        super.listTypeConverter.proxy = mockConverterProxy
 
-        super.listCodec.proxy = asserterCodecProxy
-        super.compoundTagCodec.proxy = asserterCodecProxy
+        super.listCodec.proxy = mockCodecProxy
+        super.compoundTagCodec.proxy = mockCodecProxy
 
         super.reflectiveConverter.outputDebugInfo = true
     }

@@ -6,7 +6,7 @@ import com.myna.mnbt.codec.CodecCallerIntent
 import com.myna.mnbt.codec.CodecFeedback
 import com.myna.mnbt.codec.TagFeedback
 
-class AsserterCodecProxy(var functionalProxy:Codec<Any>): Codec<Any> {
+class MockCodecProxy(var functionalProxy:Codec<Any>): Codec<Any> {
     override val id: Byte
         get() = TODO("Not yet implemented")
     override val valueTypeToken: Class<Any>
