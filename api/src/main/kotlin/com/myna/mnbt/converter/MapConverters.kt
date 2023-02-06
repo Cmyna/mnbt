@@ -75,7 +75,7 @@ object MapConverters {
             private fun <V> newMapInstance(typeToken: MTypeToken<V>):V? {
                 val rawType = typeToken.rawType
                 // if it is interface/abstract class extends Map interface
-                if (rawType.isInterface || Modifier.isAbstract(rawType.modifiers) && mapTypeToken.gToken.isSupertypeOf(rawType)) return mutableMapOf<String, Any>() as V
+                if (rawType.isInterface || Modifier.isAbstract(rawType.modifiers) && mapTypeToken.isSupertypeOf(rawType)) return mutableMapOf<String, Any>() as V
                 // try to find empty constructor
                 val constructors = typeToken.rawType.constructors
                 val constructor = constructors.find { constructor->

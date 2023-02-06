@@ -40,6 +40,9 @@ open class MTypeToken<T> {
 
     fun isSubtypeOf(typeToken: MTypeToken<out Any>) = this.gToken.isSubtypeOf(typeToken.gToken)
     fun wrap(): MTypeToken<T> = MTypeToken(this.gToken.wrap())
+    fun isSupertypeOf(rawType: Class<out Any>): Boolean {
+        return gToken.isSupertypeOf(rawType)
+    }
 
 
     companion object {

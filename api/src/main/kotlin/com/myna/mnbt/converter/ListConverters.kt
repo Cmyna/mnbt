@@ -113,7 +113,7 @@ object ListConverters {
         fun newList(typeToken: MTypeToken<*>):MutableList<Any>? {
             val rawType = typeToken.rawType
             // if it is interface/abstract class extends List interface
-            if (rawType.isInterface || Modifier.isAbstract(rawType.modifiers) && iterableType.gToken.isSupertypeOf(rawType)) return mutableListOf()
+            if (rawType.isInterface || Modifier.isAbstract(rawType.modifiers) && iterableType.isSupertypeOf(rawType)) return mutableListOf()
             // try find empty constructor
             val constructors = rawType.constructors
             val constructor = constructors.find { constructor->
