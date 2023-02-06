@@ -8,22 +8,6 @@ import java.lang.StringBuilder
 import java.lang.reflect.Field
 
 /**
- * nbt url: using url format to represent a locator to a tag structure
- *
- * the url format is: `mnbt://[hierarchical tag path]`
- *
- * where [hierarchical tag path] format is: `<tag name1>/<tag name2>/<tag name3>/...`
- *
- * you can use related tag path, which is started at "./", or access the parent tag by using "../"
- *
- * to represent a list index in path, use "#index" as a separate tag name between two "/" without any other symbol,
- * where "index" is a number to a list index
- *
- * if the path is ended with "/", means the last tag name is a hierarchical tag (eg: a compound tag or a list tag),
- * else it is a flat tag without any subtag inside
- */
-
-/**
  * this interface is used in reflective conversion that [ReflectiveConverter]
  * can reconstruct tag structure from class TypeToken with its field passed in [TagConverter.createTag]/[TagConverter.toValue] function
  *
@@ -32,6 +16,8 @@ import java.lang.reflect.Field
  *
  * for all array returns from the interface (can be regarded as a "path"),
  * we denote last element as "data entry tag".
+ *
+ * [com.myna.mnbt]
  */
 interface NbtPath {
     /**
