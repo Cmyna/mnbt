@@ -1,7 +1,7 @@
 package com.myna.mnbt.annotations
 
 import com.myna.mnbt.annotations.meta.AnnotationAlias
-import com.myna.mnbt.annotations.meta.AnnotationWrapper
+import java.lang.reflect.Field
 import kotlin.reflect.KClass
 
 /**
@@ -10,25 +10,32 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-@AnnotationAlias<Ignore, IgnoreEncode>(IgnoreEncode::class, Ignore.EncodeWrapper::class)
-@AnnotationAlias<Ignore, IgnoreDecode>(IgnoreDecode::class, Ignore.DecodeWrapper::class)
+@AnnotationAlias<Ignore, IgnoreToTag>(IgnoreToTag::class, Ignore.EncodeWrapper::class)
+@AnnotationAlias<Ignore, IgnoreFromTag>(IgnoreFromTag::class, Ignore.DecodeWrapper::class)
 annotation class Ignore(
-        val ignoreWhenEncode:Boolean,
-        val ignoreWhenDecode:Boolean,
-        val defaultFieldValueProvider: KClass<out DefaultFieldValueProvider<*>>) {
+        val ignoreToTag:Boolean,
+        val ignoreFromTag:Boolean,
+        val fieldValueProvider: KClass<out FieldValueProvider>) {
 
-    class EncodeWrapper: AnnotationWrapper<Ignore, IgnoreEncode> {
-        override fun tryWrap(annotationInstance: Ignore):IgnoreEncode? {
-            return if (annotationInstance.ignoreWhenEncode) IgnoreEncode()
+    class EncodeWrapper: AnnotationAlias.AnnotationWrapper<Ignore, IgnoreToTag> {
+        override fun tryWrap(annotationInstance: Ignore):IgnoreToTag? {
+            return if (annotationInstance.ignoreToTag) IgnoreToTag()
             else null
         }
     }
 
-    class DecodeWrapper: AnnotationWrapper<Ignore, IgnoreDecode> {
-        override fun tryWrap(annotationInstance: Ignore):IgnoreDecode? {
-            return if (annotationInstance.ignoreWhenDecode) IgnoreDecode(annotationInstance.defaultFieldValueProvider)
+    class DecodeWrapper: AnnotationAlias.AnnotationWrapper<Ignore, IgnoreFromTag> {
+        override fun tryWrap(annotationInstance: Ignore):IgnoreFromTag? {
+            return if (annotationInstance.ignoreFromTag) IgnoreFromTag(annotationInstance.fieldValueProvider)
             else null
         }
+    }
+
+    /**
+     * only provide null value
+     */
+    class NullProvider: FieldValueProvider {
+        override fun <V> provide(field: Field): V? = null
     }
 }
 
@@ -36,10 +43,13 @@ annotation class Ignore(
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class IgnoreEncode
+annotation class IgnoreToTag
+
+// TODO: is it possible to simplify provider in IgnoreDecode?
 
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class IgnoreDecode(val defaultFieldValueProvider: KClass<out DefaultFieldValueProvider<*>>)
+annotation class IgnoreFromTag(val fieldValueProvider: KClass<out FieldValueProvider>) {
+}
 
