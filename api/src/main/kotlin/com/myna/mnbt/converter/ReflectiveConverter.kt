@@ -63,7 +63,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      (=> means directly/indirectly contains, -> means directly contains)
     // TODO: refact temporal design that name is null will rebuild TagLocator
+
     // TODO: throw appropriate exception when [LocateAt] specify wrong id
+    //  always forgetting add id value in @LocateAt annotation, find better way solve it
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
         // parameters check
         val callerIntent = intent as RecordParents
@@ -138,10 +140,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         val createSubTagsArgs = fieldsInfo.mapNotNull { (field,accessSequence,targetId)->
             val fieldTagContainerPath = getSubTagContainerPath(dataEntryAbsPath, accessSequence)
             val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
-            createSubTagArgs(field, value, accessSequence, targetId, dataEntryTag, fieldIntent)
+            createSubTagArgs(field, value, accessSequence, targetId, fieldIntent)
         }
-        
-        // TODO: always forgetting add id value in @LocateAt annotation, find better way solve it
+
+
         try {
             createSubTagsArgs.onEach {
                 val subTag = proxy.createTag(it.subTagName, it.value, it.fieldTypeToken, it.createSubTagIntent) //?:return@onEach
@@ -156,8 +158,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                     child
                 }
                 subTagContainer.add(subTag!!)
-                //it.subTagEntry.add(subTag!!)
-                // TODO
             }
             return root
         } catch(e:Exception) {
@@ -173,28 +173,14 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     private fun createSubTagArgs(
             field: Field, value:Any,
             fieldRelatedPath:List<String>, targetTagId:Byte?,
-            dataEntryTag:CompoundTag, createSubTagIntent:CreateTagIntent
+            createSubTagIntent:CreateTagIntent
     ):CreateSubTagArgs? {
         try {
             val accessible = field.trySetAccessible()
             if (!accessible) return null // if try set Accessible return false, it may be a static final member
             val fieldValue = field.get(value) ?: return null // actual value is null, skip this field
 
-            var fieldCleanStart:CleanUpStartTag? = null
-
-            //val fieldTagContainerPath = getSubTagContainerPath(dataEntryAbsPath, fieldRelatedPath)
-
             val subTagName = if (fieldRelatedPath.isNotEmpty()) fieldRelatedPath.last() else field.name
-            /*val subTagContainer = fieldRelatedPath.dropLast(1).fold(dataEntryTag) { parent, childName->
-                val child = (parent[childName]?: CompoundTag(childName)) as CompoundTag
-                if (parent[childName]==null) {
-                    if (fieldCleanStart == null) {
-                        fieldCleanStart = CleanUpStartTag(parent, childName)
-                    }
-                    parent.add(child)
-                }
-                child
-            }*/
             val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
             return CreateSubTagArgs(fieldValue, subTagName, createSubTagIntent, fieldTk, targetTagId, fieldRelatedPath)
         } catch (e:Exception) { when (e) {
@@ -244,7 +230,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // try get NbtPath implementation
         val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
         val classPath: String?
-        var fieldsId:Map<Field, Byte>? = null
+        val fieldsId:Map<Field, Byte>? = null
         if ( mapToAnn != null) {
             // type id not match
             if (mapToAnn.typeId != IdTagCompound) throw IllegalArgumentException()
