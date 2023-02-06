@@ -9,8 +9,8 @@ import java.lang.reflect.TypeVariable
 
 open class MTypeToken<T> {
 
-
-    val gToken: TypeToken<T>
+    @Deprecated("This property will be replaced in the future")
+    private val gToken: TypeToken<T>
 
     val rawType get() = gToken.rawType
     val type get() = gToken.type
