@@ -142,7 +142,7 @@ class ReflectiveConverterTest {
 
     data class TestClassC(
             @LocateAt("./tag1/tag2/tag3/int tag", IdTagInt) val v1:Int,
-            @LocateAt("./tag1/string tag") val v2:String? = null
+            @LocateAt("./tag1/string tag", IdTagString) val v2:String? = null
     )
 }
 

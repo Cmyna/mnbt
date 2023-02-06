@@ -46,9 +46,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
 
     data class CreateSubTagArgs(
             val value:Any, val subTagName:String,
-            val subTagEntry:CompoundTag, val createSubTagIntent: CreateTagIntent,
+            val createSubTagIntent: CreateTagIntent,
             val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?,
-            val fieldCleanUpStart: CleanUpStartTag?
+            val fieldRelatePath: List<String>
     )
 
     data class CleanUpStartTag(val pointer:CompoundTag, val targetName:String)
@@ -140,16 +140,23 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
             createSubTagArgs(field, value, accessSequence, targetId, dataEntryTag, fieldIntent)
         }
-
-        // TODO clear redundant Compound creation for field
-        // idea: first try convert field, if success then try create to field sub tag entry tree
+        
+        // TODO: always forgetting add id value in @LocateAt annotation, find better way solve it
         try {
             createSubTagsArgs.onEach {
                 val subTag = proxy.createTag(it.subTagName, it.value, it.fieldTypeToken, it.createSubTagIntent) //?:return@onEach
                 val creationSuccess = subTag!=null && !(it.subTagTargetId!=null && subTag.id!=it.subTagTargetId)
                 if (!creationSuccess) return@onEach
                 // build sub tree contains subtag
-                it.subTagEntry.add(subTag!!)
+                val subTagContainer = it.fieldRelatePath.dropLast(1).fold(dataEntryTag) { parent, childName->
+                    val child = (parent[childName]?: CompoundTag(childName)) as CompoundTag
+                    if (parent[childName]==null) {
+                        parent.add(child)
+                    }
+                    child
+                }
+                subTagContainer.add(subTag!!)
+                //it.subTagEntry.add(subTag!!)
                 // TODO
             }
             return root
@@ -178,7 +185,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             //val fieldTagContainerPath = getSubTagContainerPath(dataEntryAbsPath, fieldRelatedPath)
 
             val subTagName = if (fieldRelatedPath.isNotEmpty()) fieldRelatedPath.last() else field.name
-            val subTagContainer = fieldRelatedPath.dropLast(1).fold(dataEntryTag) { parent, childName->
+            /*val subTagContainer = fieldRelatedPath.dropLast(1).fold(dataEntryTag) { parent, childName->
                 val child = (parent[childName]?: CompoundTag(childName)) as CompoundTag
                 if (parent[childName]==null) {
                     if (fieldCleanStart == null) {
@@ -187,14 +194,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                     parent.add(child)
                 }
                 child
-            }
-
-            //val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocator)
-
+            }*/
             val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
-
-            return CreateSubTagArgs(fieldValue, subTagName, subTagContainer, createSubTagIntent, fieldTk, targetTagId, fieldCleanStart)
-            //return CreateSubTagArgs(fieldValue, subTagName, subTagContainer, fieldIntent, fieldTk, targetTagId, fieldCleanStart)
+            return CreateSubTagArgs(fieldValue, subTagName, createSubTagIntent, fieldTk, targetTagId, fieldRelatedPath)
         } catch (e:Exception) { when (e) {
             is SecurityException,
             is IllegalAccessException,
