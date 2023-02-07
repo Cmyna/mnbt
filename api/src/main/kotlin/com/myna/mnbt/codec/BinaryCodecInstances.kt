@@ -236,23 +236,23 @@ object BinaryCodecInstances {
             }
         }
 
-    class NullTagCodec : Codec<Nothing> {
+    class NullTagCodec : Codec<Unit> {
         override val id: Byte = IdTagEnd
         // hacky way, because can not init TypeToken<Nothing>(or TypeToken<void>)
-        override val valueTypeToken = Nothing::class.java
+        override val valueTypeToken = Unit::class.java
 
-        override fun encode(tag: Tag<out Nothing>, intent: CodecCallerIntent):CodecFeedback {
+        override fun encode(tag: Tag<out Unit>, intent: CodecCallerIntent):CodecFeedback {
             intent as EncodeOnStream
             intent.outputStream.write(IdTagEnd.toInt())
             return object:CodecFeedback{}
         }
 
-        override fun decode(intent: CodecCallerIntent): TagFeedback<Nothing> {
+        override fun decode(intent: CodecCallerIntent): TagFeedback<Unit> {
             intent as DecodeOnStream; intent as DecodeHead
             val inputStream = intent.inputStream
             if (!intent.ignoreIdWhenDecoding)CodecTool.checkNbtFormat(inputStream, id)
-            return object:TagFeedback<Nothing> {
-                override val tag = NullTag() as Tag<Nothing>
+            return object:TagFeedback<Unit> {
+                override val tag = NullTag.inst
             }
         }
 

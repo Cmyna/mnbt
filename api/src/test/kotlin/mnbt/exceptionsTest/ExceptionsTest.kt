@@ -148,7 +148,7 @@ class ExceptionsTest {
     fun anonymousObjToNullTagTest() {
         val outputStream = ByteArrayOutputStream()
         val intent = userEncodeIntent(outputStream)
-        val nullTag = NullTag() as Tag<Nothing>
+        val nullTag = NullTag.inst
         BinaryCodecInstances.nullTagCodec.encode(nullTag, intent)
         val bits = outputStream.toByteArray()
         assertEquals(1, bits.size)

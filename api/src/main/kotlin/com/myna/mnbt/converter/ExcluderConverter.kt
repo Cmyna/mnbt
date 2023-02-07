@@ -20,7 +20,7 @@ class ExcluderConverter: TagConverter<Unit> {
 
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<Unit>? {
         // if it is local/anonymous class, return nullTag
-        if (value::class.java.isAnonymousClass || value::class.java.isLocalClass) return NullTag()
+        if (value::class.java.isAnonymousClass || value::class.java.isLocalClass) return NullTag.inst
         return null
     }
 
