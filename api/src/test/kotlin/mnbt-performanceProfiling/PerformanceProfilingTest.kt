@@ -1,4 +1,4 @@
-package mnbt.profilingTest
+package `mnbt-performanceProfiling`
 
 import com.myna.mnbt.Tag
 import com.myna.mnbt.codec.userDecodeIntent

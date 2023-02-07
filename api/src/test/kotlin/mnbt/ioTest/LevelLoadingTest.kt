@@ -1,7 +1,5 @@
-package ioTest
+package mnbt.ioTest
 
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.IdTagString
 import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.reflect.MTypeToken
 import mnbt.utils.TestMnbt
