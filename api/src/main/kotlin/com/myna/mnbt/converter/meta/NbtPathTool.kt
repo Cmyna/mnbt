@@ -5,7 +5,7 @@ import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
 /**
- * doc: TODO
+ * an utils for handling mnbt url format string
  */
 object NbtPathTool{
 
