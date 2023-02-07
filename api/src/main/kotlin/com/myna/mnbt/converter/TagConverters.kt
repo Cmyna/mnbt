@@ -7,8 +7,6 @@ import com.myna.mnbt.reflect.MTypeToken
 
 object TagConverters {
 
-
-
     val intTagConverter = PrimitiveTagConverter(MTypeToken.of(Int::class.java)) { name, value->PrimitiveTag.IntTag(name, value)}
     val shortTagConverter = PrimitiveTagConverter(MTypeToken.of(Short::class.java)) { name, value-> PrimitiveTag.ShortTag(name, value)}
     val byteTagConverter = PrimitiveTagConverter(MTypeToken.of(Byte::class.java)) { name, value-> PrimitiveTag.ByteTag(name, value)}
@@ -91,7 +89,7 @@ object TagConverters {
      */
     // this fun handle create converter for primitive array tag
     class PrimitiveArrayTagConverter<T: Tag<ARR>, ARR:Any>(tagValueClass: Class<ARR>, private val newTagFun:(name:String?, value: ARR)->T): TagConverter<ARR> {
-        
+
         private val component: MTypeToken<out Any>
 
         init {

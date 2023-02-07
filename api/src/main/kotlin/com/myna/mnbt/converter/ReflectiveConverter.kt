@@ -64,9 +64,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     )
 
     // Conversion to CompoundTag procedure:
-    //      create rootTag with name parameter passed in
-    //      create dataEntryTag
-    //      for each subTag, create subTagDataEntryTag
+    //      create returnedTag with name parameter passed in
+    //      create/get dataEntryTag
+    //      for each subTag, create/get subTagDataEntryTag
     //      create subTag, add it to subTagDataEntryTag
     //
     //      the compound tag structure is root=>dataEntryTag=>subTagDataEntryTag->subTag
@@ -182,11 +182,11 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         } }
     }
 
-    private fun getSubTagPath(dataEntryAbsPath: String, fieldPath: List<String>?):String {
-        return fieldPath?.let { arrTypePath ->
+    private fun getSubTagPath(dataEntryAbsPath: String, fieldPath: List<String>):String {
+        return fieldPath.let { arrTypePath ->
             val relatedPath = NbtPathTool.toRelatedPath(*arrTypePath.toTypedArray())
             NbtPathTool.combine(dataEntryAbsPath, relatedPath)
-        }?: dataEntryAbsPath
+        }
     }
 
     private fun buildSubTagCreationIntent(fieldTagPath:String, recordParents: RecordParents, nbtTreeInfo: NbtTreeInfo):CreateTagIntent {
