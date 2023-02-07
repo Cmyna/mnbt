@@ -129,20 +129,20 @@ class ReflectiveConverterTest {
 
     @LocateAt("./tag1/tag2")
     data class TestClassA(
-            @LocateAt("int tag", IdTagInt) val i:Int,
-            @LocateAt("./tag3/string tag", IdTagString) val valj:String,
-            @LocateAt("long tag", IdTagLong) val k:Long,
-            @LocateAt("./tag3/tag4/byte tag", IdTagByte) val m:Byte)
+            @LocateAt("int tag") val i:Int,
+            @LocateAt("./tag3/string tag") val valj:String,
+            @LocateAt("long tag") val k:Long,
+            @LocateAt("./tag3/tag4/byte tag") val m:Byte)
 
     data class TestClassB(
             @LocateAt("class A tag") val classA:TestClassA,
-            @LocateAt("./class A tag/tag1/short tag", IdTagShort) val n:Short,
-            @LocateAt("./class A tag/tag1/tag2/tag3/double tag", IdTagDouble) val d:Double,
+            @LocateAt("./class A tag/tag1/short tag") val n:Short,
+            @LocateAt("./class A tag/tag1/tag2/tag3/double tag") val d:Double,
             val f:Float)
 
     data class TestClassC(
-            @LocateAt("./tag1/tag2/tag3/int tag", IdTagInt) val v1:Int,
-            @LocateAt("./tag1/string tag", IdTagString) val v2:String? = null
+            @LocateAt("./tag1/tag2/tag3/int tag") val v1:Int,
+            @LocateAt("./tag1/string tag") val v2:String? = null
     )
 }
 

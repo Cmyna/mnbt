@@ -13,9 +13,5 @@ const val IdTagCompound:Byte = 10
  *
  * @param path: the mnbt url related path
  * the path format is something like `./<tagName1>/<tagName2>/<targetTagName>`
- *
- * @param typeId: the related tag id
  */
-annotation class LocateAt(val path:String, val typeId: Byte = IdTagCompound) {
-
-}
+annotation class LocateAt(val path:String)

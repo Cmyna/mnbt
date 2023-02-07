@@ -13,12 +13,12 @@ import java.util.zip.GZIPInputStream
 
 class LevelLoadingTest {
 
-    @LocateAt("Data", IdTagCompound)
+    @LocateAt("Data")
     data class LevelClassForTest(
             val hardcore:Boolean,
             val LevelName:String,
             val BorderCenterX:Double,
-            @LocateAt("Version/Name", IdTagString) val name:String,
+            @LocateAt("Version/Name") val name:String,
     )
 
     @Test
