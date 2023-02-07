@@ -19,7 +19,7 @@ import kotlin.collections.ArrayList
 /**
  * this Converter is used for some simple POJO class,
  */
-class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerIntent>): HierarchicalTagConverter<AnyCompound>() {
+class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
 
     private val typeBlackList = ArrayList<Class<*>>()
 
@@ -74,7 +74,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     //      (=> means directly/indirectly contains, -> means directly contains)
     // TODO: throw appropriate exception when [LocateAt] specify wrong id
     //  always forgetting add id value in @LocateAt annotation, find better way solve it
-    override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
+    override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
         // parameters check
         val callerIntent = intent as RecordParents // TODO: refact type check
         val valueClass = value::class.java
@@ -200,7 +200,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     // try deserialize them with field related class as typeToken
     // if one of return is null, means total conversion failed, final result will become null
     // if can not construct instance, return null
-    override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+    override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // parameter check
         intent as RecordParents; intent as ToValueIntent
         val tagValue = tag.value

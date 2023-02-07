@@ -9,18 +9,22 @@ import com.myna.mnbt.tag.NullTag
  *
  * It will filter some value that is from local/anonymous class
  */
-class ExcluderConverter: TagConverter<Nothing, ConverterCallerIntent> {
-    override fun defaultIntent(): ConverterCallerIntent {
+class ExcluderConverter: TagConverter<Nothing> {
+    override fun defaultToValueIntent(): ToValueIntent {
         return converterCallerIntent()
     }
 
-    override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<Nothing>? {
+    override fun defaultCreateTagIntent(): CreateTagIntent {
+        return createTagUserIntent()
+    }
+
+    override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<Nothing>? {
         // if it is local/anonymous class, return nullTag
         if (value==null || value::class.java.isAnonymousClass || value::class.java.isLocalClass) return NullTag(null, null) as Tag<Nothing>
         return null
     }
 
-    override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+    override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         return null
     }
 

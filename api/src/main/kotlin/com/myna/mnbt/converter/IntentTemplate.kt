@@ -21,7 +21,7 @@ fun converterCallerIntent(ignoreTypeToken:Boolean = false): ToValueIntent {
     }
 }
 
-fun userCreateTagIntent(): CreateTagIntent {
+fun createTagUserIntent(): CreateTagIntent {
     return object: CreateTagIntent, RecordParents {
         override val parents: Deque<Any> = ArrayDeque()
     }

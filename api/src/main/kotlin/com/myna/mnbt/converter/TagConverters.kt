@@ -2,7 +2,6 @@ package com.myna.mnbt.converter
 
 import com.myna.mnbt.tag.*
 import com.myna.mnbt.reflect.TypeCheckTool
-import com.google.common.reflect.TypeToken
 import com.myna.mnbt.Tag
 import com.myna.mnbt.reflect.MTypeToken
 
@@ -29,19 +28,23 @@ object TagConverters {
 
 
 
-    class BooleanConverter:TagConverter<Byte, ConverterCallerIntent> {
-        override fun defaultIntent(): ConverterCallerIntent {
+    class BooleanConverter:TagConverter<Byte> {
+        override fun defaultToValueIntent(): ToValueIntent {
             return converterCallerIntent()
         }
 
-        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<Byte>? {
+        override fun defaultCreateTagIntent(): CreateTagIntent {
+            return createTagUserIntent()
+        }
+
+        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<Byte>? {
             if (value is Boolean) {
                 val byte = if (value) 1.toByte() else 0.toByte()
                 return PrimitiveTag.ByteTag(name, byte)
             } else return null
         }
 
-        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             if (tag.value !is Byte) return null
             if (typeToken.type == Boolean::class.java || typeToken.type == java.lang.Boolean::class.java) {
                 val value = tag.value != 0.toByte()
@@ -55,13 +58,19 @@ object TagConverters {
      * @param newTagFun a function that create required Tag
      */
     fun <NbtRelatedType:Any> newPrimitiveTagConverters
-            (tagValueTypeToken: MTypeToken<NbtRelatedType>, newTagFun: (name: String?, value: NbtRelatedType) -> Tag<out NbtRelatedType>): TagConverter<NbtRelatedType, ConverterCallerIntent>
-    = object: TagConverter<NbtRelatedType, ConverterCallerIntent> {
-        override fun defaultIntent(): ConverterCallerIntent {
+            (tagValueTypeToken: MTypeToken<NbtRelatedType>,
+             newTagFun: (name: String?, value: NbtRelatedType) -> Tag<out NbtRelatedType>)
+    : TagConverter<NbtRelatedType>
+    = object: TagConverter<NbtRelatedType> {
+        override fun defaultToValueIntent(): ToValueIntent {
             return converterCallerIntent()
         }
 
-        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<out NbtRelatedType>? {
+        override fun defaultCreateTagIntent(): CreateTagIntent {
+            return object: CreateTagIntent {}
+        }
+
+        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<out NbtRelatedType>? {
             // check value can be Tag type T accepted or not
             if (!castable(typeToken)) return null
             // problem: need to handle primitive type with wrapper type while reflective cast not work
@@ -69,7 +78,7 @@ object TagConverters {
             return newTagFun(name, value as NbtRelatedType)
         }
 
-        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             if (!castable(typeToken)) return null
             return Pair(tag.name, tag.value as V)
         }
@@ -83,19 +92,23 @@ object TagConverters {
      */
     // this fun handle create converter for primitive array tag
     @JvmStatic
-    fun <T: Tag<ARR>, ARR:Any> newPrimitiveArrayTagConverter(tagValueClass: Class<ARR>, newTagFun:(name:String?, value: ARR)->T): TagConverter<ARR, ConverterCallerIntent> {
+    fun <T: Tag<ARR>, ARR:Any> newPrimitiveArrayTagConverter(tagValueClass: Class<ARR>, newTagFun:(name:String?, value: ARR)->T): TagConverter<ARR> {
         // check tagValueClass is Array type or not
 
         if (!tagValueClass.isArray) {
             throw IllegalArgumentException("Could not create Converter with no Array Tag Class! $tagValueClass")
         }
         val component = MTypeToken.of(tagValueClass.componentType)
-        return object: TagConverter<ARR, ConverterCallerIntent> {
-            override fun defaultIntent(): ConverterCallerIntent {
+        return object: TagConverter<ARR> {
+            override fun defaultToValueIntent(): ToValueIntent {
                 return converterCallerIntent()
             }
 
-            override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): T? {
+            override fun defaultCreateTagIntent(): CreateTagIntent {
+                return createTagUserIntent()
+            }
+
+            override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): T? {
                 val arrComp = value::class.java.componentType?: return null
                 if (!TypeCheckTool.isCastable(MTypeToken.of(arrComp), component)) return null
                 val size = java.lang.reflect.Array.getLength(value)
@@ -113,7 +126,7 @@ object TagConverters {
                 return newTagFun(name, arr)
             }
 
-            override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+            override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
                 // check tag is primitive array tag
                 if (!tag.value::class.java.isArray) return null
                 if (!TypeCheckTool.isCastable(component, MTypeToken.of(tag.value::class.java.componentType))) return null

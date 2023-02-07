@@ -1,6 +1,5 @@
 package com.myna.mnbt.converter
 
-import com.google.common.reflect.TypeToken
 import com.myna.mnbt.Tag
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyTagList
@@ -18,10 +17,10 @@ object ListConverters {
      * create a new list Tag converter that can convert ListTag between ArrayType object
      * ARR is another value type that may used to create tag / get value
      */
-    class ArrayTypeListTagConverter(override var proxy: TagConverter<Any, ConverterCallerIntent>):
+    class ArrayTypeListTagConverter(override var proxy: TagConverter<Any>):
             HierarchicalTagConverter<AnyTagList>() {
 
-        override fun <ARR:Any> createTag(name: String?, value: ARR, typeToken: MTypeToken<out ARR>, intent: ConverterCallerIntent): Tag<AnyTagList>? {
+        override fun <ARR:Any> createTag(name: String?, value: ARR, typeToken: MTypeToken<out ARR>, intent: CreateTagIntent): Tag<AnyTagList>? {
             intent as RecordParents
             // first check value is array or not
             if (!typeToken.isArray) return null
@@ -43,7 +42,7 @@ object ListConverters {
         }
 
 
-        override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ConverterCallerIntent): Pair<String?, ARR>? {
+        override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ToValueIntent): Pair<String?, ARR>? {
             intent as RecordParents; intent as ToValueIntent
             if (tag.value !is List<*>) return null
             val value = tag.value as MutableList<out Tag<out Any>>
@@ -59,12 +58,12 @@ object ListConverters {
 
     }
 
-    class IterableTypeConverter(override var proxy: TagConverter<Any, ConverterCallerIntent>)
+    class IterableTypeConverter(override var proxy: TagConverter<Any>)
         : HierarchicalTagConverter<AnyTagList>() {
         private val iterableType = MTypeToken.of(Iterable::class.java)
         private val iterableGenericType = Iterable::class.java.typeParameters[0]
 
-        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyTagList>? {
+        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyTagList>? {
             intent as RecordParents
             // check typeToken type is list or not
             if(!typeToken.isSubtypeOf(iterableType)) return null
@@ -88,7 +87,7 @@ object ListConverters {
             return ListTag(name, list, elementId)
         }
 
-        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             intent as RecordParents; intent as ToValueIntent
             // check tagValue is List
             if (tag.value !is List<*>) return null

@@ -14,7 +14,6 @@ import com.myna.mnbt.tag.AnyCompound
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.NullPointerException
-import java.util.ArrayDeque
 
 @Suppress("UnstableApiUsage")
 open class Mnbt {
@@ -79,7 +78,7 @@ open class Mnbt {
         if (value is Tag<*>) {
             return (onByteCodecProxy.encode(encapsulatedWithCompoundTag(name, value), userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
         }
-        val tag = converterProxy.createTag(name, value, typeToken)
+        val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent())
                 ?: throw ConverterNullResultException(value)
         return (onByteCodecProxy.encode(tag, userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
     }
@@ -109,7 +108,7 @@ open class Mnbt {
             codecProxy.encode(encapsulatedWithCompoundTag(name, value), userEncodeIntent(outputStream))
             return true
         }
-        val tag = converterProxy.createTag(name, value, typeToken)
+        val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent())
                 ?: throw ConverterNullResultException(value)
         codecProxy.encode(tag, userEncodeIntent(outputStream))
         return true
@@ -118,7 +117,7 @@ open class Mnbt {
     /**
      * doc:TODO
      */
-    fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ConverterCallerIntent?=null):Pair<String?, V>? {
+    fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
         val stream = if (autoAdaptedStream) AdaptedInputStream(inputStream) else inputStream
         val feedback = codecProxy.decode(userDecodeIntent(stream))
         return if (converterIntent!=null) converterProxy.toValue(feedback.tag, typeToken, converterIntent)
@@ -157,7 +156,7 @@ open class Mnbt {
      * doc: TODO
      */
     fun <V:Any> toTag(name:String, value:V, typeToken: MTypeToken<out V>):Tag<out Any>? {
-        return converterProxy.createTag(name, value, typeToken)
+        return converterProxy.createTag(name, value, typeToken, createTagUserIntent())
     }
 
     /**
@@ -170,7 +169,7 @@ open class Mnbt {
     /**
      * doc:TODO
      */
-    fun registerConverter(converter:TagConverter<Any, out ConverterCallerIntent>):Boolean {
+    fun registerConverter(converter:TagConverter<Any>):Boolean {
         return this.converterProxy.registerToFirst(converter)
     }
 

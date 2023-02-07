@@ -23,11 +23,11 @@ object MapConverters {
      *
      * if want to use this converter the create map from Tag/TagValue, it also can only handle enum map types, but not all sub-classes of map
      */
-    class MapTypeConverter(override var proxy: TagConverter<Any, ConverterCallerIntent>): HierarchicalTagConverter<AnyCompound>() {
+    class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
             private val mapTypeToken = MTypeToken.of(Map::class.java)
             private val mapValueGenericType = Map::class.java.typeParameters[1]
 
-            override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
+            override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
                 intent as RecordParents
                 if (!typeToken.isSubtypeOf(mapTypeToken)) return null
                 // try to get specific type delegate if there is
@@ -44,7 +44,7 @@ object MapConverters {
                 return CompoundTag(name, map)
             }
 
-            override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Pair<String?, V>? {
+            override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
                 intent as RecordParents; intent as ToValueIntent
                 // check tagValue is MutableMap or not
                 if (tag.value !is Map<*,*>) return null

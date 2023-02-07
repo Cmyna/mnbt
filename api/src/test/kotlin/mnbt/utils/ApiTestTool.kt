@@ -29,7 +29,7 @@ object ApiTestTool {
 
     // mutli type map test, need ensure all values in map can be handled automatically by converters
     // valueTriples: first is tag name, second one is value bits len, third one is value
-    val mutliTypeMapTest:(template: Template, mapTypeTagConverter: TagConverter<AnyCompound, RecordParents>, compoundTagCodec: Codec<AnyCompound>,
+    val mutliTypeMapTest:(template: Template, mapTypeTagConverter: TagConverter<AnyCompound>, compoundTagCodec: Codec<AnyCompound>,
                           valueTriples1:List<Triple<String, Int, Any>>,
                           valueTriples2:List<Triple<String, Int, Any>>,
                           mapCreation:()->MutableMap<String, Any>)->Unit
@@ -55,7 +55,7 @@ object ApiTestTool {
     }
 
     fun mapTypeTest(template: Template,
-                    converter: TagConverter<AnyCompound, out ConverterCallerIntent>, codec: Codec<AnyCompound>,
+                    converter: TagConverter<AnyCompound>, codec: Codec<AnyCompound>,
                     emptyMap: Map<String, Any>, mapDepth:Int, mapCreation: () -> MutableMap<String, Any>) {
         val map1 = ApiTestValueBuildTool.nestedMapValuesPreparation(mapDepth, mapCreation)
         val map2 = ApiTestValueBuildTool.nestedMapValuesPreparation(mapDepth, mapCreation)
@@ -65,7 +65,7 @@ object ApiTestTool {
     }
 
     fun mapTypeTest(template: Template,
-                    converter: TagConverter<AnyCompound, out ConverterCallerIntent>, codec: Codec<AnyCompound>,
+                    converter: TagConverter<AnyCompound>, codec: Codec<AnyCompound>,
                     map1:Map<String, Any>, map2:Map<String, Any>, emptyMap:Map<String, Any>, rootName:String, rootName2:String,
                     mapValueBitsLen:Int
     ) {
@@ -229,7 +229,7 @@ object ApiTestTool {
         private val mockTagEq = MockTagEquals()
 
         fun <NbtT:Any, VT:Any> apiTest(
-                tagConverter: TagConverter<NbtT, out ConverterCallerIntent>, codec: Codec<NbtT>,
+                tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
                 valueBitsLen: Int, typeToken: MTypeToken<VT>, valueCreation:()->VT) {
             apiTest(
                     tagConverter, codec,
@@ -241,7 +241,7 @@ object ApiTestTool {
 
 
         fun <NbtT:Any, VT:Any> apiTest(
-                tagConverter: TagConverter<NbtT, out ConverterCallerIntent>, codec: Codec<NbtT>,
+                tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
                 name1:String, name2:String,
                 value1:VT, value2:VT,
                 valueBitsLen: Int, typeToken: MTypeToken<out VT>) {
@@ -360,12 +360,12 @@ object ApiTestTool {
             apiTest(mnbtInst.mockConverterProxy, name1, name2, value1, value2, typeToken)
         }
 
-        fun <V:Any> apiTest(converter: TagConverter<Any, in ConverterCallerIntent>,
+        fun <V:Any> apiTest(converter: TagConverter<Any>,
                             name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
 
-            val tag1 = converter.createTag(name1, value1, typeToken, userCreateTagIntent())!!
-            val tag2 = converter.createTag(name1, value2, typeToken, userCreateTagIntent())!!
-            val tag3 = converter.createTag(name2, value1, typeToken, userCreateTagIntent())!!
+            val tag1 = converter.createTag(name1, value1, typeToken, createTagUserIntent())!!
+            val tag2 = converter.createTag(name1, value2, typeToken, createTagUserIntent())!!
+            val tag3 = converter.createTag(name2, value1, typeToken, createTagUserIntent())!!
             val tag4 = if (testMnbt) TestMnbt.inst.toTag(name1, value1, typeToken)!! else null
             val fromTag1 = converter.toValue(tag1, typeToken)!!
             val fromTag2 = converter.toValue(tag2, typeToken)!!
