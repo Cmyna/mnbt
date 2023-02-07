@@ -9,19 +9,19 @@ object TagConverters {
 
 
 
-    val intTagConverter = newPrimitiveTagConverters(MTypeToken.of(Int::class.java)) {name,value->PrimitiveTag.IntTag(name, value)}
-    val shortTagConverter = newPrimitiveTagConverters(MTypeToken.of(Short::class.java)) {name,value-> PrimitiveTag.ShortTag(name, value)}
-    val byteTagConverter = newPrimitiveTagConverters(MTypeToken.of(Byte::class.java)) {name,value-> PrimitiveTag.ByteTag(name, value)}
-    val longTagConverter = newPrimitiveTagConverters(MTypeToken.of(Long::class.java)) {name,value-> PrimitiveTag.LongTag(name, value)}
-    val floatTagConverter = newPrimitiveTagConverters(MTypeToken.of(Float::class.java)) {name,value-> PrimitiveTag.FloatTag(name, value)}
-    val doubleTagConverter = newPrimitiveTagConverters(MTypeToken.of(Double::class.java)) {name,value-> PrimitiveTag.DoubleTag(name, value)}
-    val stringTagConverter = newPrimitiveTagConverters(MTypeToken.of(String::class.java)) {name,value-> PrimitiveTag.StringTag(name, value)}
+    val intTagConverter = PrimitiveTagConverter(MTypeToken.of(Int::class.java)) { name, value->PrimitiveTag.IntTag(name, value)}
+    val shortTagConverter = PrimitiveTagConverter(MTypeToken.of(Short::class.java)) { name, value-> PrimitiveTag.ShortTag(name, value)}
+    val byteTagConverter = PrimitiveTagConverter(MTypeToken.of(Byte::class.java)) { name, value-> PrimitiveTag.ByteTag(name, value)}
+    val longTagConverter = PrimitiveTagConverter(MTypeToken.of(Long::class.java)) { name, value-> PrimitiveTag.LongTag(name, value)}
+    val floatTagConverter = PrimitiveTagConverter(MTypeToken.of(Float::class.java)) { name, value-> PrimitiveTag.FloatTag(name, value)}
+    val doubleTagConverter = PrimitiveTagConverter(MTypeToken.of(Double::class.java)) { name, value-> PrimitiveTag.DoubleTag(name, value)}
+    val stringTagConverter = PrimitiveTagConverter(MTypeToken.of(String::class.java)) { name, value-> PrimitiveTag.StringTag(name, value)}
 
-    val byteArrayConverter = newPrimitiveArrayTagConverter(
+    val byteArrayConverter = PrimitiveArrayTagConverter(
             ByteArray::class.java) { name, arr -> ArrayTag.ByteArrayTag(name, arr) }
-    val intArrayConverter = newPrimitiveArrayTagConverter(
+    val intArrayConverter = PrimitiveArrayTagConverter(
             IntArray::class.java) { name, arr -> ArrayTag.IntArrayTag(name, arr) }
-    val longArrayConverter = newPrimitiveArrayTagConverter(
+    val longArrayConverter = PrimitiveArrayTagConverter(
             LongArray::class.java) { name, arr -> ArrayTag.LongArrayTag(name, arr) }
 
     val booleanConverter = BooleanConverter()
@@ -57,11 +57,10 @@ object TagConverters {
     /**
      * @param newTagFun a function that create required Tag
      */
-    fun <NbtRelatedType:Any> newPrimitiveTagConverters
-            (tagValueTypeToken: MTypeToken<NbtRelatedType>,
-             newTagFun: (name: String?, value: NbtRelatedType) -> Tag<out NbtRelatedType>)
-    : TagConverter<NbtRelatedType>
-    = object: TagConverter<NbtRelatedType> {
+    class PrimitiveTagConverter<NbtRelatedType:Any>
+            (private val tagValueTypeToken: MTypeToken<NbtRelatedType>,
+             val newTagFun: (name: String?, value: NbtRelatedType) -> Tag<out NbtRelatedType>)
+    : TagConverter<NbtRelatedType> {
         override fun defaultToValueIntent(): ToValueIntent {
             return converterCallerIntent()
         }
@@ -91,64 +90,67 @@ object TagConverters {
      * @param newTagFun a function that create required Tag
      */
     // this fun handle create converter for primitive array tag
-    @JvmStatic
-    fun <T: Tag<ARR>, ARR:Any> newPrimitiveArrayTagConverter(tagValueClass: Class<ARR>, newTagFun:(name:String?, value: ARR)->T): TagConverter<ARR> {
-        // check tagValueClass is Array type or not
+    class PrimitiveArrayTagConverter<T: Tag<ARR>, ARR:Any>(tagValueClass: Class<ARR>, private val newTagFun:(name:String?, value: ARR)->T): TagConverter<ARR> {
+        
+        private val component: MTypeToken<out Any>
 
-        if (!tagValueClass.isArray) {
-            throw IllegalArgumentException("Could not create Converter with no Array Tag Class! $tagValueClass")
+        init {
+            // check tagValueClass is Array type or not
+            if (!tagValueClass.isArray) {
+                throw IllegalArgumentException("Could not create Converter with no Array Tag Class! $tagValueClass")
+            }
+            component = MTypeToken.of(tagValueClass.componentType)
         }
-        val component = MTypeToken.of(tagValueClass.componentType)
-        return object: TagConverter<ARR> {
-            override fun defaultToValueIntent(): ToValueIntent {
-                return converterCallerIntent()
-            }
 
-            override fun defaultCreateTagIntent(): CreateTagIntent {
-                return createTagUserIntent()
-            }
-
-            override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): T? {
-                val arrComp = value::class.java.componentType?: return null
-                if (!TypeCheckTool.isCastable(MTypeToken.of(arrComp), component)) return null
-                val size = java.lang.reflect.Array.getLength(value)
-                val arr = java.lang.reflect.Array.newInstance(component.rawType, size) as ARR
-                val componentEq = arrComp==component.rawType
-                // if array type totally equals, direct copy
-                if (componentEq) System.arraycopy(value, 0, arr, 0, size)
-                else {
-                    // else copy element by element
-                    for (i in IntRange(0, size-1)) {
-                        val e = java.lang.reflect.Array.get(value, i)
-                        java.lang.reflect.Array.set(arr, i, e)
-                    }
-                }
-                return newTagFun(name, arr)
-            }
-
-            override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
-                // check tag is primitive array tag
-                if (!tag.value::class.java.isArray) return null
-                if (!TypeCheckTool.isCastable(component, MTypeToken.of(tag.value::class.java.componentType))) return null
-                val valueComp = typeToken.componentType.rawType ?: return null
-                if (!TypeCheckTool.isCastable(component, MTypeToken.of(valueComp))) return null
-
-                val size = java.lang.reflect.Array.getLength(tag.value)
-                val result = java.lang.reflect.Array.newInstance(valueComp, size)
-
-                val componentEq = valueComp==component
-                // if array type totally equals, direct copy
-                if (componentEq) System.arraycopy(tag.value, 0, result, 0, size)
-                else {
-                    // else copy element by element
-                    for (i in IntRange(0, size-1)) {
-                        val e = java.lang.reflect.Array.get(tag.value, i)
-                        java.lang.reflect.Array.set(result, i, e)
-                    }
-                }
-                return Pair(tag.name, result as V)
-            }
+        override fun defaultToValueIntent(): ToValueIntent {
+            return converterCallerIntent()
         }
+
+        override fun defaultCreateTagIntent(): CreateTagIntent {
+            return createTagUserIntent()
+        }
+
+        override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): T? {
+            val arrComp = value::class.java.componentType?: return null
+            if (!TypeCheckTool.isCastable(MTypeToken.of(arrComp), component)) return null
+            val size = java.lang.reflect.Array.getLength(value)
+            val arr = java.lang.reflect.Array.newInstance(component.rawType, size) as ARR
+            val componentEq = arrComp==component.rawType
+            // if array type totally equals, direct copy
+            if (componentEq) System.arraycopy(value, 0, arr, 0, size)
+            else {
+                // else copy element by element
+                for (i in IntRange(0, size-1)) {
+                    val e = java.lang.reflect.Array.get(value, i)
+                    java.lang.reflect.Array.set(arr, i, e)
+                }
+            }
+            return newTagFun(name, arr)
+        }
+
+        override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
+            // check tag is primitive array tag
+            if (!tag.value::class.java.isArray) return null
+            if (!TypeCheckTool.isCastable(component, MTypeToken.of(tag.value::class.java.componentType))) return null
+            val valueComp = typeToken.componentType.rawType ?: return null
+            if (!TypeCheckTool.isCastable(component, MTypeToken.of(valueComp))) return null
+
+            val size = java.lang.reflect.Array.getLength(tag.value)
+            val result = java.lang.reflect.Array.newInstance(valueComp, size)
+
+            val componentEq = valueComp==component
+            // if array type totally equals, direct copy
+            if (componentEq) System.arraycopy(tag.value, 0, result, 0, size)
+            else {
+                // else copy element by element
+                for (i in IntRange(0, size-1)) {
+                    val e = java.lang.reflect.Array.get(tag.value, i)
+                    java.lang.reflect.Array.set(result, i, e)
+                }
+            }
+            return Pair(tag.name, result as V)
+        }
+
     }
 }
 
