@@ -11,6 +11,7 @@ object NbtPathTool{
 
     const val scheme = "mnbt://"
     val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+    val indexFormatRegex = Regex("^#\\d+$")
 
     /**
      * return mnbt relate path string
@@ -87,18 +88,18 @@ object NbtPathTool{
         return tagNameRegex.findAll(pathValue).map { it.value }
     }
 
+
+
+
     /**
      * @param source start point tag
      * @param path mnbt absolute path
      * @param targetTagId the target tag id, if it is null, then not check found id
-     * @return a tag if path and id matched
+     * @return a tag if path and id matched,
+     * if no segment in path and source id match targetTagId, return [source]
      */
     fun findTag(source:Tag<out Any>, path:String, targetTagId: Byte? = null):Tag<out Any>? {
         val accessSeq = toAccessSequence(path)
-        val rootName = accessSeq.firstOrNull()?: return null
-        // TODO: refact code logic
-        val rootNameIsNull = rootName.first()=='#' && source.name==null
-        if (rootName != source.name && !rootNameIsNull) return null
         return findTag(source, accessSeq.drop(1), targetTagId)
     }
 
@@ -106,21 +107,40 @@ object NbtPathTool{
      * @param source start point tag
      * @param accessSequence an access sequences with path segments name
      * @param targetTagId the target tag id, if it is null, then not check found id
-     * @return a tag if path and id matched
+     * @return a tag if path and id matched,
+     * @throws IllegalArgumentException if path segment in sequence has illegal format
+     * @throws IndexOutOfBoundsException if path segment is an index, but index over the related container's length
+     * if sequence is empty and source id match targetTagId, return [source]
      */
     fun findTag(source:Tag<out Any>, accessSequence:Sequence<String>, targetTagId:Byte? = null): Tag<out Any>? {
-        var current: Tag<out Any>? = source
+        var current: Tag<out Any>? = source // if access sequence is empty (for each not run), return source
         var sequenceMatchFlag = true
-        accessSequence.forEach { subTagName->
+        accessSequence.forEach { pathSegment->
             sequenceMatchFlag = false
             val value = current!!.value
-            if (value !is Map<*,*>) return@forEach
-            val subTag = value[subTagName]?: return@forEach
-            current = subTag as Tag<out Any>
+            val subTag = getSubTag(value, pathSegment)?: return@forEach
+            current = subTag
             sequenceMatchFlag = true
         }
         val idMatch = if (current!=null && targetTagId!=null) current!!.id==targetTagId else true
         return if (sequenceMatchFlag && idMatch) current else null
+    }
+
+    private fun getSubTag(container:Any?, pathSegment: String):Tag<out Any>? {
+        val element = if (pathSegment.first() == '#') {
+            if (indexFormatRegex.matchEntire(pathSegment) == null) {
+                    throw IllegalArgumentException("segment in input path has illegal index format $pathSegment")
+            }
+            val index = pathSegment.substring(1, pathSegment.length).toInt()
+            if (container !is List<*>) return null
+            container[index]
+        } else {
+            if (container !is Map<*,*>) return null
+            container[pathSegment]
+        }
+
+        return if (element !is Tag<*>) null
+        else element as Tag<out Any>
     }
 
 

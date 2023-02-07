@@ -39,6 +39,12 @@ class RegexStudy {
         regex.findAllValidation("abc/\\/ascd\\/\\//.*++", "abc", "\\/ascd\\/\\/", ".*++")
     }
 
+    @Test
+    fun invalidNumberToInt() {
+        val a = "00523".toInt()
+        assertEquals(523, a)
+    }
+
     private fun Regex.findAllValidation(str:String, vararg subStrs:String) {
         var i = 0
 

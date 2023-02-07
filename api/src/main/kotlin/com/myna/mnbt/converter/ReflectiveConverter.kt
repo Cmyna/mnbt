@@ -72,28 +72,21 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     //      the compound tag structure is root=>dataEntryTag=>subTagDataEntryTag->subTag
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      (=> means directly/indirectly contains, -> means directly contains)
-    // TODO: throw appropriate exception when [LocateAt] specify wrong id
-    //  always forgetting add id value in @LocateAt annotation, find better way solve it
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
         // parameters check
-        val callerIntent = intent as RecordParents // TODO: refact type check
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
 
-        // temporal: if name is null, set it as '#'
-        val returnedTagPath = if (intent is NbtTreeInfo) intent.createdTagPath else "mnbt://${name?:"#"}/"
+        // TODO: temporal: if name is null, set path segment as '#'
         // get tag locator, else build a new one
-        val (beReturnedTag, nbtTreeInfo) = if (intent is NbtTreeInfo) {
-            val got = NbtPathTool.findTag(intent.root, returnedTagPath, IdTagCompound)?: CompoundTag(name)
+        val (beReturnedTag, builtRoot, returnedTagPath) = if (intent is NbtTreeInfo) {
+            val got = NbtPathTool.findTag(intent.root, intent.createdTagPath, IdTagCompound)?: CompoundTag(name)
             got as Tag<AnyCompound>
-            Pair(got, intent)
+            Triple(got, intent.root, intent.createdTagPath)
         } else {
             val newReturnedTag = CompoundTag(name)
-            val newIntent = object:NbtTreeInfo {
-                override val createdTagPath: String = returnedTagPath
-                override val root: Tag<out Any> = newReturnedTag
-            }
-            Pair(newReturnedTag, newIntent)
+            val pathString = "mnbt://${name?:"#"}/"
+            Triple(newReturnedTag, newReturnedTag, pathString)
         }
 
         // dataEntry is the tag stores the result of value conversion (object conversion)
@@ -131,7 +124,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
         val createSubTagsArgs = fieldsInfo.mapNotNull { (field,accessSequence)->
             val fieldTagPath = getSubTagPath(dataEntryAbsPath, accessSequence)
-            val fieldIntent = buildSubTagCreationIntent(fieldTagPath, callerIntent, nbtTreeInfo)
+            val fieldIntent = buildSubTagCreationIntent(fieldTagPath, intent, builtRoot)
             val idTODO:Byte = 0
             createSubTagArgs(field, value, accessSequence, idTODO, fieldIntent)
         }
@@ -188,10 +181,13 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         }
     }
 
-    private fun buildSubTagCreationIntent(fieldTagPath:String, recordParents: RecordParents, nbtTreeInfo: NbtTreeInfo):CreateTagIntent {
-        return object: CreateTagIntent, RecordParents by recordParents, NbtTreeInfo {
+    private fun buildSubTagCreationIntent(
+            fieldTagPath:String, callerIntent: CreateTagIntent,
+            buildRoot:Tag<out Any>):CreateTagIntent {
+        return object: CreateTagIntent, RecordParents, NbtTreeInfo {
             override val createdTagPath: String = fieldTagPath
-            override val root: Tag<out Any> = nbtTreeInfo.root
+            override val root: Tag<out Any> = buildRoot
+            override val parents: Deque<Any> = if (callerIntent is RecordParents) callerIntent.parents else ArrayDeque()
         }
     }
 

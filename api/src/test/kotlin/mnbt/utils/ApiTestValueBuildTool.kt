@@ -137,7 +137,7 @@ object ApiTestValueBuildTool {
         }
     }
 
-    fun <V:Any> prepareTag2(name:String, value:V):Tag<out Any> = prepareTag(value, name)
+    fun <V:Any> prepareTag2(name:String?, value:V):Tag<out Any> = prepareTag(value, name)
 
     fun <V:Any> prepareTag(value:V, name:String? = null):Tag<out Any> {
         return when(value) {
