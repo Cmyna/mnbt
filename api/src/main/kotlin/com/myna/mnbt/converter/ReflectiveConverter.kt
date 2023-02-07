@@ -6,13 +6,11 @@ import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
 import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.converter.meta.NbtPathTool
-import com.myna.mnbt.converter.meta.TagLocatorInstance
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.lang.NullPointerException
-import java.lang.RuntimeException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -40,9 +38,23 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
      */
     var returnObjectWithNullableProperties = true
 
+    /**
+     * only java bean class object will be created and return from [toValue] method
+     */
     var onlyJavaBean:Boolean = false
 
-    var outputDebugInfo:Boolean = false
+    /**
+     * output stacktrace info if exception threw in [createTag]/[toValue].
+     * if [throwExceptionInCreateTag] is set to true, converter will not repeat output stacktrace
+     */
+    var printStacktrace:Boolean = false
+
+    /**
+     * if any exception occurs during [createTag], throw it.
+     *
+     * if variable is false, createTag function will capture any exceptions and return null
+     */
+    var throwExceptionInCreateTag = false
 
     data class CreateSubTagArgs(
             val value:Any, val subTagName:String,
@@ -50,8 +62,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
             val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?,
             val fieldRelatePath: List<String>
     )
-
-    data class CleanUpStartTag(val pointer:CompoundTag, val targetName:String)
 
     // Conversion to CompoundTag procedure:
     //      create rootTag with name parameter passed in
@@ -62,68 +72,52 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     //      the compound tag structure is root=>dataEntryTag=>subTagDataEntryTag->subTag
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      (=> means directly/indirectly contains, -> means directly contains)
-    // TODO: refact temporal design that name is null will rebuild TagLocator
-
     // TODO: throw appropriate exception when [LocateAt] specify wrong id
     //  always forgetting add id value in @LocateAt annotation, find better way solve it
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: ConverterCallerIntent): Tag<AnyCompound>? {
         // parameters check
-        val callerIntent = intent as RecordParents
+        val callerIntent = intent as RecordParents // TODO: refact type check
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
 
-
-        var cleanUpStart:CleanUpStartTag? = null
-
-        // create root tag and get TagLocator intent
-        val rootContainerPath = if (intent is ParentTagsInfo) intent.rootContainerPath else "mnbt://"
-        val rootPath = if (name != null) NbtPathTool.appendSubDir(rootContainerPath, name) else "mnbt://#/"
+        // temporal: if name is null, set it as '#'
+        val returnedTagPath = if (intent is NbtTreeInfo) intent.createdTagPath else "mnbt://${name?:"#"}/"
         // get tag locator, else build a new one
-        val (root,tagLocatorIntent) = if (name != null && intent is TagLocator) {
-            // TODO: findAt return check, rootContainer[name] tag type check
-            val rootContainer = NbtPathTool.findTag(intent.root, rootContainerPath, IdTagCompound) as CompoundTag
-            val gotRoot = (rootContainer[name]?:CompoundTag(name)) as CompoundTag
-            if (rootContainer[name]==null) {
-                rootContainer.add(gotRoot)
-                cleanUpStart = CleanUpStartTag(rootContainer, gotRoot.name!!)
-            }
-            Pair(gotRoot, intent)
+        val (beReturnedTag, nbtTreeInfo) = if (intent is NbtTreeInfo) {
+            val got = NbtPathTool.findTag(intent.root, returnedTagPath, IdTagCompound)?: CompoundTag(name)
+            got as Tag<AnyCompound>
+            Pair(got, intent)
         } else {
-            val newRoot = CompoundTag(name)
-            val newIntent = TagLocatorInstance(newRoot)
-            Pair(newRoot, newIntent)
+            val newReturnedTag = CompoundTag(name)
+            val newIntent = object:NbtTreeInfo {
+                override val createdTagPath: String = returnedTagPath
+                override val root: Tag<out Any> = newReturnedTag
+            }
+            Pair(newReturnedTag, newIntent)
         }
 
         // dataEntry is the tag stores the result of value conversion (object conversion)
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
-        // temporal: if name is null, set it as '#'
         val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
         val dataEntryAbsPath:String =  if ( mapToAnn != null) {
             // type id not match
             if (mapToAnn.typeId != IdTagCompound) throw IllegalArgumentException()
-            NbtPathTool.combine(rootPath, mapToAnn.path)
-        } else rootPath
+            NbtPathTool.combine(returnedTagPath, mapToAnn.path)
+        } else returnedTagPath
 
 
-        val extraEntryLink = if (mapToAnn!=null) {
+        val toDataEntrySequence = if (mapToAnn!=null) {
             NbtPathTool.toAccessSequence(mapToAnn.path)
-        } else null
+        } else sequenceOf()
 
         // build to data Entry tag
-
-        val dataEntryTag = extraEntryLink?.let {
-            it.fold(root) { parent,childName->
-                val child = (parent[childName]?: CompoundTag(childName)) as CompoundTag
-                if (parent[childName]==null) {
-                    if (cleanUpStart==null) {
-                        cleanUpStart = CleanUpStartTag(parent, child.name!!)
-                    }
-                    parent.add(child)
-                }
-                child
-            }
-        }?: root
+        val dataEntryTag = toDataEntrySequence.fold(beReturnedTag) { parent, childName->
+            val parentValue = parent.value
+            val child = (parentValue[childName]?: CompoundTag(childName)) as CompoundTag
+            parentValue[childName] = child
+            child
+        }
 
         val fields = ObjectInstanceHandler.getAllFields(value::class.java)
 
@@ -138,8 +132,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         }
 
         val createSubTagsArgs = fieldsInfo.mapNotNull { (field,accessSequence,targetId)->
-            val fieldTagContainerPath = getSubTagContainerPath(dataEntryAbsPath, accessSequence)
-            val fieldIntent = buildSubTagCreationIntent(fieldTagContainerPath, callerIntent, tagLocatorIntent)
+            val fieldTagPath = getSubTagPath(dataEntryAbsPath, accessSequence)
+            val fieldIntent = buildSubTagCreationIntent(fieldTagPath, callerIntent, nbtTreeInfo)
             createSubTagArgs(field, value, accessSequence, targetId, fieldIntent)
         }
 
@@ -151,21 +145,17 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 if (!creationSuccess) return@onEach
                 // build sub tree contains subtag
                 val subTagContainer = it.fieldRelatePath.dropLast(1).fold(dataEntryTag) { parent, childName->
-                    val child = (parent[childName]?: CompoundTag(childName)) as CompoundTag
-                    if (parent[childName]==null) {
-                        parent.add(child)
-                    }
+                    val parentValue = parent.value
+                    val child = (parentValue[childName]?: CompoundTag(childName)) as CompoundTag
+                    parentValue[childName] = child
                     child
                 }
-                subTagContainer.add(subTag!!)
+                subTagContainer.value[it.subTagName] = subTag!!
             }
-            return root
+            return beReturnedTag
         } catch(e:Exception) {
-            if (outputDebugInfo) e.printStackTrace()
-            // clean field container tag
-            cleanUpStart?.let {
-                it.pointer.value.remove(it.targetName)
-            }
+            if (throwExceptionInCreateTag) throw e
+            else if (printStacktrace) e.printStackTrace()
             return null
         }
     }
@@ -192,20 +182,17 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         } }
     }
 
-    private fun getSubTagContainerPath(dataEntryAbsPath:String, fieldPath: List<String>?):String {
-        // get field's container tag absolute path
-        // if fieldsPath is not null, combine related path with data entry path
-        return fieldPath?.let { arrTypePath->
-            // remove last one in array, because that is target field tag which should let proxy create it
-            val relatedPath = NbtPathTool.toRelatedPath(*arrTypePath.dropLast(1).toTypedArray())
+    private fun getSubTagPath(dataEntryAbsPath: String, fieldPath: List<String>?):String {
+        return fieldPath?.let { arrTypePath ->
+            val relatedPath = NbtPathTool.toRelatedPath(*arrTypePath.toTypedArray())
             NbtPathTool.combine(dataEntryAbsPath, relatedPath)
         }?: dataEntryAbsPath
     }
 
-    private fun buildSubTagCreationIntent(fieldTagContainerPath:String, createTagIntent: RecordParents, tagLocator: TagLocator):CreateTagIntent {
-        return object: RecordParents, ParentTagsInfo, TagLocator by tagLocator {
-            override val parents: Deque<Any> = createTagIntent.parents
-            override val rootContainerPath = fieldTagContainerPath
+    private fun buildSubTagCreationIntent(fieldTagPath:String, recordParents: RecordParents, nbtTreeInfo: NbtTreeInfo):CreateTagIntent {
+        return object: CreateTagIntent, RecordParents by recordParents, NbtTreeInfo {
+            override val createdTagPath: String = fieldTagPath
+            override val root: Tag<out Any> = nbtTreeInfo.root
         }
     }
 
@@ -268,8 +255,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
                 val value = entry.value
                 if (accessible) field.set(instance, value)
             }
-        } catch (exc:Exception) {
-            if (outputDebugInfo) exc.printStackTrace()
+        } catch (e:Exception) {
+            if (printStacktrace) e.printStackTrace()
             return null
         }
         return Pair(tag.name, instance)
@@ -283,9 +270,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
         // TODO: null check is a kind of mess
         val targetTag = if (fieldPath!=null) {
             val accessQueue = NbtPathTool.toAccessSequence(fieldPath)
-            NbtPathTool.findTag(sourceTag, accessQueue, fieldTypeId)
-                    ?: return null
-                    //?: throw ConversionException("Can not find matched Tag with name:$fieldPath and value type:$fieldTypeId")
+            NbtPathTool.findTag(sourceTag, accessQueue, fieldTypeId) ?: return null
         } else {
             (sourceTag.value as Map<String, Tag<out Any>>)[field.name]
         }
@@ -310,4 +295,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any, ConverterCallerI
     fun addExcludedType(type:Class<*>) {
         if (!isExcluded(type)) this.typeBlackList.add(type)
     }
+
+
 }

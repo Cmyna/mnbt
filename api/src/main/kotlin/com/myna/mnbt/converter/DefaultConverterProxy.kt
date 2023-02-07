@@ -57,7 +57,7 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
         intent.parents.push(value)
         var tag: Tag<out Any>? = null
         for (delegate in delegateList) {
-            tag = delegate.createTag(name, value, restrictedTypeToken as MTypeToken<out V>, intent)
+            tag = delegate.createTag(name, value, restrictedTypeToken, intent)
             if (tag != null) break
         }
         intent.parents.pop()

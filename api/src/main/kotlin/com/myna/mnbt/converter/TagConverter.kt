@@ -20,6 +20,7 @@ interface TagConverter<out NbtRelatedType:Any, I: ConverterCallerIntent> {
     // but it causes duplicate code that creatTag and toValue also need check,
     // so I decided to change return type nullable, which means it will return null if value not compat
     // TODO: createTag parameter typeToken seems useless?
+    //  FIXME: remove default intent
     fun defaultIntent():I
     fun <V:Any> createTag(name: String?, value:V, typeToken: MTypeToken<out V>, intent:I = defaultIntent()): Tag<out NbtRelatedType>?
     fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent:I = defaultIntent()): Pair<String?, V>?

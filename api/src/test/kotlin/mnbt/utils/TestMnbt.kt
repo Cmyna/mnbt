@@ -26,7 +26,7 @@ class TestMnbt: Mnbt() {
         super.listCodec.proxy = mockCodecProxy
         super.compoundTagCodec.proxy = mockCodecProxy
 
-        super.reflectiveConverter.outputDebugInfo = true
+        super.reflectiveConverter.printStacktrace = true
     }
 
     companion object {

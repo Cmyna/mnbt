@@ -6,10 +6,7 @@ import com.myna.mnbt.codec.Codec
 import com.myna.mnbt.codec.HierarchicalCodec
 import com.myna.mnbt.codec.userDecodeIntent
 import com.myna.mnbt.codec.userEncodeIntent
-import com.myna.mnbt.converter.ConverterCallerIntent
-import com.myna.mnbt.converter.HierarchicalTagConverter
-import com.myna.mnbt.converter.RecordParents
-import com.myna.mnbt.converter.TagConverter
+import com.myna.mnbt.converter.*
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
 import com.myna.mnbt.tag.AnyCompound
@@ -363,11 +360,12 @@ object ApiTestTool {
             apiTest(mnbtInst.mockConverterProxy, name1, name2, value1, value2, typeToken)
         }
 
-        fun <V:Any> apiTest(converter: TagConverter<Any, out ConverterCallerIntent>,
+        fun <V:Any> apiTest(converter: TagConverter<Any, in ConverterCallerIntent>,
                             name1: String, name2: String, value1:V, value2:V, typeToken:MTypeToken<V>) {
-            val tag1 = converter.createTag(name1, value1, typeToken)!!
-            val tag2 = converter.createTag(name1, value2, typeToken)!!
-            val tag3 = converter.createTag(name2, value1, typeToken)!!
+
+            val tag1 = converter.createTag(name1, value1, typeToken, userCreateTagIntent())!!
+            val tag2 = converter.createTag(name1, value2, typeToken, userCreateTagIntent())!!
+            val tag3 = converter.createTag(name2, value1, typeToken, userCreateTagIntent())!!
             val tag4 = if (testMnbt) TestMnbt.inst.toTag(name1, value1, typeToken)!! else null
             val fromTag1 = converter.toValue(tag1, typeToken)!!
             val fromTag2 = converter.toValue(tag2, typeToken)!!
