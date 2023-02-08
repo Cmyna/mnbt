@@ -6,6 +6,7 @@ import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 
@@ -79,6 +80,12 @@ class ReflectiveConverterTest {
         val template = ApiTestTool.ConverterTestTemplate()
         template.expectedTag = expectedTag
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<DataClass3>() {})
+
+        // remap tags to TestClassD
+        val dc1 = value1.dataClass2List[3].dataClass1
+        val expectedD = TestClassD(dc1, dc1.j, value1.dc3L)
+        val result = TestMnbt.inst.fromTag(expectedTag, object:MTypeToken<TestClassD>() {})
+        assertEquals(expectedD, result?.second)
     }
 
     @Test
@@ -143,6 +150,15 @@ class ReflectiveConverterTest {
     data class TestClassC(
             @LocateAt("./tag1/tag2/tag3/int tag") val v1:Int,
             @LocateAt("./tag1/string tag") val v2:String? = null
+    )
+
+    /**
+     * test class that try to remap tags created from DataClass3
+     */
+    data class TestClassD(
+            @LocateAt("./dataClass2List/#3/dataClass1/") var dataClass1:DataClass1,
+            @LocateAt("./dataClass2List/#3/dataClass1/j") var str:String,
+            @LocateAt("./dc3L") var dc3L:Long
     )
 }
 

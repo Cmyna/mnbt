@@ -91,16 +91,36 @@ object NbtPathTool{
 
 
 
+
     /**
+     * The process will also verify the source tag is at front of path segment (first segment equals to source tag name)
      * @param source start point tag
      * @param path mnbt absolute path
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
-     * if no segment in path and source id match targetTagId, return [source]
+     * if segment num in path smaller than 2 and source id match targetTagId, return [source],
+     * if path is not an absolute path, or not found matched tag, return null.
      */
     fun findTag(source:Tag<out Any>, path:String, targetTagId: Byte? = null):Tag<out Any>? {
+        if (!isAbsolutePath(path)) return null
         val accessSeq = toAccessSequence(path)
+        // verification process of source tag is in findTag call below
         return findTag(source, accessSeq.drop(1), targetTagId)
+    }
+
+
+    /**
+     * @param source start point tag
+     * @param relatePath mnbt relate path
+     * @param targetTagId the target tag id, if it is null, then not check found id
+     * @return a tag if path and id matched,
+     * if no segment in path and source id match targetTagId, return [source],
+     * if path is not an relate path or not found match tag, return null.
+     */
+    fun searchTagAt(source:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
+        if (!isRelatedPath(relatePath)) return null
+        val accessSeq = toAccessSequence(relatePath)
+        return findTag(source, accessSeq, targetTagId)
     }
 
     /**

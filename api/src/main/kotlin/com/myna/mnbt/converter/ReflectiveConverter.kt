@@ -198,8 +198,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // parameter check
         intent as RecordParents; intent as ToValueIntent
-        val tagValue = tag.value
-        if (tagValue !is Map<*,*>) return null
+        if (tag.value !is Map<*,*>) return null
         val declaredRawType = typeToken.rawType
         if (isExcluded(declaredRawType)) return null
         if (declaredRawType == Any::class.java) return null // ignore top bounds:Object, because generic type V's upperbounds in all toValue function is Any
@@ -210,39 +209,41 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val fields = ObjectInstanceHandler.getAllFields(declaredRawType)
 
         // try get NbtPath implementation
-        val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
-        val classPath: String?
-        val fieldsId:Map<Field, Byte>? = null
-        if ( mapToAnn != null) {
-            classPath = NbtPathTool.combine("mnbt://", NbtPathTool.format(mapToAnn.path))
-        } else classPath = "mnbt://${tag.name?:"#"}"
+        val locateAtAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
+
+        val dataEntryTag = if (locateAtAnn != null) {
+            // try get data entry tag from annotation LocateAt
+            val found = NbtPathTool.searchTagAt(tag, NbtPathTool.format(locateAtAnn.path))
+            if (found!=null && found.id== IdTagCompound) found else tag
+        } else tag
+        dataEntryTag as Tag<AnyCompound>
+
+        val fieldsWithAccessSeq = fields.associateWith { field ->
+            val fieldLinkToAnn = field.getAnnotation(LocateAt::class.java)
+            if (fieldLinkToAnn != null) {
+                NbtPathTool.toAccessSequence(NbtPathTool.format(fieldLinkToAnn.path))
+            } else sequenceOf(field.name)
+        }
 
         try {
-            fields.associateWith { field-> // build field path
-                val fieldLinkToAnn = field.getAnnotation(LocateAt::class.java)
-                val fieldPath = when {
-                    fieldLinkToAnn != null -> {
-                        NbtPathTool.combine(classPath, NbtPathTool.format(fieldLinkToAnn.path))
-                    }
-                    else -> NbtPathTool.appendSubDir(classPath, field.name)
-                }
-                fieldPath
-            }.mapValues {
+            fieldsWithAccessSeq.mapValues {
                 val field = it.key
-                val fieldPath = it.value
                 val accessible = field.trySetAccessible()
                 // if can not access field, and also require non nullable properties, return null
-                if (!accessible && !returnObjectWithNullableProperties) return null
+                if (!accessible) return@mapValues null
+                val fieldTypeToken = MTypeToken.of(field.genericType)
 
-                val value = handleField(tag, field, intent, fieldPath, fieldsId?.get(field))
+                val targetTag = NbtPathTool.findTag(dataEntryTag, it.value)?: return@mapValues null
+                val value = proxy.toValue(targetTag, fieldTypeToken, nestCIntent(intent, false))
 
-                // if null and require non nullable properties, it means failed conversion, return null from 'toValue' function
-                if (!returnObjectWithNullableProperties && value==null) return null
-                else if (value == null) return@mapValues null // if nullable properties, then set value to null
-
-                value.second
+                value?.second
             }.onEach { entry-> // set field into instance
-                if (entry.value==null) return@onEach
+
+                if (entry.value==null) {
+                    // TODO options check refact
+                    if (!returnObjectWithNullableProperties) return null
+                    else return@onEach
+                }
                 val field = entry.key
                 val accessible = field.canAccess(instance)
                 val value = entry.value
@@ -253,24 +254,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             return null
         }
         return Pair(tag.name, instance)
-    }
-
-    /**
-     * @param fieldPath
-     */
-    private fun handleField(sourceTag:Tag<out Any>, field: Field, intent: ToValueIntent, fieldPath:String?, fieldTypeId:Byte?):Pair<String?, Any>? {
-
-        // TODO: null check is a kind of mess
-        val targetTag = if (fieldPath!=null) {
-            val accessQueue = NbtPathTool.toAccessSequence(fieldPath)
-            NbtPathTool.findTag(sourceTag, accessQueue, fieldTypeId) ?: return null
-        } else {
-            (sourceTag.value as Map<String, Tag<out Any>>)[field.name]
-        }
-        if (targetTag==null) return null
-
-        val fieldTypeToken = MTypeToken.of(field.genericType)
-        return proxy.toValue(targetTag, fieldTypeToken, nestCIntent(intent, false))
     }
 
     /**
