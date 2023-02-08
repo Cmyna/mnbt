@@ -35,15 +35,14 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
 
-        // TODO: temporal: if name is null, set path segment as '#'
         // get tag locator, else build a new one
         val (beReturnedTag, builtRoot, returnedTagPath) = if (intent is NbtTreeInfo) {
-            val got = NbtPathTool.findTag(intent.root, intent.createdTagPath, IdTagCompound)?: CompoundTag(name)
+            val got = NbtPathTool.goto(intent.root, intent.createdTagRelatePath, IdTagCompound)?: CompoundTag(name)
             got as Tag<AnyCompound>
-            Triple(got, intent.root, intent.createdTagPath)
+            Triple(got, intent.root, intent.createdTagRelatePath)
         } else {
             val newReturnedTag = CompoundTag(name)
-            val pathString = "mnbt://${name?:"#"}/"
+            val pathString = "./"
             Triple(newReturnedTag, newReturnedTag, pathString)
         }
 
@@ -51,17 +50,22 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
         val mapToAnn = typeToken.rawType.getAnnotation(LocateAt::class.java)
-        val dataEntryAbsPath:String =  if ( mapToAnn != null) {
-            NbtPathTool.combine(returnedTagPath, mapToAnn.path)
+        val dataEntryRelatePath:String =  if ( mapToAnn != null) {
+            NbtPathTool.combine(returnedTagPath, mapToAnn.encodePath)
         } else returnedTagPath
 
 
         val toDataEntrySequence = if (mapToAnn!=null) {
-            NbtPathTool.toAccessSequence(mapToAnn.path)
+            NbtPathTool.toAccessSequence(mapToAnn.encodePath)
         } else sequenceOf()
 
         // build to data Entry tag
         val dataEntryTag = toDataEntrySequence.fold(beReturnedTag) { parent, childName->
+            if (childName.first() == '#') {
+                val pathInfo = toDataEntrySequence.toList().fold(".") { last, cur-> "$last/$cur"}
+                throw IllegalArgumentException("Converter is trying to create extra tags to actual data entry by an related path $pathInfo, " +
+                        "but got index format path segment $childName, which the Converter can not handle. ")
+            }
             val parentValue = parent.value
             val child = (parentValue[childName]?: CompoundTag(childName)) as CompoundTag
             parentValue[childName] = child
@@ -73,7 +77,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val fieldsInfo = fields.map { field ->
             val locateAtAnn = field.getAnnotation(LocateAt::class.java)
             if (locateAtAnn!=null) {
-                val accessSeq = NbtPathTool.toAccessSequence(locateAtAnn.path).toList()
+                val accessSeq = NbtPathTool.toAccessSequence(locateAtAnn.encodePath).toList()
                 Pair(field, accessSeq)
             } else {
                 Pair(field, listOf(field.name))
@@ -81,7 +85,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         }
 
         val createSubTagsArgs = fieldsInfo.mapNotNull { (field,accessSequence)->
-            val fieldTagPath = getSubTagPath(dataEntryAbsPath, accessSequence)
+            val fieldTagPath = getSubTagPath(dataEntryRelatePath, accessSequence)
             val fieldIntent = buildSubTagCreationIntent(fieldTagPath, intent, builtRoot)
             val idTODO:Byte = 0
             createSubTagArgs(field, value, accessSequence, idTODO, fieldIntent)
@@ -132,10 +136,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         } }
     }
 
-    private fun getSubTagPath(dataEntryAbsPath: String, fieldPath: List<String>):String {
+    private fun getSubTagPath(dataEntryRelatePath: String, fieldPath: List<String>):String {
         return fieldPath.let { arrTypePath ->
             val relatedPath = NbtPathTool.toRelatedPath(*arrTypePath.toTypedArray())
-            NbtPathTool.combine(dataEntryAbsPath, relatedPath)
+            NbtPathTool.combine(dataEntryRelatePath, relatedPath)
         }
     }
 
@@ -143,7 +147,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             fieldTagPath:String, callerIntent: CreateTagIntent,
             buildRoot:Tag<out Any>):CreateTagIntent {
         return object: CreateTagIntent, RecordParents, NbtTreeInfo {
-            override val createdTagPath: String = fieldTagPath
+            override val createdTagRelatePath: String = fieldTagPath
             override val root: Tag<out Any> = buildRoot
             override val parents: Deque<Any> = if (callerIntent is RecordParents) callerIntent.parents else ArrayDeque()
         }
@@ -171,7 +175,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
         val dataEntryTag = if (locateAtAnn != null) {
             // try get data entry tag from annotation LocateAt
-            val found = NbtPathTool.searchTagAt(tag, NbtPathTool.format(locateAtAnn.path))
+            val found = NbtPathTool.goto(tag, NbtPathTool.format(LocateAt.getDecodePath(locateAtAnn)))
             if (found!=null && found.id== IdTagCompound) found else tag
         } else tag
         dataEntryTag as Tag<AnyCompound>
@@ -179,7 +183,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val fieldsWithAccessSeq = fields.associateWith { field ->
             val fieldLinkToAnn = field.getAnnotation(LocateAt::class.java)
             if (fieldLinkToAnn != null) {
-                NbtPathTool.toAccessSequence(NbtPathTool.format(fieldLinkToAnn.path))
+                NbtPathTool.toAccessSequence(NbtPathTool.format(LocateAt.getDecodePath(fieldLinkToAnn)))
             } else sequenceOf(field.name)
         }
 
@@ -274,7 +278,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
      * if variable is false, createTag function will capture any exceptions and return null
      */
     var throwExceptionInCreateTag = false
-
 
     enum class ExcludeStrategy {
         CONVARIANT, CONTRAVIARANT, INVARIANT

@@ -117,6 +117,11 @@ class ReflectiveConverterTest {
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<TestClassC>() {})
     }
 
+    @Test
+    fun listWithRepeatCompoundTest() {
+
+    }
+
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
         val classADataContainerTag = CompoundTag("tag2").also { comp->
             ApiTestValueBuildTool.prepareTag2("int tag", testClassA.i).also { comp.add(it) }
@@ -135,19 +140,19 @@ class ReflectiveConverterTest {
 
 
     @LocateAt("./tag1/tag2")
-    data class TestClassA(
+    private data class TestClassA(
             @LocateAt("int tag") val i:Int,
             @LocateAt("./tag3/string tag") val valj:String,
             @LocateAt("long tag") val k:Long,
             @LocateAt("./tag3/tag4/byte tag") val m:Byte)
 
-    data class TestClassB(
+    private data class TestClassB(
             @LocateAt("class A tag") val classA:TestClassA,
             @LocateAt("./class A tag/tag1/short tag") val n:Short,
             @LocateAt("./class A tag/tag1/tag2/tag3/double tag") val d:Double,
             val f:Float)
 
-    data class TestClassC(
+    private data class TestClassC(
             @LocateAt("./tag1/tag2/tag3/int tag") val v1:Int,
             @LocateAt("./tag1/string tag") val v2:String? = null
     )
@@ -155,7 +160,7 @@ class ReflectiveConverterTest {
     /**
      * test class that try to remap tags created from DataClass3
      */
-    data class TestClassD(
+    private data class TestClassD(
             @LocateAt("./dataClass2List/#3/dataClass1/") var dataClass1:DataClass1,
             @LocateAt("./dataClass2List/#3/dataClass1/j") var str:String,
             @LocateAt("./dc3L") var dc3L:Long

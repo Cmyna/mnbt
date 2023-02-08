@@ -29,19 +29,18 @@ object NbtPathTool{
 
     /**
      * append relate path to absolute path's end
-     * @param absolutePath mnbt format absolute path
+     * @param path mnbt format path
      * @param relatedPath mnbt format relate path
      * @return the appended result
      * @throws IllegalArgumentException if first args is not an absolute path,
      * or second one is not an relate path
      */
-    fun combine(absolutePath: String, relatedPath:String):String {
-        if (!isAbsolutePath(absolutePath)) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
+    fun combine(path: String, relatedPath:String):String {
         if (!isRelatedPath(relatedPath)) throw IllegalArgumentException("the related path URL ($relatedPath) is not an related path!")
 
         val builder = StringBuilder()
-        builder.append(absolutePath)
-        if (absolutePath.last() != '/') builder.append("/")
+        builder.append(path)
+        if (path.last() != '/') builder.append("/")
         builder.append(relatedPath.substring(2, relatedPath.length))
         return builder.toString()
     }
@@ -55,7 +54,6 @@ object NbtPathTool{
      */
     fun appendSubDir(absolutePath: String, pathSegment:String):String {
         if (!isAbsolutePath(absolutePath)) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
-
         return if (absolutePath.last() != '/') "$absolutePath/$pathSegment"
         else "$absolutePath$pathSegment"
     }
@@ -89,51 +87,34 @@ object NbtPathTool{
     }
 
 
-
-
-
     /**
-     * The process will also verify the source tag is at front of path segment (first segment equals to source tag name)
-     * @param source start point tag
-     * @param path mnbt absolute path
-     * @param targetTagId the target tag id, if it is null, then not check found id
-     * @return a tag if path and id matched,
-     * if segment num in path smaller than 2 and source id match targetTagId, return [source],
-     * if path is not an absolute path, or not found matched tag, return null.
-     */
-    fun findTag(source:Tag<out Any>, path:String, targetTagId: Byte? = null):Tag<out Any>? {
-        if (!isAbsolutePath(path)) return null
-        val accessSeq = toAccessSequence(path)
-        // verification process of source tag is in findTag call below
-        return findTag(source, accessSeq.drop(1), targetTagId)
-    }
-
-
-    /**
-     * @param source start point tag
+     * @param entry search entry
      * @param relatePath mnbt relate path
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
-     * if no segment in path and source id match targetTagId, return [source],
+     * if no segment in path and source id match targetTagId, return [entry],
      * if path is not an relate path or not found match tag, return null.
+     * @throws IllegalArgumentException if path segment in sequence has illegal format
+     * @throws IndexOutOfBoundsException if path segment is an index, but index over the related container's length
+     * if sequence is empty and source id match targetTagId, return [start]
      */
-    fun searchTagAt(source:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
+    fun goto(entry:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
         if (!isRelatedPath(relatePath)) return null
         val accessSeq = toAccessSequence(relatePath)
-        return findTag(source, accessSeq, targetTagId)
+        return findTag(entry, accessSeq, targetTagId)
     }
 
     /**
-     * @param source start point tag
+     * @param start start point tag
      * @param accessSequence an access sequences with path segments name
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
      * @throws IllegalArgumentException if path segment in sequence has illegal format
      * @throws IndexOutOfBoundsException if path segment is an index, but index over the related container's length
-     * if sequence is empty and source id match targetTagId, return [source]
+     * if sequence is empty and source id match targetTagId, return [start]
      */
-    fun findTag(source:Tag<out Any>, accessSequence:Sequence<String>, targetTagId:Byte? = null): Tag<out Any>? {
-        var current: Tag<out Any>? = source // if access sequence is empty (for each not run), return source
+    fun findTag(start:Tag<out Any>, accessSequence:Sequence<String>, targetTagId:Byte? = null): Tag<out Any>? {
+        var current: Tag<out Any>? = start // if access sequence is empty (for each not run), return start tag
         var sequenceMatchFlag = true
         accessSequence.forEach { pathSegment->
             sequenceMatchFlag = false

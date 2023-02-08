@@ -25,7 +25,11 @@ interface CreateTagIntent:ConverterCallerIntent
 
 interface NbtTreeInfo:CreateTagIntent {
     val root:Tag<out Any>
-    val createdTagPath:String
+
+    /**
+     * the relate path starts at root (exclude root)
+     */
+    val createdTagRelatePath:String
 }
 
 interface ToValueIntent:ConverterCallerIntent
