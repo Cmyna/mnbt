@@ -21,48 +21,6 @@ import kotlin.collections.ArrayList
  */
 class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
 
-    private val typeBlackList = ArrayList<Class<*>>()
-
-    init {
-        typeBlackList.addAll(listOf(
-                Iterable::class.java,
-                Map::class.java,
-        ))
-    }
-
-    /**
-     * set reflective converter handle object with nullable properties or not.
-     *
-     * if value is true, object return from toValue will have some null members if converter can not handle it
-     * (can not converted to field expected type or can not access field)
-     */
-    var returnObjectWithNullableProperties = true
-
-    /**
-     * only java bean class object will be created and return from [toValue] method
-     */
-    var onlyJavaBean:Boolean = false
-
-    /**
-     * output stacktrace info if exception threw in [createTag]/[toValue].
-     * if [throwExceptionInCreateTag] is set to true, converter will not repeat output stacktrace
-     */
-    var printStacktrace:Boolean = false
-
-    /**
-     * if any exception occurs during [createTag], throw it.
-     *
-     * if variable is false, createTag function will capture any exceptions and return null
-     */
-    var throwExceptionInCreateTag = false
-
-    data class CreateSubTagArgs(
-            val value:Any, val subTagName:String,
-            val createSubTagIntent: CreateTagIntent,
-            val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?,
-            val fieldRelatePath: List<String>
-    )
-
     // Conversion to CompoundTag procedure:
     //      create returnedTag with name parameter passed in
     //      create/get dataEntryTag
@@ -238,7 +196,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
                 value?.second
             }.onEach { entry-> // set field into instance
-
                 if (entry.value==null) {
                     // TODO options check refact
                     if (!returnObjectWithNullableProperties) return null
@@ -261,16 +218,65 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
      */
     private fun isExcluded(type:Class<*>):Boolean {
         return typeBlackList.any { black->
-            black.isAssignableFrom(type)
+            when (black.second) {
+                ExcludeStrategy.CONVARIANT -> { black.first.isAssignableFrom(type)}
+                ExcludeStrategy.INVARIANT -> { black.first == type}
+                ExcludeStrategy.CONTRAVIARANT -> { type.isAssignableFrom(black.first)}
+            }
         }
     }
 
     /**
      * add type that want reflective converter ignores(return null) in createTag/toValue
      */
-    fun addExcludedType(type:Class<*>) {
-        if (!isExcluded(type)) this.typeBlackList.add(type)
+    fun addExcludedType(type:Class<*>, strategy: ExcludeStrategy = ExcludeStrategy.CONVARIANT) {
+        if (!isExcluded(type)) this.typeBlackList.add(type to strategy)
     }
 
+    private val typeBlackList = ArrayList<Pair<Class<*>, ExcludeStrategy>>()
 
+    init {
+        typeBlackList.addAll(listOf(
+                Iterable::class.java to ExcludeStrategy.CONVARIANT,
+                Map::class.java to ExcludeStrategy.CONVARIANT,
+        ))
+    }
+
+    data class CreateSubTagArgs(
+            val value:Any, val subTagName:String,
+            val createSubTagIntent: CreateTagIntent,
+            val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?,
+            val fieldRelatePath: List<String>
+    )
+
+    /**
+     * set reflective converter handle object with nullable properties or not.
+     *
+     * if value is true, object return from toValue will have some null members if converter can not handle it
+     * (can not converted to field expected type or can not access field)
+     */
+    var returnObjectWithNullableProperties = true
+
+    /**
+     * only java bean class object will be created and return from [toValue] method
+     */
+    var onlyJavaBean:Boolean = false
+
+    /**
+     * output stacktrace info if exception threw in [createTag]/[toValue].
+     * if [throwExceptionInCreateTag] is set to true, converter will not repeat output stacktrace
+     */
+    var printStacktrace:Boolean = false
+
+    /**
+     * if any exception occurs during [createTag], throw it.
+     *
+     * if variable is false, createTag function will capture any exceptions and return null
+     */
+    var throwExceptionInCreateTag = false
+
+
+    enum class ExcludeStrategy {
+        CONVARIANT, CONTRAVIARANT, INVARIANT
+    }
 }
