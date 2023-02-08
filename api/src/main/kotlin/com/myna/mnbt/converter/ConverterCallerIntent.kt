@@ -23,11 +23,15 @@ interface RecordParents: ConverterCallerIntent {
  */
 interface CreateTagIntent:ConverterCallerIntent
 
-interface NbtTreeInfo:CreateTagIntent {
+/**
+ * record an compound sub-trees info with target tag returned from current createTag call
+ */
+interface BuiltCompoundSubTree:CreateTagIntent {
     val root:Tag<out Any>
 
     /**
-     * the relate path starts at root (exclude root)
+     * Target tag's relate path returned from current createTag call
+     * the relate path starts at root (exclude root).
      */
     val createdTagRelatePath:String
 }

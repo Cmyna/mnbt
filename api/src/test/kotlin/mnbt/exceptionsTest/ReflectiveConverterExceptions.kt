@@ -2,9 +2,10 @@ package mnbt.exceptionsTest
 
 
 import com.myna.mnbt.reflect.MTypeToken
+import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.JavaBean
 import mnbt.utils.TestMnbt
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class ReflectiveConverterExceptions {
@@ -32,4 +33,28 @@ class ReflectiveConverterExceptions {
         res = reflectiveConverter.toValue(tag, tk)
         assertEquals(res, null)
     }
+
+
+
+    @Test
+    fun exceptInterfaceOrAbstractClass() {
+        val testComp = CompoundTag()
+
+        val testI = TestMnbt.inst.fromTag(testComp, object:MTypeToken<TestI>() {})
+        assertNull(testI)
+
+        val testClassA = TestMnbt.inst.fromTag(testComp, object:MTypeToken<TestClassA>() {})
+        assertNotNull(testClassA)
+        assertEquals(testClassA!!.first, null)
+
+        val testAbs = TestMnbt.inst.fromTag(testComp, object:MTypeToken<TestAbstract>() {})
+
+        assertNull(testAbs)
+    }
+
+    interface TestI
+
+    private class TestClassA
+
+    private abstract class TestAbstract
 }
