@@ -20,10 +20,6 @@ import kotlin.random.Random
 
 typealias RArray = java.lang.reflect.Array
 
-// TODO: add log output when equals function returns false (for locating where comes wrong)
-//  can check tag object with hierarchical structure, and finding where comes differences
-//  no breaking current code in main
-
 @Suppress("UnstableApiUsage")
 object ApiTestTool {
 

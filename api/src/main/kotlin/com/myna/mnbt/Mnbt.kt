@@ -60,7 +60,7 @@ open class Mnbt {
     protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
     protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
     protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
-    protected val mapTypeTagConverter = MapConverters.MapTypeConverter(this.converterProxy)
+    protected val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
 
     protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
     protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
@@ -195,6 +195,16 @@ open class Mnbt {
      */
     fun <V:Any> fromTag(tag:Tag<out Any>, typeToken: MTypeToken<out V>):Pair<String?,V>? {
         return converterProxy.toValue(tag, typeToken)
+    }
+
+    fun <V:Any> overrideTag(value:V, typeToken: MTypeToken<out V>, targetTag:Tag<out Any>):Tag<out Any>? {
+        // for flat tag, it just create a new tag and use value from parameter, use name from target tag
+        // so no extra code to reach functionality of override
+        // problem is need to check tag type is equals or not
+        val res = converterProxy.createTag(targetTag.name, value, typeToken, overrideTagUserIntent(targetTag))
+        // check top tag type
+        return if (res?.id != targetTag.id) null
+        else res
     }
 
     /**

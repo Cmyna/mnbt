@@ -1,5 +1,6 @@
 package com.myna.mnbt.converter
 
+import com.myna.mnbt.Tag
 import java.lang.reflect.Proxy
 import java.util.*
 
@@ -23,6 +24,13 @@ fun converterCallerIntent(ignoreTypeToken:Boolean = false): ToValueIntent {
 
 fun createTagUserIntent(): CreateTagIntent {
     return object: CreateTagIntent, RecordParents {
+        override val parents: Deque<Any> = ArrayDeque()
+    }
+}
+
+fun overrideTagUserIntent(targetTag: Tag<out Any>): CreateTagIntent {
+    return object: CreateTagIntent, OverrideTag, RecordParents {
+        override val overrideTarget: Tag<out Any> = targetTag
         override val parents: Deque<Any> = ArrayDeque()
     }
 }

@@ -8,9 +8,9 @@ import com.myna.mnbt.codec.TagFeedback
 
 class MockCodecProxy(var functionalProxy:Codec<Any>): Codec<Any> {
     override val id: Byte
-        get() = TODO("Not yet implemented")
+        get() = 0
     override val valueTypeToken: Class<Any>
-        get() = TODO("Not yet implemented")
+        get() = Any::class.java
 
     override fun encode(tag: Tag<out Any>, intent: CodecCallerIntent): CodecFeedback {
         return functionalProxy.encode(tag, intent)

@@ -158,10 +158,10 @@ object ApiTestValueBuildTool {
                     Byte::class.java,java.lang.Byte::class.java -> ArrayTag.ByteArrayTag(name, (value as Array<Byte>).toByteArray()) as Tag<V>
                     Int::class.java,java.lang.Integer::class.java -> ArrayTag.IntArrayTag(name, (value as Array<Int>).toIntArray()) as Tag<V>
                     Long::class.java,java.lang.Long::class.java -> ArrayTag.LongArrayTag(name, (value as Array<Long>).toLongArray()) as Tag<V>
-                    else -> TODO()
+                    else -> throw NotImplementedError()
                 }
             }
-            else -> TODO()
+            else -> throw NotImplementedError()
         }
     }
 

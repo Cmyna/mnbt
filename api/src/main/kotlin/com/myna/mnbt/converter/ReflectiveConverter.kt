@@ -205,7 +205,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                 value?.second
             }.onEach { entry-> // set field into instance
                 if (entry.value==null) {
-                    // TODO options check refact
                     if (!returnObjectWithNullableProperties) return null
                     else return@onEach
                 }
