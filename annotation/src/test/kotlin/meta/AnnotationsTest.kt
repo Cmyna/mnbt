@@ -23,12 +23,12 @@ class AnnotationsTest {
             )
 
     class TestClassAFProvider: FieldValueProvider {
-        override fun <V> provide(field: Field): V? {
+        override fun provide(field: Field): Any? {
             return when (field) {
                 TestClassA::j.javaField -> 5
                 TestClassA::k.javaField -> "some string"
                 else -> null
-            } as V
+            }
         }
     }
 
@@ -53,13 +53,13 @@ class AnnotationsTest {
     @Test
     fun throwProviderStateException() {
         val provider = object:FieldValueProvider{
-            override fun <V> provide(field: Field): V? {
+            override fun provide(field: Field): Any? {
                 throw NullPointerException()
             }
         }
 
         assertThrows<FieldValueProvider.StateException> {
-            provider.tryProvide<Int>(TestClassA::j.javaField!!)
+            provider.tryProvide(TestClassA::j.javaField!!)
         }.printStackTrace()
     }
 }

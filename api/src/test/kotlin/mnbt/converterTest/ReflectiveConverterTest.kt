@@ -1,14 +1,18 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.*
+import com.myna.mnbt.annotations.FieldValueProvider
+import com.myna.mnbt.annotations.Ignore
 import com.myna.mnbt.annotations.LocateAt
 
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.lang.reflect.Field
 import kotlin.random.Random
+import kotlin.reflect.jvm.javaField
 
 class ReflectiveConverterTest {
 
@@ -52,28 +56,8 @@ class ReflectiveConverterTest {
 
     @Test
     fun complicateDataClassesTest() {
-        var c = 0
-        val dc1Creation:()->DataClass1 = {
-            c += 1
-            DataClass1(Random.nextInt()+c, RandomValueTool.bitStrC(5)()+c)
-        }
-        val dc2Creation:()->DataClass2 = {
-            val dc1 = dc1Creation()
-            c += 1
-            DataClass2(dc1, Random.nextDouble()+c)
-        }
-        val dc3Creation:(num:Int)->DataClass3 = { num->
-            val list = ArrayList<DataClass2>().also { list->
-                repeat(num) {
-                    list.add(dc2Creation())
-                }
-            }
-            c += 1
-            DataClass3(list, Random.nextLong()+c)
-        }
-
-        val value1 = dc3Creation(10)
-        val value2 = dc3Creation(8)
+        val value1 = testClass3(10)
+        val value2 = testClass3(8)
         val name1 = "Data Class 3-1"
         val name2 = "Data Class 3-2"
         val expectedTag = value1.toCompound(name1)
@@ -83,7 +67,7 @@ class ReflectiveConverterTest {
 
         // remap tags to TestClassD
         val dc1 = value1.dataClass2List[3].dataClass1
-        val expectedD = TestClassD(dc1, dc1.j, value1.dc3L)
+        val expectedD = TestClassD(dc1, dc1.j, value1.dc3L, null)
         val result = TestMnbt.inst.fromTag(expectedTag, object:MTypeToken<TestClassD>() {})
         assertEquals(expectedD, result?.second)
     }
@@ -118,8 +102,17 @@ class ReflectiveConverterTest {
     }
 
     @Test
-    fun listWithRepeatCompoundTest() {
+    fun ignoreAnnotationTest() {
+        val tc3 = testClass3(10)
+        val dc1 = tc3.dataClass2List[3].dataClass1
+        val tcd = TestClassD(dc1, dc1.j, tc3.dc3L, "")
+        val name1 = "Data Class 3-1"
+        val name2 = "test class d"
+        val expectedTag = tc3.toCompound(name1)
 
+        val expectedTag2 = tcd.toCompound(name2)
+        val tag = TestMnbt.inst.toTag(name2, tcd, object:MTypeToken<TestClassD>() {})
+        assertTrue(MockTagEquals().equals(expectedTag2, tag))
     }
 
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
@@ -161,10 +154,59 @@ class ReflectiveConverterTest {
      * test class that try to remap tags created from DataClass3
      */
     private data class TestClassD(
-            @LocateAt("./dataClass2List/#3/dataClass1/") var dataClass1:DataClass1,
-            @LocateAt("./dataClass2List/#3/dataClass1/j") var str:String,
-            @LocateAt("./dc3L") var dc3L:Long
+            @LocateAt("./dataClass2List/dataClass1/", "./dataClass2List/#3/dataClass1/") var dataClass1:DataClass1,
+            @LocateAt("./dataClass2List/dataClass1/j", "./dataClass2List/#3/dataClass1/j") var str:String,
+            @LocateAt("./dc3L") var dc3L:Long,
+            @Ignore(true, true, FVProvider::class)val s:String?
     )
+
+    private fun TestClassD.toCompound(name:String?):CompoundTag {
+        val tcd = CompoundTag(name)
+        val dataClass2List = CompoundTag("dataClass2List")
+        tcd.add(dataClass2List)
+        val dataClass1 = this.dataClass1.toCompound("dataClass1")
+        dataClass2List.add(dataClass1)
+        ApiTestValueBuildTool.prepareTag2("j", this.str).also {dataClass1.add(it)}
+        ApiTestValueBuildTool.prepareTag2("dc3L", this.dc3L).also {tcd.add(it)}
+        return tcd
+    }
+
+
+    private class FVProvider: FieldValueProvider {
+        override fun provide(field: Field): Any? {
+            return if (field == TestClassD::s.javaField) testStr1
+            else null
+        }
+    }
+
+    private fun dataClass1():DataClass1 {
+        c += 1
+        return DataClass1(Random.nextInt()+c, RandomValueTool.bitStrC(5)()+c)
+    }
+
+    private fun testClass2():DataClass2  {
+        val dc1 = dataClass1()
+        c += 1
+        return DataClass2(dc1, Random.nextDouble()+c)
+    }
+
+    private fun testClass3(num:Int):DataClass3 {
+        val list = ArrayList<DataClass2>().also { list->
+            repeat(num) {
+                list.add(testClass2())
+            }
+        }
+        c += 1
+        return DataClass3(list, Random.nextLong()+c)
+    }
+
+    companion object {
+
+        private const val testStr1 = ""
+
+        private var c = 0
+
+    }
 }
 
 

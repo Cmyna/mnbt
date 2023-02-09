@@ -18,7 +18,7 @@ interface FieldValueProvider {
      * provide a default value for a field
      * @param field: the field type containing the value
      */
-    fun <V> provide(field: Field):V?
+    fun provide(field: Field):Any?
 
     /**
      * for catching any Exceptions from FieldValueProvider.provide(), and throws this exception out
@@ -35,9 +35,9 @@ interface FieldValueProvider {
          * @throws [StateException] if any Exceptions caught in method
          *
          */
-        fun <V> FieldValueProvider.tryProvide(field: Field):V? {
+        fun FieldValueProvider.tryProvide(field: Field):Any? {
             return try {
-                this.provide<V>(field)
+                this.provide(field)
             } catch (exception:Exception) {
                 throw StateException(exception)
             }

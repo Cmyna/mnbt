@@ -2,6 +2,6 @@ package study;
 
 import com.myna.mnbt.annotations.LocateAt;
 
-@LocateAt(encodePath = "sampleTag")
+@LocateAt(toTagPath = "sampleTag")
 public class JTestClassC {
 }

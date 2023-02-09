@@ -35,7 +35,7 @@ annotation class Ignore(
      * only provide null value
      */
     class NullProvider: FieldValueProvider {
-        override fun <V> provide(field: Field): V? = null
+        override fun provide(field: Field): Any? = null
     }
 }
 

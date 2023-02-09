@@ -51,12 +51,12 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
         val classLocateAtMeta = typeToken.rawType.getAnnotation(LocateAt::class.java)
         val dataEntryRelatePath:String =  if ( classLocateAtMeta != null) {
-            NbtPathTool.combine(returnedTagPath, classLocateAtMeta.encodePath)
+            NbtPathTool.combine(returnedTagPath, classLocateAtMeta.toTagPath)
         } else returnedTagPath
 
 
         val toDataEntrySequence = if (classLocateAtMeta!=null) {
-            NbtPathTool.toAccessSequence(classLocateAtMeta.encodePath)
+            NbtPathTool.toAccessSequence(classLocateAtMeta.toTagPath)
         } else sequenceOf()
 
         // build to data Entry tag
@@ -78,7 +78,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val fieldsInfo = fields.map { field ->
             val fieldLocateAtMeta = field.getAnnotation(LocateAt::class.java)
             if (fieldLocateAtMeta!=null) {
-                val accessSeq = NbtPathTool.toAccessSequence(fieldLocateAtMeta.encodePath).toList()
+                val accessSeq = NbtPathTool.toAccessSequence(fieldLocateAtMeta.toTagPath).toList()
                 Pair(field, accessSeq)
             } else {
                 Pair(field, listOf(field.name))
@@ -168,7 +168,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val instance = ObjectInstanceHandler.newInstance(declaredRawType as Class<V>, onlyJavaBean)?: return null
         val fields = ObjectInstanceHandler.getAllFields(declaredRawType)
 
-        // try get NbtPath implementation
         val classLocateAtMeta = typeToken.rawType.getAnnotation(LocateAt::class.java)
 
         val dataEntryTag = if (classLocateAtMeta != null) {
