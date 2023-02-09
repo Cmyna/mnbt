@@ -187,12 +187,26 @@ class JavaBeanTest {
 
     @Test
     fun complicatedBeanTest() {
+        var c = 0
+        val bean2Creation:()->JavaBean2 = {
+            c += 1
+            JavaBean2().also {
+                it.int = Random.nextInt()
+                it.long = Random.nextLong()
+                it.str = RandomValueTool.bitStrC(10)()+c
+            }
+        }
         val creation:()->JavaBean4 = {
             val bean = JavaBean4()
             bean.bean4Var = "some string"
             bean.bean3Int = Random.nextInt()
             bean.d = Random.nextDouble()
-            bean.beanMap = HashMap()
+            bean.beanMap = HashMap<String, JavaBean2>().also {
+                it["bean2 1"] = bean2Creation()
+                it["bean2 2"] = bean2Creation()
+                it["bean2 3"] = bean2Creation()
+            }
+
             bean.beanList = ArrayList<JavaBean>().also{ list->
                 repeat(10) {
                     list.add(createJavaBean())
@@ -209,7 +223,13 @@ class JavaBeanTest {
             ApiTestValueBuildTool.prepareTag2("bean4Var", bean1.bean4Var!!).also {comp.add(it)}
             ApiTestValueBuildTool.prepareTag2("bean3Int", bean1.bean3Int!!).also {comp.add(it)}
             ApiTestValueBuildTool.prepareTag2("d", bean1.d!!).also {comp.add(it)}
-            CompoundTag("beanMap").also {comp.add(it)}
+            CompoundTag("beanMap").also { beanMap->
+                val map = bean1.beanMap!!
+                map.onEach { entry ->
+                    beanMap.add(entry.value.toCompound(entry.key))
+                }
+                comp.add(beanMap)
+            }
             ListTag<AnyCompound>(IdTagCompound,"beanList").also { listTag ->
                 val subTk = object:MTypeToken<JavaBean>() {}
                 bean1.beanList!!.onEach { subBean->

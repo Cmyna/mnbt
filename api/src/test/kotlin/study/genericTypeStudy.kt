@@ -1,6 +1,7 @@
 package study
 
 import com.google.common.reflect.TypeToken
+import com.myna.mnbt.reflect.MTypeToken
 import org.junit.jupiter.api.Test
 
 class genericTypeStudy {
@@ -45,6 +46,25 @@ class genericTypeStudy {
         list.add("")
         list as MutableList<Nothing>
 
+    }
+
+
+    @Test
+    fun genericTypeStudy() {
+        val tk1 = object: TypeToken<Map<String, Int>>() {}
+        val tk2 = genericMapType<Int>()
+
+        val mapValueGenericType = Map::class.java.typeParameters[1]
+        val tk11 = tk1.resolveType(mapValueGenericType) as TypeToken<out Any>
+        val tk21 = tk2.resolveType(mapValueGenericType) as TypeToken<out Any>
+
+        println(tk11)
+        println(tk21)
+    }
+
+    private fun <V> genericMapType(): TypeToken<V> {
+        val a = object: TypeToken<Map<String, V>>() {}
+        return a as TypeToken<V>
     }
 
 

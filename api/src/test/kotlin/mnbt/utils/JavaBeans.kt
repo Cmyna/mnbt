@@ -1,5 +1,8 @@
 package mnbt.utils
 
+import com.myna.mnbt.Tag
+import com.myna.mnbt.tag.CompoundTag
+
 open class JavaBean {
     var i:Int? = null
     var j:String? = null
@@ -34,6 +37,14 @@ class JavaBean2 {
     var int:Int? = null
     var str:String? = null
     var long:Long? = null
+
+    fun toCompound(name:String?): CompoundTag {
+        return CompoundTag(name).also { comp->
+            this.int?.let {ApiTestValueBuildTool.prepareTag2("int", it)}.also { comp.add(it as Tag<out Any>)}
+            this.str?.let {ApiTestValueBuildTool.prepareTag2("str", it)}.also { comp.add(it as Tag<out Any>)}
+            this.long?.let {ApiTestValueBuildTool.prepareTag2("long", it)}.also { comp.add(it as Tag<out Any>)}
+        }
+    }
 }
 
 class JavaBeanWithFlatValueList {
