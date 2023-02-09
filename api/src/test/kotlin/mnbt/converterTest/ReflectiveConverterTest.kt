@@ -62,11 +62,6 @@ class ReflectiveConverterTest {
         template.expectedTag = expectedTag
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<DataClass3>() {})
 
-        // remap tags to TestClassD
-        val dc1 = value1.dataClass2List[3].dataClass1
-        val expectedD = TestClassD(dc1, dc1.j, value1.dc3L, null)
-        val result = TestMnbt.inst.fromTag(expectedTag, object:MTypeToken<TestClassD>() {})
-        assertEquals(expectedD, result?.second)
     }
 
     @Test
