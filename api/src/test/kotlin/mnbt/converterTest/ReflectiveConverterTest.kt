@@ -1,14 +1,11 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.annotations.FieldValueProvider
-import com.myna.mnbt.annotations.Ignore
-import com.myna.mnbt.annotations.LocateAt
+import com.myna.mnbt.annotations.*
 
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Field
 import kotlin.random.Random
@@ -103,16 +100,35 @@ class ReflectiveConverterTest {
 
     @Test
     fun ignoreAnnotationTest() {
+        // test ignore
         val tc3 = testClass3(10)
         val dc1 = tc3.dataClass2List[3].dataClass1
-        val tcd = TestClassD(dc1, dc1.j, tc3.dc3L, "")
+        val tcd = TestClassD(dc1, dc1.j, tc3.dc3L, testStr1)
         val name1 = "Data Class 3-1"
         val name2 = "test class d"
         val expectedTag = tc3.toCompound(name1)
 
         val expectedTag2 = tcd.toCompound(name2)
         val tag = TestMnbt.inst.toTag(name2, tcd, object:MTypeToken<TestClassD>() {})
-        assertTrue(MockTagEquals().equals(expectedTag2, tag))
+        assertTrue(mockEquals.equals(expectedTag2, tag))
+
+        val pair = TestMnbt.inst.fromTag(expectedTag, object:MTypeToken<TestClassD>() {})
+        assertNotNull(pair)
+        assertEquals(name1, pair!!.first)
+        assertEquals(tcd, pair.second)
+
+        // test IgnoreToTag & IgnoreFromTag
+        val tce = TestClassE(55551, "test class e instance string")
+        val tceName = "test class E tag name"
+        val tceTagExpected = tce.toCompound(tceName)
+        val tceTag = TestMnbt.inst.toTag(tceName, tce, object:MTypeToken<TestClassE>() {}) as CompoundTag
+        assertTrue(mockEquals.equals(tceTagExpected, tceTag))
+        ApiTestValueBuildTool.prepareTag2("a string tag call j", "another string instance of j").also {tceTag.add(it)}
+        val pair2 = TestMnbt.inst.fromTag(tceTag, object:MTypeToken<TestClassE>() {})
+        assertEquals(tceName, pair2!!.first)
+        val tce2 = pair2.second
+        assertNotEquals(tce, tce2)
+        assertEquals(tce2.j, testStr2)
     }
 
     private fun getClassACompound(testClassA:TestClassA):CompoundTag {
@@ -160,6 +176,17 @@ class ReflectiveConverterTest {
             @Ignore(true, true, FVProvider::class)val s:String?
     )
 
+    private data class TestClassE(
+            @IgnoreToTag val i:Int,
+            @IgnoreFromTag(FVProvider::class) @LocateAt("./a string tag call j") val j:String
+    )
+
+    private fun TestClassE.toCompound(name:String?):CompoundTag {
+        val tce = CompoundTag(name)
+        ApiTestValueBuildTool.prepareTag2("a string tag call j", this.j).also {tce.add(it)}
+        return tce
+    }
+
     private fun TestClassD.toCompound(name:String?):CompoundTag {
         val tcd = CompoundTag(name)
         val dataClass2List = CompoundTag("dataClass2List")
@@ -174,8 +201,11 @@ class ReflectiveConverterTest {
 
     private class FVProvider: FieldValueProvider {
         override fun provide(field: Field): Any? {
-            return if (field == TestClassD::s.javaField) testStr1
-            else null
+            return when(field) {
+                TestClassD::s.javaField -> testStr1
+                TestClassE::j.javaField -> testStr2
+                else -> null
+            }
         }
     }
 
@@ -202,9 +232,12 @@ class ReflectiveConverterTest {
 
     companion object {
 
-        private const val testStr1 = ""
+        private const val testStr1 = "some string for testStr1"
+        private const val testStr2 = "some string for testStr2"
 
         private var c = 0
+
+        private val mockEquals = MockTagEquals()
 
     }
 }

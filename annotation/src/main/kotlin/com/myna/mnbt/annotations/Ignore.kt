@@ -3,6 +3,7 @@ package com.myna.mnbt.annotations
 import com.myna.mnbt.annotations.meta.AnnotationAlias
 import java.lang.reflect.Field
 import kotlin.reflect.KClass
+import kotlin.reflect.jvm.isAccessible
 
 /**
  * specify ignore a field when convert to/from tag
@@ -37,6 +38,20 @@ annotation class Ignore(
     class NullProvider: FieldValueProvider {
         override fun provide(field: Field): Any? = null
     }
+
+    companion object {
+        fun ignoreToTag(field:Field):Boolean {
+            val ignoreAnn = field.getAnnotation(Ignore::class.java)
+            val ignoreToTag = field.getAnnotation(IgnoreToTag::class.java)?: ignoreAnn?.let {AnnotationAlias.toAliasTarget(it, IgnoreToTag::class)}
+            return ignoreToTag != null
+        }
+
+        fun tryGetIgnoreFromTag(field: Field): IgnoreFromTag? {
+            val ignoreAnn = field.getAnnotation(Ignore::class.java)
+            return field.getAnnotation(IgnoreFromTag::class.java)
+                    ?: ignoreAnn?.let { AnnotationAlias.toAliasTarget(it, IgnoreFromTag::class) }
+        }
+    }
 }
 
 
@@ -51,5 +66,14 @@ annotation class IgnoreToTag
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 annotation class IgnoreFromTag(val fieldValueProvider: KClass<out FieldValueProvider>) {
+
+    companion object {
+        fun tryProvide(providerClass: KClass<out FieldValueProvider>, field: Field):Any? {
+            val constructor = providerClass.constructors.first()
+            constructor.isAccessible = true
+            val providerInstance = constructor.call()
+            return providerInstance.provide(field)
+        }
+    }
 }
 

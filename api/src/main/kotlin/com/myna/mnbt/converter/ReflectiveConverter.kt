@@ -4,6 +4,8 @@ import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.Tag
+import com.myna.mnbt.annotations.Ignore
+import com.myna.mnbt.annotations.IgnoreFromTag
 import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.converter.meta.NbtPathTool
 import com.myna.mnbt.reflect.MTypeToken
@@ -75,8 +77,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val fields = ObjectInstanceHandler.getAllFields(value::class.java)
 
         // fields' info: fields' compound tags access sequence from data entry tag
-        val fieldsInfo = fields.map { field ->
+        val fieldsInfo = fields.mapNotNull { field ->
             val fieldLocateAtMeta = field.getAnnotation(LocateAt::class.java)
+            if (Ignore.ignoreToTag(field)) return@mapNotNull null
+
             if (fieldLocateAtMeta!=null) {
                 val accessSeq = NbtPathTool.toAccessSequence(fieldLocateAtMeta.toTagPath).toList()
                 Pair(field, accessSeq)
@@ -190,6 +194,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                 val accessible = field.trySetAccessible()
                 // if can not access field, and also require non nullable properties, return null
                 if (!accessible) return@mapValues null
+                // try ignoreFromTag
+                val ignoreFromTag = Ignore.tryGetIgnoreFromTag(field)
+                if (ignoreFromTag != null) return@mapValues IgnoreFromTag.tryProvide(ignoreFromTag.fieldValueProvider, field)
                 val fieldTypeToken = MTypeToken.of(field.genericType)
 
                 val targetTag = NbtPathTool.findTag(dataEntryTag, it.value)?: return@mapValues null
