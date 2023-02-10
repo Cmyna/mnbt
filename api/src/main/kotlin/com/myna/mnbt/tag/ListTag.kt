@@ -2,6 +2,7 @@ package com.myna.mnbt.tag
 
 import com.myna.mnbt.IdTagList
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.meta.NbtPathTool.indexFormatRegex
 import java.lang.StringBuilder
 
 typealias AnyTagList = MutableList<Tag<out Any>>
@@ -15,7 +16,7 @@ class ListTag<NbtRelatedType:Any>(
         override val name: String?,
         override val value: MutableList<Tag<out NbtRelatedType>>,
         val elementId:Byte
-        ) : Tag<MutableList<Tag<out NbtRelatedType>>>() {
+        ) : Tag.NestTag<MutableList<Tag<out NbtRelatedType>>>() {
 
     override val id: Byte = IdTagList
 
@@ -24,6 +25,11 @@ class ListTag<NbtRelatedType:Any>(
     fun <T: Tag<NbtRelatedType>> add(tag:T):Boolean {
         if (tag.id != elementId) return false
         return value.add(tag)
+    }
+
+    operator fun get(i:Int):Tag<NbtRelatedType>? {
+        return if (value.size <= i) null
+        else value[i] as Tag<NbtRelatedType>
     }
 
     override fun equals(other: Any?): Boolean {
@@ -42,6 +48,13 @@ class ListTag<NbtRelatedType:Any>(
         builder.append("\tlist size: ${value.size}\n")
         if (value.size > 0 ) builder.append("\telement type: ${value.get(0)!!::class.java}")
         return builder.toString()
+    }
+
+    override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {
+        if (indexFormatRegex.matchEntire(pathSegment)==null) return null
+        val index = pathSegment.substring(1, pathSegment.length).toInt()
+        if (value.size <= index) return null
+        return value[index] as Tag<out V>
     }
 
     companion object {

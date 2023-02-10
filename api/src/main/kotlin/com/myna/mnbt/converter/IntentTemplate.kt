@@ -36,8 +36,10 @@ fun overrideTagUserIntent(targetTag: Tag<out Any>): CreateTagIntent {
     }
 }
 
-fun overrideTagIntent(intent:CreateTagIntent, targetTag: Tag<out Any>): CreateTagIntent {
-    return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) {
+fun overrideTagIntent(intent:CreateTagIntent, targetTag: Tag<out Any>?): CreateTagIntent {
+    val interfaces = intent::class.java.interfaces.toMutableSet()
+    if (targetTag==null) interfaces.remove(OverrideTag::class.java)
+    return Proxy.newProxyInstance(intent::class.java.classLoader, interfaces.toTypedArray()) {
         _, method, args ->
         if (method == OverrideTag::overrideTarget.javaGetter) return@newProxyInstance targetTag
         return@newProxyInstance method.invoke(intent, *args.orEmpty())

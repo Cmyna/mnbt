@@ -1,13 +1,16 @@
 package mnbt.converterTest
 
+import com.myna.mnbt.IdTagDouble
 import com.myna.mnbt.Tag
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.CompoundTag
+import com.myna.mnbt.tag.ListTag
 import mnbt.utils.ApiTestTool
 import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import kotlin.random.Random
 
 class OverrideTagTest {
 
@@ -70,6 +73,41 @@ class OverrideTagTest {
         }
         assertNotNull(map1Comp[extraKey2])
         assertEquals(map1Comp[extraKey2]!!.value, map2[extraKey2])
+    }
+
+    @Test
+    fun overrideFromFlatArray() {
+        // there is an option from Mnbt which specifies override the whole list or just replace some value in target list tag
+
+        // override whole list
+        val listTag = ApiTestValueBuildTool.listPreparation(100) { Random.nextDouble() }.let { vl->
+            ListTag<Double>(IdTagDouble, "double list tag 1").also {
+                vl.map { d-> ApiTestValueBuildTool.prepareTag2(null, d)}.onEach { dt ->
+                    it.add(dt as Tag<Double>)
+                }
+            }
+        }
+        val doubleArray = DoubleArray(80) {Random.nextDouble()}
+
+        var overrideTag = TestMnbt.inst.overrideTag(doubleArray, object:MTypeToken<DoubleArray>() {}, listTag) as ListTag<Double>
+        assertEquals(doubleArray.size, overrideTag.value.size)
+        doubleArray.onEachIndexed { i, d ->
+            assertEquals(d, overrideTag[i]!!.value)
+        }
+
+        // override some list
+        TestMnbt.inst.overridePartOfList = true
+
+        val doubleArray2 = DoubleArray(40) {Random.nextDouble()}
+        overrideTag = TestMnbt.inst.overrideTag(doubleArray2, object:MTypeToken<DoubleArray>() {}, overrideTag) as ListTag<Double>
+        assertEquals(doubleArray.size, overrideTag.value.size) // because array2 smaller, so size is array1 size
+        doubleArray2.onEachIndexed { i, d ->
+            assertEquals(d, overrideTag[i]!!.value)
+        }
+        for (i in doubleArray2.size until doubleArray2.size) {
+            assertEquals(doubleArray[i], overrideTag[i]!!.value)
+        }
+
     }
 
     private fun prepareFlatMap():Pair<HashMap<String, Any>, HashMap<String, Any>> {

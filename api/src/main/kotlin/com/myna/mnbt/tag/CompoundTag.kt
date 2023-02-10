@@ -9,7 +9,7 @@ class CompoundTag(
         override val name: String?,
         override val value: AnyCompound,
         override val id: Byte = IdTagCompound
-        ): Tag<AnyCompound>() {
+        ): Tag.NestTag<AnyCompound>() {
 
     constructor(name:String?=null):this(name, mutableMapOf())
 
@@ -26,5 +26,10 @@ class CompoundTag(
 
     operator fun get(name: String):Tag<out Any>? {
         return this.value[name]
+    }
+
+    override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {
+        val res = value[pathSegment]
+        return if (res != null) res as Tag<out V> else null
     }
 }

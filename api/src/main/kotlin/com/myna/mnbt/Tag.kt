@@ -18,6 +18,10 @@ abstract class Tag<NbtRelatedType> {
      */
     abstract val id:Byte
 
+    abstract class NestTag<NbtRelatedType>:Tag<NbtRelatedType>() {
+        abstract fun <V> getElementByPath(pathSegment:String): Tag<out V>?
+    }
+
     companion object {
         fun isTagAndEqName(tag: Tag<*>, other: Any?):Boolean {
             if (other==null) return false

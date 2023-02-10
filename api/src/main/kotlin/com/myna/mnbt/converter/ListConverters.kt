@@ -13,6 +13,8 @@ import java.lang.reflect.Modifier
  */
 object ListConverters {
 
+    var overridePartOfList: Boolean = false
+
     /**
      * create a new list Tag converter that can convert ListTag between ArrayType object
      * ARR is another value type that may used to create tag / get value

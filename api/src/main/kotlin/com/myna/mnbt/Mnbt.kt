@@ -20,53 +20,8 @@ import java.lang.NullPointerException
 
 @Suppress("UnstableApiUsage")
 open class Mnbt {
-    protected val converterProxy:DefaultConverterProxy = DefaultConverterProxy()
-    protected val codecProxy:DefaultCodecProxy = DefaultCodecProxy(BinaryCodecInstances.intCodec, BinaryCodecInstances.shortCodec,
-            BinaryCodecInstances.byteCodec, BinaryCodecInstances.longCodec,
-            BinaryCodecInstances.floatCodec, BinaryCodecInstances.doubleCodec,
-            BinaryCodecInstances.stringCodec, BinaryCodecInstances.intArrayCodec,
-            BinaryCodecInstances.byteArrayCodec, BinaryCodecInstances.longArrayCodec,
-            BinaryCodecInstances.nullTagCodec)
-
-    protected val onByteCodecProxy:OnBytesCodecProxy = OnBytesCodecProxy(
-            FlatCodeses.intCodec, FlatCodeses.shortCodec,
-            FlatCodeses.byteCodec, FlatCodeses.longCodec,
-            FlatCodeses.floatCodec, FlatCodeses.doubleCodec,
-            FlatCodeses.stringCodec, FlatCodeses.intArrayCodec,
-            FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
-    )
-
-    /**
-     * This options is experimental and may be removed in the future!
-     *
-     * Specifies that use an AdaptedInputStream that inherit and encapsulate all functionality from the original InputStream
-     * and optimize its performance by refactor its method code
-     */
-    var adaptedInputStream:Boolean = false
-
-    /**
-     * set convert object that has nullable properties or not. in default the value is true
-     *
-     * if value is true, object returned from deserialize/fromBytes may have some null properties that Mnbt can not handle
-     *
-     * if value is false, object returned from deserialize/fromByte will be null if Mnbt can not handle some properties in returned object
-     * (can not converted to field expected type or can not access field)
-     */
-    var returnObjectContainsNullableProperties:Boolean
-        get() = reflectiveConverter.returnObjectWithNullableProperties
-        set(b) {reflectiveConverter.returnObjectWithNullableProperties = b}
 
 
-    protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
-    protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
-    protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
-    protected val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
-
-    protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
-    protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
-
-    protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
-    protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
     /**
      * serialize value to Nbt binary data stored in a ByteArray(byte[])
@@ -226,6 +181,70 @@ open class Mnbt {
         compound.add(value as Tag<out Any>)
         return compound
     }
+
+
+    // options start
+
+    /**
+     * This options is experimental and may be removed in the future!
+     *
+     * Specifies that use an AdaptedInputStream that inherit and encapsulate all functionality from the original InputStream
+     * and optimize its performance by refactor its method code
+     */
+    var adaptedInputStream:Boolean = false
+
+    /**
+     * set convert object that has nullable properties or not. in default the value is true
+     *
+     * if value is true, object returned from deserialize/fromBytes may have some null properties that Mnbt can not handle
+     *
+     * if value is false, object returned from deserialize/fromByte will be null if Mnbt can not handle some properties in returned object
+     * (can not converted to field expected type or can not access field)
+     */
+    var returnObjectContainsNullableProperties:Boolean
+        get() = reflectiveConverter.returnObjectWithNullableProperties
+        set(b) {reflectiveConverter.returnObjectWithNullableProperties = b}
+
+    /**
+     * override part of list if override target is an list tag.
+     * Converters will only override value in source index to target list tag index element
+     */
+    var overridePartOfList: Boolean
+        get() = ListConverters.overridePartOfList
+        set(value) {ListConverters.overridePartOfList = value}
+
+
+    // options end
+
+
+
+
+    protected val converterProxy:DefaultConverterProxy = DefaultConverterProxy()
+    protected val codecProxy:DefaultCodecProxy = DefaultCodecProxy(BinaryCodecInstances.intCodec, BinaryCodecInstances.shortCodec,
+            BinaryCodecInstances.byteCodec, BinaryCodecInstances.longCodec,
+            BinaryCodecInstances.floatCodec, BinaryCodecInstances.doubleCodec,
+            BinaryCodecInstances.stringCodec, BinaryCodecInstances.intArrayCodec,
+            BinaryCodecInstances.byteArrayCodec, BinaryCodecInstances.longArrayCodec,
+            BinaryCodecInstances.nullTagCodec)
+
+    protected val onByteCodecProxy:OnBytesCodecProxy = OnBytesCodecProxy(
+            FlatCodeses.intCodec, FlatCodeses.shortCodec,
+            FlatCodeses.byteCodec, FlatCodeses.longCodec,
+            FlatCodeses.floatCodec, FlatCodeses.doubleCodec,
+            FlatCodeses.stringCodec, FlatCodeses.intArrayCodec,
+            FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
+    )
+
+    protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
+    protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
+    protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
+    protected val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
+
+    protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
+    protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
+
+    protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
+    protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
     init {
         this.codecProxy.registerCodec(listCodec)
