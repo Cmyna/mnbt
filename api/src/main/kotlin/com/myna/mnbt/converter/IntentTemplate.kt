@@ -3,6 +3,7 @@ package com.myna.mnbt.converter
 import com.myna.mnbt.Tag
 import java.lang.reflect.Proxy
 import java.util.*
+import kotlin.reflect.jvm.javaGetter
 
 fun nestCIntent(intent: ToValueIntent, ignoreTypeToken:Boolean): ToValueIntent {
     val interfaces = intent::class.java.interfaces.toMutableSet()
@@ -33,5 +34,13 @@ fun overrideTagUserIntent(targetTag: Tag<out Any>): CreateTagIntent {
         override val overrideTarget: Tag<out Any> = targetTag
         override val parents: Deque<Any> = ArrayDeque()
     }
+}
+
+fun overrideTagIntent(intent:CreateTagIntent, targetTag: Tag<out Any>): CreateTagIntent {
+    return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) {
+        _, method, args ->
+        if (method == OverrideTag::overrideTarget.javaGetter) return@newProxyInstance targetTag
+        return@newProxyInstance method.invoke(intent, *args.orEmpty())
+    } as CreateTagIntent
 }
 

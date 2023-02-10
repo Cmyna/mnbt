@@ -2,6 +2,7 @@ package com.myna.mnbt.converter
 
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.procedure.MapToTagProcedure
 import com.myna.mnbt.exceptions.*
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
@@ -26,28 +27,27 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
     private val mapValueGenericType = Map::class.java.typeParameters[1]
 
     override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
-        intent as RecordParents
-        if (!typeToken.isSubtypeOf(mapTypeToken)) return null
-        // try to get specific type delegate if there is
-        val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
-        value as Map<String, Any>
-        val map: AnyCompound = mutableMapOf()
-        value.onEach {
-            val subValue = it.value
-            val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, intent)?:
-            proxy.createTag(it.key, subValue, MTypeToken.of(subValue::class.java) as MTypeToken<out Any>, intent)?: return@onEach
-            //set[it.key] = tag
-            map[tag.name!!] = tag
-        }
-        // TODO: temple override code
-        if (intent is OverrideTag) {
-            // id not match, return null
-            if (intent.overrideTarget.id != IdTagCompound) return null
-            (intent.overrideTarget.value as AnyCompound).onEach {
-                if (map[it.key] == null) map[it.key] = it.value
-            }
-        }
-        return CompoundTag(name, map)
+        return MapToTagProcedure(proxy).procedure(name, value, typeToken, intent)
+//        intent as RecordParents
+//        if (!typeToken.isSubtypeOf(mapTypeToken)) return null
+//        // try to get specific type delegate if there is
+//        val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
+//        value as Map<String, Any>
+//        val map: AnyCompound = mutableMapOf()
+//        value.onEach {
+//            val subValue = it.value
+//            val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, intent)?: return@onEach
+//            map[tag.name!!] = tag
+//        }
+//        // TODO: temple override code
+//        if (intent is OverrideTag) {
+//            // id not match, return null
+//            if (intent.overrideTarget.id != IdTagCompound) return null
+//            (intent.overrideTarget.value as AnyCompound).onEach {
+//                if (map[it.key] == null) map[it.key] = it.value
+//            }
+//        }
+//        return CompoundTag(name, map)
     }
 
     override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
@@ -68,9 +68,8 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
             val subTag = entry.value
             checkNotNull(subTag.name)
             val subTagValueTypeToken = MTypeToken.of(subTag.value::class.java) as MTypeToken<out Any>
-            // just let proxy try two kinds of type token with subTagValue
-            val res = proxy.toValue(subTag, declaredValueTypeToken, nestCIntent(intent, false))?:
-            proxy.toValue(subTag, subTagValueTypeToken, nestCIntent(intent, true)) ?: return@onEach
+            // because proxy will auto restrict to tag.value type if type token is type variable, so we do not need to handle it
+            val res = proxy.toValue(subTag, declaredValueTypeToken, nestCIntent(intent, false))?: return@onEach
             newMap[subTag.name!!] = res.second
         }
 

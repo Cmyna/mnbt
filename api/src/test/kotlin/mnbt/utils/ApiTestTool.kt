@@ -229,8 +229,8 @@ object ApiTestTool {
                 valueBitsLen: Int, typeToken: MTypeToken<VT>, valueCreation:()->VT) {
             apiTest(
                     tagConverter, codec,
-                    Random.nextBytes(5).toString(Charsets.UTF_8),
-                    Random.nextBytes(5).toString(Charsets.UTF_8),
+                    RandomValueTool.bitStrC(5)(),
+                    RandomValueTool.bitStrC(5)(),
                     valueCreation(), valueCreation(), valueBitsLen, typeToken
             )
         }

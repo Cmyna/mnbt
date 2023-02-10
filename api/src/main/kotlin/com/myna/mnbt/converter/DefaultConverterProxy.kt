@@ -62,7 +62,10 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
 
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // restrict typeToken to tag.value::class.java if typeToken.rawType is Any
-        val restrictedTypeToken = (if (typeToken.rawType==Any::class.java) MTypeToken.of(tag.value::class.java) else typeToken) as MTypeToken<V>
+        // so unexpectedly the code below also restrict the type variable... although it is what I want
+        // TODO: although guava auto warp no-bounds type variable to Any::class.java, make the code more clearly
+        val restrictedTypeToken = if (typeToken.rawType==Any::class.java) MTypeToken.of(tag.value::class.java) else typeToken
+        restrictedTypeToken as MTypeToken<V>
         for (delegate in delegateList) {
             return delegate.toValue(tag, restrictedTypeToken, intent) ?: continue
         }

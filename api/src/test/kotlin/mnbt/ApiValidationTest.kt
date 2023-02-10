@@ -21,13 +21,10 @@ import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
 import kotlin.random.Random
 
+// FIXME: HARD TO RECURRENT ISSUE: some times not equals assertion failed (on ApiTestTool.template assert tag1 and tag3)
+//  seems their name and value are all equals, name represent a chars sequence with unsupported symbols: `<?>`
+//  it may comes from unreliable random string creation
 @Suppress("UnstableApiUsage")
-//TODO: hard to recurrent issue: sometimes some tests will not pass
-// seems those tests related to list/map test
-// asserts threw in test:
-//      tag1 and tag3 not equals fails (maybe solved, sometimes random generated string may be same)
-//      value bits length assertion failed (expected bit length is always larger than actual when failed)
-//          (maybe solved, problems seems from random generate String problem)
 class ApiValidationTest {
 
     private val valueEqFun = ApiTestTool::valueEqFun
@@ -119,6 +116,7 @@ class ApiValidationTest {
         template.apiTest(TagConverters.longArrayConverter, BinaryCodecInstances.longArrayCodec, 8004, object: MTypeToken<Array<Long>>(){})
             { Array(1000) {Random.nextLong()} }
     }
+
 
 
     @Test
