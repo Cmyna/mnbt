@@ -1,6 +1,9 @@
 package mnbt.utils
 
 import com.myna.mnbt.Mnbt
+import com.myna.mnbt.converter.DefaultConverterProxy
+import com.myna.mnbt.converter.TagConverter
+import kotlin.reflect.full.memberProperties
 
 class TestMnbt: Mnbt() {
 

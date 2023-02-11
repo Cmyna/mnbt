@@ -30,7 +30,7 @@ interface ToNestTagProcedure<TAG: Tag<out Any>, ARGS: ToNestTagProcedure.ToSubTa
     fun toSubTagRelatePath(args: ARGS):String
 
     companion object {
-        fun <TAG: Tag<out Any>, ARGS:ToSubTagArgs> ToNestTagProcedure<TAG,ARGS>.procedure():TAG? {
+        fun <TAG: Tag<out Any>, ARGS: ToSubTagArgs> ToNestTagProcedure<TAG, ARGS>.procedure():TAG? {
             if (!checkProcedureArgs()) return null
             val subArgs = toSubTagArgsList()
             val proxyReturns = subArgs.map {
@@ -41,7 +41,7 @@ interface ToNestTagProcedure<TAG: Tag<out Any>, ARGS: ToNestTagProcedure.ToSubTa
             return buildTargetTag(proxyReturns)
         }
 
-        private fun <TAG: Tag<out Any>, ARGS:ToSubTagArgs> ToNestTagProcedure<TAG,ARGS>.handleOverrideIntent(toSubTagArgs: ARGS):CreateTagIntent {
+        private fun <TAG: Tag<out Any>, ARGS: ToSubTagArgs> ToNestTagProcedure<TAG, ARGS>.handleOverrideIntent(toSubTagArgs: ARGS):CreateTagIntent {
             if (this.intent is OverrideTag) {
                 val path = this.toSubTagRelatePath(toSubTagArgs)
                 val target = (this.intent as OverrideTag).overrideTarget

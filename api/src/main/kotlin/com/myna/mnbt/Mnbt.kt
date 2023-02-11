@@ -235,16 +235,16 @@ open class Mnbt {
             FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
     )
 
-    protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
-    protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
-    protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
-    protected val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
+    protected open val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
+    protected open val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
+    protected open val reflectiveConverter = ReflectiveConverter(this.converterProxy)
+    protected open val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
 
-    protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
-    protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
+    protected open val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
+    protected open val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
 
-    protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
-    protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
+    protected open val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
+    protected open val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
     init {
         this.codecProxy.registerCodec(listCodec)

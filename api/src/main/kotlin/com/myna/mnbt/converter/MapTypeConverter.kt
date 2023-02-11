@@ -3,6 +3,8 @@ package com.myna.mnbt.converter
 import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 import com.myna.mnbt.exceptions.*
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure.Companion.procedure
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
@@ -22,31 +24,9 @@ import java.util.*
  * if want to use this converter the create map from Tag/TagValue, it also can only handle enum map types, but not all sub-classes of map
  */
 class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
-    private val mapTypeToken = MTypeToken.of(Map::class.java)
-    private val mapValueGenericType = Map::class.java.typeParameters[1]
 
     override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
-        //return MapToTagProcedure(proxy).procedure(name, value, typeToken, intent)
-        intent as RecordParents
-        if (!typeToken.isSubtypeOf(mapTypeToken)) return null
-        // try to get specific type delegate if there is
-        val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
-        value as Map<String, Any>
-        val map: AnyCompound = mutableMapOf()
-        value.onEach {
-            val subValue = it.value
-            val tag = proxy.createTag(it.key, subValue, declaredValueTypeToken, intent)?: return@onEach
-            map[tag.name!!] = tag
-        }
-        // TODO: temple override code
-        if (intent is OverrideTag) {
-            // id not match, return null
-            if (intent.overrideTarget.id != IdTagCompound) return null
-            (intent.overrideTarget.value as AnyCompound).onEach {
-                if (map[it.key] == null) map[it.key] = it.value
-            }
-        }
-        return CompoundTag(name, map)
+        return MapToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
     }
 
     override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
@@ -86,5 +66,46 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
             constructor.parameters.isEmpty()
         }?: return null
         return constructor.newInstance() as V
+    }
+
+    class MapToTagProcedure(override val baseArgs: ToNestTagProcedure.BaseArgs)
+        : ToNestTagProcedure<CompoundTag, ToNestTagProcedure.ToSubTagArgs> {
+
+        override fun toSubTagRelatePath(args: ToNestTagProcedure.ToSubTagArgs): String {
+            return args.name!!
+        }
+
+        override fun toSubTagArgsList(): List<ToNestTagProcedure.ToSubTagArgs> {
+            val value = this.value as Map<String,Any>
+            val declaredValueTypeToken = this.typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
+            return value.map { entry ->
+                ToNestTagProcedure.ToSubTagArgs(entry.key, entry.value, declaredValueTypeToken, this.intent)
+            }
+        }
+
+        override fun buildTargetTag(subTags: List<Tag<out Any>?>): CompoundTag? {
+            val map:AnyCompound = mutableMapOf()
+            subTags.forEach { tag->
+                tag?.name?.let { map[it] = tag }
+            }
+            val procedureIntent = this.intent
+            if (procedureIntent is OverrideTag) {
+                if (procedureIntent.overrideTarget.id != IdTagCompound) return null
+                (procedureIntent.overrideTarget.value as AnyCompound).onEach {
+                    if (map[it.key] == null) map[it.key] = it.value
+                }
+            }
+            return CompoundTag(this.targetName, map)
+        }
+
+        override fun checkProcedureArgs(): Boolean {
+            if (!this.typeToken.isSubtypeOf(mapTypeToken)) return false
+            return true
+        }
+    }
+
+    companion object {
+        private val mapTypeToken = MTypeToken.of(Map::class.java)
+        private val mapValueGenericType = Map::class.java.typeParameters[1]
     }
 }

@@ -1,6 +1,8 @@
 package com.myna.mnbt.converter
 
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure.Companion.procedure
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.ListTag
@@ -22,25 +24,9 @@ object ListConverters {
     class ArrayTypeListTagConverter(override var proxy: TagConverter<Any>):
             HierarchicalTagConverter<AnyTagList>() {
 
+
         override fun <ARR:Any> createTag(name: String?, value: ARR, typeToken: MTypeToken<out ARR>, intent: CreateTagIntent): Tag<AnyTagList>? {
-            intent as RecordParents
-            // first check value is array or not
-            if (!typeToken.isArray) return null
-            // if typetoken is something like Array<Any>, it will get nothings
-            val compType = typeToken.componentType
-
-            val listTagContent:AnyTagList = mutableListOf()
-            val size = java.lang.reflect.Array.getLength(value)
-            var elementId:Byte = -1
-            for (i in IntRange(0, size-1)) {
-                val v = java.lang.reflect.Array.get(value, i)
-                val subTag = proxy.createTag(null, v, compType, intent)?: continue
-                if (elementId==(-1).toByte()) elementId = subTag.id
-                listTagContent.add(subTag)
-            }
-
-            //val listTagContent = fromValue(value, typeToken, ArrayDeque())?: return null // if cast content null, return null
-            return ListTag(name, listTagContent, elementId)
+            return ArrayToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
         }
 
 
@@ -58,35 +44,16 @@ object ListConverters {
             return Pair(tag.name, array as ARR)
         }
 
+
+
     }
 
     class IterableTypeConverter(override var proxy: TagConverter<Any>)
         : HierarchicalTagConverter<AnyTagList>() {
-        private val iterableType = MTypeToken.of(Iterable::class.java)
-        private val iterableGenericType = Iterable::class.java.typeParameters[0]
+
 
         override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyTagList>? {
-            intent as RecordParents
-            // check typeToken type is list or not
-            if(!typeToken.isSubtypeOf(iterableType)) return null
-            value as Iterable<out Any>
-            // try declared parameterized type
-            val declaredElementType = typeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
-            //val size = value.size
-
-            var firstElementType:Class<*>? = null
-            val list:AnyTagList = mutableListOf()
-            var elementId:Byte = -1
-            value.onEach { element->
-                // try get first element type
-                if (firstElementType==null) firstElementType = element::class.java
-                // try to convert value by declared parameterized type or first element actual type
-                val convertedValue = proxy.createTag(null, element, declaredElementType, intent) ?:
-                firstElementType?.let { proxy.createTag(null, element, MTypeToken.of(firstElementType!!) as MTypeToken<out Any>, intent) } ?: return@onEach
-                if (elementId == (-1).toByte()) elementId = convertedValue.id
-                list.add(convertedValue)
-            }
-            return ListTag(name, list, elementId)
+            return IterableToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
         }
 
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
@@ -124,5 +91,76 @@ object ListConverters {
         }
 
     }
+
+    open class ArrayToTagProcedure(override val baseArgs: ToNestTagProcedure.BaseArgs)
+        : ToNestTagProcedure<ListTag<Any>, ListSubTagArgs> {
+
+        override fun toSubTagArgsList(): List<ListSubTagArgs> {
+            val size = java.lang.reflect.Array.getLength(value)
+            val compType = typeToken.componentType
+            val list = ArrayList<ListSubTagArgs>()
+            for (i in IntRange(0, size-1)) {
+                val v = java.lang.reflect.Array.get(value, i)
+                list.add(ListSubTagArgs(i, null, v, compType, intent))
+            }
+            return list
+        }
+
+        override fun checkProcedureArgs(): Boolean {
+            if (!typeToken.isArray) return false
+            return true
+        }
+
+        override fun buildTargetTag(subTags: List<Tag<out Any>?>): ListTag<Any> {
+            val overrideTarget = if (intent is OverrideTag) (intent as OverrideTag).overrideTarget else null
+            val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
+            val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
+
+            var elementId:Byte = -1
+            val listTagContent:AnyTagList = mutableListOf()
+            subTags.onEachIndexed { i,tag->
+                if (tag!=null && elementId==(-1).toByte()) elementId = tag.id
+                if (tag == null) {
+                    if (overridePartOfList && overrideTargetList!=null) { // append un-overridden if sub tag is null
+                        listTagContent.add(overrideTargetList[i])
+                    }
+                    return@onEachIndexed
+                }
+                listTagContent.add(tag)
+            }
+            // append un-overridden if overridePartOfList
+            if (overridePartOfList && overrideTargetList!=null && overrideTargetList.size > listTagContent.size) {
+                val remain = overrideTargetList.subList(listTagContent.size, overrideTargetList.size)
+                listTagContent.addAll(remain)
+            }
+            return ListTag(this.targetName, listTagContent, elementId)
+        }
+
+        override fun toSubTagRelatePath(args: ListSubTagArgs): String {
+            return "#${args.index}"
+        }
+    }
+
+    class IterableToTagProcedure(baseArgs: ToNestTagProcedure.BaseArgs):ArrayToTagProcedure(baseArgs) {
+        override fun toSubTagArgsList(): List<ListSubTagArgs> {
+            val declaredElementType = typeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
+            return (value as Iterable<*>).mapIndexed { i,sv ->
+                ListSubTagArgs(i, null, sv, declaredElementType, intent)
+            }
+        }
+
+        override fun checkProcedureArgs(): Boolean {
+            if(!typeToken.isSubtypeOf(iterableType)) return false
+            return true
+        }
+    }
+
+
+    class ListSubTagArgs(val index:Int,
+                         name:String?, value:Any?, typeToken: MTypeToken<out Any>, intent:CreateTagIntent)
+        : ToNestTagProcedure.ToSubTagArgs(name, value, typeToken, intent)
+
+    private val iterableType = MTypeToken.of(Iterable::class.java)
+    private val iterableGenericType = Iterable::class.java.typeParameters[0]
 
 }
