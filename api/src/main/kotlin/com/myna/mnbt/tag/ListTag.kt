@@ -15,7 +15,10 @@ typealias AnyTagList = MutableList<Tag<out Any>>
 class ListTag<NbtRelatedType:Any>(
         override val name: String?,
         override val value: MutableList<Tag<out NbtRelatedType>>,
-        val elementId:Byte
+        /**
+         *
+         */
+        var elementId:Byte
         ) : Tag.NestTag<MutableList<Tag<out NbtRelatedType>>>() {
 
     override val id: Byte = IdTagList
@@ -23,6 +26,7 @@ class ListTag<NbtRelatedType:Any>(
     constructor(elementId: Byte, name:String?=null):this(name, mutableListOf(), elementId)
 
     fun <T: Tag<NbtRelatedType>> add(tag:T):Boolean {
+        if (elementId == unknownElementId) elementId = tag.id
         if (tag.id != elementId) return false
         return value.add(tag)
     }
@@ -58,6 +62,11 @@ class ListTag<NbtRelatedType:Any>(
     }
 
     companion object {
+
+        /**
+         * specifies that list tag don't know element tag type id in list, this happens when list tag created without any sub tags in list
+         */
+        const val unknownElementId:Byte = -1
 
         fun listEqFun(list: List<Tag<Any>>, other: Any?):Boolean {
             if (other !is List<*>) return false

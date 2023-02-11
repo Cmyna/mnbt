@@ -96,7 +96,7 @@ class OverrideTagTest {
         }
 
         // override some list
-        TestMnbt.inst.overridePartOfList = true
+        TestMnbt.inst.completeOverride = false
 
         val doubleArray2 = DoubleArray(40) {Random.nextDouble()}
         overrideTag = TestMnbt.inst.overrideTag(doubleArray2, object:MTypeToken<DoubleArray>() {}, overrideTag) as ListTag<Double>

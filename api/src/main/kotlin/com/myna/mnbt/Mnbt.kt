@@ -209,9 +209,9 @@ open class Mnbt {
      * override part of list if override target is an list tag.
      * Converters will only override value in source index to target list tag index element
      */
-    var overridePartOfList: Boolean
-        get() = ListConverters.overridePartOfList
-        set(value) {ListConverters.overridePartOfList = value}
+    var completeOverride: Boolean
+        get() = ListConverters.completeOverride
+        set(value) {ListConverters.completeOverride = value}
 
 
     // options end

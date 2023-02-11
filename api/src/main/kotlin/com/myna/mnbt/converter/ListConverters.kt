@@ -15,7 +15,7 @@ import java.lang.reflect.Modifier
  */
 object ListConverters {
 
-    var overridePartOfList: Boolean = false
+    var completeOverride: Boolean = true
 
     /**
      * create a new list Tag converter that can convert ListTag between ArrayType object
@@ -116,20 +116,16 @@ object ListConverters {
             val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
             val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
 
-            var elementId:Byte = -1
+
+
+            val elementId:Byte = subTags.firstOrNull()?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
             val listTagContent:AnyTagList = mutableListOf()
             subTags.onEachIndexed { i,tag->
-                if (tag!=null && elementId==(-1).toByte()) elementId = tag.id
-                if (tag == null) {
-                    if (overridePartOfList && overrideTargetList!=null) { // append un-overridden if sub tag is null
-                        listTagContent.add(overrideTargetList[i])
-                    }
-                    return@onEachIndexed
-                }
-                listTagContent.add(tag)
+                val addedTag = tag ?: if (!completeOverride) overrideTargetList?.getOrNull(i) else null
+                if (addedTag != null) listTagContent.add(addedTag)
             }
             // append un-overridden if overridePartOfList
-            if (overridePartOfList && overrideTargetList!=null && overrideTargetList.size > listTagContent.size) {
+            if (!completeOverride && overrideTargetList!=null && overrideTargetList.size > listTagContent.size) {
                 val remain = overrideTargetList.subList(listTagContent.size, overrideTargetList.size)
                 listTagContent.addAll(remain)
             }

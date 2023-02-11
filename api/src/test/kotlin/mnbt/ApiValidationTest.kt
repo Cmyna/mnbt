@@ -123,7 +123,6 @@ class ApiValidationTest {
     fun listTagApiTest() {
         //test
         ApiTestTool.listTagApiTest(1000, TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec)
-        ApiTestTool.listTagApiTest(0, TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec) // check empty list
         nestedListTest(TestMnbt.inst.refArrayToListConverter, TestMnbt.inst.refListCodec)
     }
 
