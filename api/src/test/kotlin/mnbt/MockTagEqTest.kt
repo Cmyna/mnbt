@@ -78,6 +78,30 @@ class MockTagEqTest {
         assertFalse(mockTagEquals.equals(list1, list2))
     }
 
+    @Test
+    fun equalsOrContainsTest() {
+        val comp1 = prepareFlatCompound("comp1")
+        val comp2 = prepareFlatCompound("comp1")
+
+        comp1.add(ApiTestValueBuildTool.prepareTag2("comp1 extra string tag", "extra value"))
+        assertFalse(mockTagEquals.equals(comp1, comp2))
+        println("------------------------------------------------")
+        assertTrue(mockTagEquals.equalsOrContains(comp1, comp2))
+        assertFalse(mockTagEquals.equalsOrContains(comp2, comp1))
+        println("------------------------------------------------")
+
+
+        val list1 = prepareSampleFlatListTag("list1")
+        val list2 = prepareSampleFlatListTag("list1")
+
+        list1.add(ApiTestValueBuildTool.prepareTag2(null, Random.nextBytes(50)) as Tag<ByteArray>)
+        assertFalse(mockTagEquals.equals(list1, list2))
+        println("------------------------------------------------")
+        assertTrue(mockTagEquals.equalsOrContains(list1, list2))
+        assertFalse(mockTagEquals.equalsOrContains(list2, list1))
+        println("------------------------------------------------")
+    }
+
     private fun prepareFlatCompound(name:String?):CompoundTag {
         val comp = CompoundTag(name)
         ApiTestValueBuildTool.prepareTag2("int tag", 1).also {comp.add(it)}

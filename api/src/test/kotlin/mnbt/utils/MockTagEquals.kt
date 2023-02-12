@@ -24,25 +24,39 @@ class MockTagEquals {
 
     fun equals(tag:Tag<out Any>, other: Any?):Boolean {
         val currentNode = LogTreeNode(tag, other, null, tag.name?:"#")
-       return _equals(tag, other, currentNode)
+        return equalsOrContains(tag, other, currentNode, false)
     }
 
-    private fun _equals(tag: Tag<out Any>, other:Any?, currentNode: LogTreeNode):Boolean {
-        val isEqInOriginEq = tag==other
+    /**
+     * specifies that source contains or equals other.
+     * if source and other has compound tag at same nbt path, source compound tag has all key-values also contains or equals to key-values in other's;
+     * the compound tag from source may have extra key-values not appears in other's relate compound tag
+     *
+     * if source and other has list tag at same nbt path, source list has all elements contains or equals to other's list tag's elements at same index;
+     * the list tag from source may have more elements than other's relate list tag
+     * */
+    fun equalsOrContains(source:Tag<out Any>, other:Any?):Boolean {
+        val currentNode = LogTreeNode(source, other, null, source.name?:"#")
+        return equalsOrContains(source, other, currentNode, true)
+    }
+
+    private fun equalsOrContains(source: Tag<out Any>, other:Any?, currentNode: LogTreeNode, eqOrContains:Boolean):Boolean {
+        val isEqInOriginEq = source==other
         // compare tag type, id, name, if not equals, return false
-        if (!isTagAndEqName(tag, other, currentNode)) {
-            if (isEqInOriginEq) throwMockException(tag, other)
+        val mockIsTag = isTagAndEqName(source, other, currentNode)
+        if (!mockIsTag) {
+            if (isEqInOriginEq) throwMockException(source, other, mockIsTag, isEqInOriginEq)
             return false
         }
         other as Tag<out Any>
         // create current node
 
-        val mockEqualResult = when(tag) {
-            is CompoundTag -> equalsWithLogs(tag, other as CompoundTag, currentNode)
-            is ListTag<*> -> equalsWithLogs(tag, other as ListTag<out Any>, currentNode)
-            else -> simpleEqualsWithLog(tag, other, currentNode)
+        val mockEqualResult = when(source) {
+            is CompoundTag -> equalsWithLogs(source, other as CompoundTag, currentNode, eqOrContains)
+            is ListTag<*> -> equalsWithLogs(source, other as ListTag<out Any>, currentNode, eqOrContains)
+            else -> simpleEqualsWithLog(source, other, currentNode)
         }
-        checkMockResult(mockEqualResult, isEqInOriginEq, tag, other)
+        checkMockResult(mockEqualResult, isEqInOriginEq, source, other, eqOrContains)
 
         return mockEqualResult
     }
@@ -60,12 +74,13 @@ class MockTagEquals {
     }
 
 
-    private fun equalsWithLogs(tag: CompoundTag, other:CompoundTag, currentNode: LogTreeNode?):Boolean {
+    private fun equalsWithLogs(tag: CompoundTag, other:CompoundTag, currentNode: LogTreeNode?, eqOrContains: Boolean = false):Boolean {
         val path = buildPath(currentNode)
         // firstly compare key set, found key set difference
         val tagExtraKeys = tag.value.keys.filter { !other.value.keys.contains(it) }
         val otherExtraKeys = other.value.keys.filter { !tag.value.keys.contains(it) }
-        val keyEq = tagExtraKeys.isEmpty() && otherExtraKeys.isEmpty()
+        val keyEq = (eqOrContains || tagExtraKeys.isEmpty()) && otherExtraKeys.isEmpty()
+
         if (!keyEq) {
             val msgBuilder = StringBuilder("CompoundTag keys Not Equals\n")
             msgBuilder.append(getPathInfoForNeq(tag, path))
@@ -73,7 +88,7 @@ class MockTagEquals {
                 val keysStr = otherExtraKeys.fold("") { last,cur-> "$last, $cur"}
                 msgBuilder.append("\ttag value miss these keys: [$keysStr]\n")
             }
-            if (tagExtraKeys.isNotEmpty()) {
+            if (eqOrContains || tagExtraKeys.isNotEmpty()) {
                 val keysStr = tagExtraKeys.fold("") { last,cur-> "$last, $cur"}
                 msgBuilder.append("\tother value miss these keys: [$keysStr]\n")
             }
@@ -81,52 +96,38 @@ class MockTagEquals {
         }
 
         // then compare each tag in tags with others
-        var valueEq = true
+        var valueCeq = true // value contains or equals
         val listOfNeq = ArrayList<Tag<out Any>>()
         tag.value.forEach {
             val otherSubTag = other[it.key]?: return@forEach
             val subTagNode = LogTreeNode(it.value, other[it.key], currentNode, it.key)
-            val subTagEq = _equals(it.value, otherSubTag, subTagNode)
-            if (!subTagEq && valueEq) valueEq = false
+            val subTagEq = equalsOrContains(it.value, otherSubTag, subTagNode, eqOrContains)
+            if (!subTagEq && valueCeq) valueCeq = false
             if (!subTagEq) {
                 listOfNeq.add(it.value)
             }
         }
-//        if (valueEq && keyEq) return true
-//        else {
-//            val msgBuilder = StringBuilder("CompoundTag Not Equals\n")
-//            msgBuilder.append(getPathInfoForNeq(tag, path))
-//            if (!valueEq) {
-//                val elementsNeqStr = listOfNeq.fold("") {last,cur-> "$last, ${cur.name}"}
-//                msgBuilder.append("\tTag's sub tags not equals to other's\n")
-//                msgBuilder.append("\tThose sub tags not equals: $elementsNeqStr\n")
-//            }
-//            return false
-//        }
-        return keyEq && valueEq
+        return keyEq && valueCeq
     }
 
-    private fun equalsWithLogs(tag: ListTag<out Any>, other: ListTag<out Any>, currentNode: LogTreeNode?):Boolean {
+    private fun equalsWithLogs(source: ListTag<out Any>, other: ListTag<out Any>, currentNode: LogTreeNode?, eqOrContains: Boolean):Boolean {
         // first compare size
-        val sizeEq = tag.value.size == other.value.size
+        //val sizeEq = source.value.size == other.value.size
         val path = buildPath(currentNode)
         val msgBuilder = StringBuilder()
-        if (!sizeEq) {
+        val sizeMatch = if (eqOrContains) source.value.size >= other.value.size else source.value.size == other.value.size
+        if (!sizeMatch) {
             msgBuilder.append("List Tag list size not match\n")
-            msgBuilder.append("\tExpect size ${tag.value.size}, but other got ${other.value.size}\n")
-            msgBuilder.append(getPathInfoForNeq(tag, path))
+            msgBuilder.append("\tExpect size ${source.value.size}, but other got ${other.value.size}\n")
+            msgBuilder.append(getPathInfoForNeq(source, path))
             outputMsg(msgBuilder)
             return false
         }
         // compare each element
-        tag.value.onEachIndexed { i, e ->
-            val subTagNode = LogTreeNode(e, other.value[i], currentNode, "#indexAt[$i]")
-            val res = _equals(e, other.value[i], subTagNode)
+        other.value.onEachIndexed { i, e ->
+            val subTagNode = LogTreeNode(source.value[i], e, currentNode, "#indexAt[$i]")
+            val res = equalsOrContains(source.value[i], e, subTagNode, eqOrContains)
             if (!res) {
-//                msgBuilder.append("List Tag element not match at index [$i]\n")
-//                msgBuilder.append("\t element not equals to other's element at same index\n")
-//                msgBuilder.append(getPathInfoForNeq(tag, path))
-//                outputMsg(msgBuilder)
                 return false
             }
         }
@@ -170,18 +171,17 @@ class MockTagEquals {
         return buildPath(pathList, currentNode.thisParent)
     }
 
-    private fun checkMockResult(mockEqualResult:Boolean, originalEqualResult:Boolean, tag: Tag<out Any>, other: Any?) {
-        if (mockEqualResult != originalEqualResult) {
-            throwMockException(tag, other)
-        }
+    private fun checkMockResult(mockEqualResult:Boolean, originalEqualResult:Boolean, tag: Tag<out Any>, other: Any?, eqOrContains:Boolean) {
+        if (eqOrContains && mockEqualResult && !originalEqualResult) return
+        if (mockEqualResult != originalEqualResult) throwMockException(tag, other, mockEqualResult, originalEqualResult)
     }
 
     private fun getPathInfoForNeq(tag:Tag<out Any>, path:String):String {
         return "\tDifference Found At: $path where tag id is ${tag.id}\n"
     }
 
-    private fun throwMockException(tag: Tag<out Any>, other: Any?) {
-        throw IllegalStateException("mock equals result not equals to original tag equals! When comparing $tag with $other")
+    private fun throwMockException(tag: Tag<out Any>, other: Any?, mockRes:Boolean, actual:Boolean) {
+        throw IllegalStateException("mock equals result($mockRes) not equals to original tag equals($actual)!\n When comparing $tag with $other")
     }
 
     /**
