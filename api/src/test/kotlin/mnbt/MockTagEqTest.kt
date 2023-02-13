@@ -2,7 +2,9 @@ package mnbt
 
 import com.myna.mnbt.IdTagByteArray
 import com.myna.mnbt.IdTagCompound
+import com.myna.mnbt.IdTagInt
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.meta.NbtPathTool
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.tag.ListTag
@@ -96,10 +98,90 @@ class MockTagEqTest {
 
         list1.add(ApiTestValueBuildTool.prepareTag2(null, Random.nextBytes(50)) as Tag<ByteArray>)
         assertFalse(mockTagEquals.equals(list1, list2))
-        println("------------------------------------------------")
         assertTrue(mockTagEquals.equalsOrContains(list1, list2))
         assertFalse(mockTagEquals.equalsOrContains(list2, list1))
-        println("------------------------------------------------")
+    }
+
+    /**
+     * test structure equals/containsOrEquals
+     */
+    @Test
+    fun structureEqualsTest() {
+        val root1 = CompoundTag("root")
+        buildCompoundsByPath(root1, "./comp1/comp2/comp3/comp4")
+        buildCompoundsByPath(root1, "./comp1/comp2/comp5/comp6")
+        buildCompoundsByPath(root1, "./comp7")
+
+        val root2 = CompoundTag("root")
+        buildCompoundsByPath(root2, "./comp1/comp2/comp3/comp4")
+        buildCompoundsByPath(root2, "./comp1/comp2/comp5/comp6")
+        buildCompoundsByPath(root2, "./comp7")
+
+        assertTrue(mockTagEquals.equals(root1, root2))
+        (NbtPathTool.goto(root1, "./comp1") as CompoundTag).add(ApiTestValueBuildTool.prepareTag2("int tag", 55))
+        assertFalse(mockTagEquals.equals(root1, root2))
+        println("assert: key not exists tags, so structure not equals")
+        assertFalse(mockTagEquals.structureEquals(root1, root2)) // key not exists tags, so structure not equals
+
+        // same tag name but different type, structure not equals
+        println("assert: same tag name but different type, structure not equals")
+        (NbtPathTool.goto(root2, "./comp1") as CompoundTag).add(ApiTestValueBuildTool.prepareTag2("int tag", 55.toShort()))
+        assertFalse(mockTagEquals.structureEquals(root1, root2))
+
+        // same tag name and tag type, but value not equals, cause structure equals
+        println("assert: same tag name and tag type, but value not equals, cause structure equals")
+        (NbtPathTool.goto(root2, "./comp1") as CompoundTag).add(ApiTestValueBuildTool.prepareTag2("int tag", 1288))
+        assertFalse(mockTagEquals.equals(root1, root2))
+        assertTrue(mockTagEquals.structureEquals(root1, root2))
+
+        // list tag should have same elements num, same elements type, elements also structure equals, then it is structure equals
+        val listEntry1 = (NbtPathTool.goto(root1, "./comp1/comp2/comp5") as CompoundTag)
+        val listEntry2 = (NbtPathTool.goto(root2, "./comp1/comp2/comp5") as CompoundTag)
+        val listName1 = "list tag1";
+        val listTag1 = ListTag<Int>(IdTagInt, listName1).also { listTag->
+            repeat(50) {ApiTestValueBuildTool.prepareTag2(null, 0).also {listTag.add(it as Tag<Int>)}}
+        }
+        val listTag2 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
+            CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
+        }
+        val listTag3 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
+            CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
+            CompoundTag(null).also { listTag.add(it) } // no equals number
+        }
+        val listTag4 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9/comp11"); listTag.add(it) } // element not structural equals
+            CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
+        }
+        val listTag5 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
+            CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 555555.toLong())) }
+            CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
+        }
+
+        // list element type not equals, final not equals
+        println("assert: list element type not equals, final not structural equals")
+        listEntry1.add(listTag1); listEntry2.add(listTag2)
+        assertFalse(mockTagEquals.structureEquals(root1, root2))
+
+        // list size not equals, final not equals
+        println("assert: list size not equals, final not structural equals")
+        listEntry1.add(listTag3)
+        assertFalse(mockTagEquals.structureEquals(root1, root2))
+
+        // element not structural equals, final not equals
+        println("assert: element not structural equals, final not structural equals")
+        listEntry1.add(listTag4)
+        assertFalse(mockTagEquals.structureEquals(root1, root2))
+
+        // flag tag not value equals, but structure equals
+        println("assert: flag tag not value equals, but structure equals")
+        listEntry1.add(listTag5)
+        assertTrue(mockTagEquals.structureEquals(root1, root2))
     }
 
     private fun prepareFlatCompound(name:String?):CompoundTag {
@@ -122,6 +204,15 @@ class MockTagEqTest {
         repeat(15) {compList.add(prepareFlatCompound(null))}
         return ListTag<AnyCompound>(IdTagCompound, "list with compound").also {
             it.value.addAll(compList)
+        }
+    }
+
+    private fun buildCompoundsByPath(root:CompoundTag, path:String) {
+        val sequence = NbtPathTool.toAccessSequence(path)
+        sequence.fold(root) { tag,segment->
+            val child = NbtPathTool.goto(tag, segment, IdTagCompound)?: CompoundTag(segment)
+            tag.add(child)
+            child as CompoundTag
         }
     }
 

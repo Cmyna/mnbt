@@ -24,7 +24,15 @@ class MockTagEquals {
 
     fun equals(tag:Tag<out Any>, other: Any?):Boolean {
         val currentNode = LogTreeNode(tag, other, null, tag.name?:"#")
-        return equalsOrContains(tag, other, currentNode, false)
+        return equalsEntry(tag, other, currentNode, EqualOptions(false, false))
+    }
+
+    /**
+     * assert structure equals, it will not compare flat tag value
+     */
+    fun structureEquals(tag:Tag<out Any>, other:Any?):Boolean {
+        val currentNode = LogTreeNode(tag, other, null, tag.name?:"#")
+        return equalsEntry(tag, other, currentNode, EqualOptions(false, true))
     }
 
     /**
@@ -37,10 +45,16 @@ class MockTagEquals {
      * */
     fun equalsOrContains(source:Tag<out Any>, other:Any?):Boolean {
         val currentNode = LogTreeNode(source, other, null, source.name?:"#")
-        return equalsOrContains(source, other, currentNode, true)
+        return equalsEntry(source, other, currentNode, EqualOptions(true, false))
     }
 
-    private fun equalsOrContains(source: Tag<out Any>, other:Any?, currentNode: LogTreeNode, eqOrContains:Boolean):Boolean {
+    private fun equalsEntry(source: Tag<out Any>, other:Any?, currentNode: LogTreeNode, options:EqualOptions):Boolean {
+        val res = equals(source, other, currentNode, options)
+        if (!res) println("----------------------------------------")
+        return res
+    }
+
+    private fun equals(source: Tag<out Any>, other:Any?, currentNode: LogTreeNode, options:EqualOptions):Boolean {
         val isEqInOriginEq = source==other
         // compare tag type, id, name, if not equals, return false
         val mockIsTag = isTagAndEqName(source, other, currentNode)
@@ -52,16 +66,19 @@ class MockTagEquals {
         // create current node
 
         val mockEqualResult = when(source) {
-            is CompoundTag -> equalsWithLogs(source, other as CompoundTag, currentNode, eqOrContains)
-            is ListTag<*> -> equalsWithLogs(source, other as ListTag<out Any>, currentNode, eqOrContains)
-            else -> simpleEqualsWithLog(source, other, currentNode)
+            is CompoundTag -> equalsWithLogs(source, other as CompoundTag, currentNode, options)
+            is ListTag<*> -> equalsWithLogs(source, other as ListTag<out Any>, currentNode, options)
+            else -> simpleEqualsWithLog(source, other, currentNode, options)
         }
-        checkMockResult(mockEqualResult, isEqInOriginEq, source, other, eqOrContains)
+        checkMockResult(mockEqualResult, isEqInOriginEq, source, other, options)
 
         return mockEqualResult
     }
 
-    private fun simpleEqualsWithLog(tag: Tag<out Any>, other: Tag<out Any>, currentNode: LogTreeNode?):Boolean {
+    private fun simpleEqualsWithLog(tag: Tag<out Any>, other: Tag<out Any>, currentNode: LogTreeNode, options: EqualOptions):Boolean {
+        if (options.onlyStructureEquals) {
+            return isTagAndEqName(tag, other, currentNode)
+        }
         val originalEqRes = tag==other
         if (!originalEqRes) {
             val path = buildPath(currentNode)
@@ -74,12 +91,12 @@ class MockTagEquals {
     }
 
 
-    private fun equalsWithLogs(tag: CompoundTag, other:CompoundTag, currentNode: LogTreeNode?, eqOrContains: Boolean = false):Boolean {
+    private fun equalsWithLogs(tag: CompoundTag, other:CompoundTag, currentNode: LogTreeNode?, options: EqualOptions):Boolean {
         val path = buildPath(currentNode)
         // firstly compare key set, found key set difference
         val tagExtraKeys = tag.value.keys.filter { !other.value.keys.contains(it) }
         val otherExtraKeys = other.value.keys.filter { !tag.value.keys.contains(it) }
-        val keyEq = (eqOrContains || tagExtraKeys.isEmpty()) && otherExtraKeys.isEmpty()
+        val keyEq = (options.containsOrEquals || tagExtraKeys.isEmpty()) && otherExtraKeys.isEmpty()
 
         if (!keyEq) {
             val msgBuilder = StringBuilder("CompoundTag keys Not Equals\n")
@@ -88,7 +105,7 @@ class MockTagEquals {
                 val keysStr = otherExtraKeys.fold("") { last,cur-> "$last, $cur"}
                 msgBuilder.append("\ttag value miss these keys: [$keysStr]\n")
             }
-            if (eqOrContains || tagExtraKeys.isNotEmpty()) {
+            if (options.containsOrEquals || tagExtraKeys.isNotEmpty()) {
                 val keysStr = tagExtraKeys.fold("") { last,cur-> "$last, $cur"}
                 msgBuilder.append("\tother value miss these keys: [$keysStr]\n")
             }
@@ -101,7 +118,7 @@ class MockTagEquals {
         tag.value.forEach {
             val otherSubTag = other[it.key]?: return@forEach
             val subTagNode = LogTreeNode(it.value, other[it.key], currentNode, it.key)
-            val subTagEq = equalsOrContains(it.value, otherSubTag, subTagNode, eqOrContains)
+            val subTagEq = equals(it.value, otherSubTag, subTagNode, options)
             if (!subTagEq && valueCeq) valueCeq = false
             if (!subTagEq) {
                 listOfNeq.add(it.value)
@@ -110,12 +127,12 @@ class MockTagEquals {
         return keyEq && valueCeq
     }
 
-    private fun equalsWithLogs(source: ListTag<out Any>, other: ListTag<out Any>, currentNode: LogTreeNode?, eqOrContains: Boolean):Boolean {
+    private fun equalsWithLogs(source: ListTag<out Any>, other: ListTag<out Any>, currentNode: LogTreeNode?, options: EqualOptions):Boolean {
         // first compare size
         //val sizeEq = source.value.size == other.value.size
         val path = buildPath(currentNode)
         val msgBuilder = StringBuilder()
-        val sizeMatch = if (eqOrContains) source.value.size >= other.value.size else source.value.size == other.value.size
+        val sizeMatch = if (options.containsOrEquals) source.value.size >= other.value.size else source.value.size == other.value.size
         if (!sizeMatch) {
             msgBuilder.append("List Tag list size not match\n")
             msgBuilder.append("\tExpect size ${source.value.size}, but other got ${other.value.size}\n")
@@ -126,7 +143,7 @@ class MockTagEquals {
         // compare each element
         other.value.onEachIndexed { i, e ->
             val subTagNode = LogTreeNode(source.value[i], e, currentNode, "#indexAt[$i]")
-            val res = equalsOrContains(source.value[i], e, subTagNode, eqOrContains)
+            val res = equals(source.value[i], e, subTagNode, options)
             if (!res) {
                 return false
             }
@@ -171,8 +188,9 @@ class MockTagEquals {
         return buildPath(pathList, currentNode.thisParent)
     }
 
-    private fun checkMockResult(mockEqualResult:Boolean, originalEqualResult:Boolean, tag: Tag<out Any>, other: Any?, eqOrContains:Boolean) {
-        if (eqOrContains && mockEqualResult && !originalEqualResult) return
+    private fun checkMockResult(mockEqualResult:Boolean, originalEqualResult:Boolean, tag: Tag<out Any>, other: Any?, options:EqualOptions) {
+        val ignoreCase = options.containsOrEquals || options.onlyStructureEquals
+        if (ignoreCase && mockEqualResult && !originalEqualResult) return
         if (mockEqualResult != originalEqualResult) throwMockException(tag, other, mockEqualResult, originalEqualResult)
     }
 
@@ -193,4 +211,6 @@ class MockTagEquals {
      * @param thisParent record direct parent holds this node, if null then this node is regarded as a root
      */
     data class LogTreeNode(val thisTag:Tag<out Any>, val otherTag:Any?, val thisParent: LogTreeNode?, val pathNameAlias:String)
+
+    data class EqualOptions(val containsOrEquals:Boolean, val onlyStructureEquals:Boolean)
 }
