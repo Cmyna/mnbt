@@ -28,8 +28,14 @@ class MockConverterProxy(realProxy:TagConverter<Any>):HierarchicalTagConverter<A
 
     override var proxy: TagConverter<Any> = realProxy
 
+    fun applyWhenCreateTag(injectCodeName:String, injectFun:(name:String?, value:Any, typeToken: MTypeToken<out Any>, intent: CreateTagIntent)->Unit) {
+        createMockTagSupplier[injectCodeName] = { _,_,_,_->
+            CreateTagMockFeedback(false, null)
+        }
+    }
+
 }
 
 typealias MockTagSupplier
         = (name: String?, value: Any, typeToken: MTypeToken<out Any>,
-         intent: ConverterCallerIntent)-> MockConverterProxy.CreateTagMockFeedback
+         intent: CreateTagIntent)-> MockConverterProxy.CreateTagMockFeedback

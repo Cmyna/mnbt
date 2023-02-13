@@ -37,7 +37,7 @@ interface BuiltCompoundSubTree:CreateTagIntent {
 }
 
 interface OverrideTag:CreateTagIntent {
-    val overrideTarget:Tag<out Any>
+    val overrideTarget:Tag<out Any>?
 }
 
 interface ToValueIntent:ConverterCallerIntent

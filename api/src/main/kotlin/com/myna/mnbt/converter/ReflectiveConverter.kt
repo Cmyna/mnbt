@@ -8,15 +8,19 @@ import com.myna.mnbt.annotations.Ignore
 import com.myna.mnbt.annotations.IgnoreFromTag
 import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.converter.meta.NbtPathTool
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.reflect.ObjectInstanceHandler
+import com.myna.mnbt.tag.UnknownCompound
 import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.lang.NullPointerException
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * this Converter is used for some simple POJO class,
@@ -33,6 +37,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      ( '=>' means directly/indirectly contains, '->' means directly contains)
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
+        // return ReflectiveToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
         // parameters check
         val valueClass = value::class.java
         if (isExcluded(valueClass)) return null
@@ -52,10 +57,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         // if no extra tag insert(no redirect path), dataEntry == root,
         // else dataEntry is the last compound tag presented in NbtPath.getClassExtraPath
         val classLocateAtMeta = typeToken.rawType.getAnnotation(LocateAt::class.java)
-        val dataEntryRelatePath:String =  if ( classLocateAtMeta != null) {
-            NbtPathTool.combine(returnedTagPath, classLocateAtMeta.toTagPath)
-        } else returnedTagPath
-
+        val targetToDataEntryPath:String = if (classLocateAtMeta!=null) {
+            NbtPathTool.toRelatedPath(classLocateAtMeta.toTagPath)
+        } else "./"
+        val builtRootToDataEntryPath:String = NbtPathTool.combine(returnedTagPath, targetToDataEntryPath)
 
         val toDataEntrySequence = if (classLocateAtMeta!=null) {
             NbtPathTool.toAccessSequence(classLocateAtMeta.toTagPath)
@@ -74,7 +79,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             child
         }
 
+
         val fields = ObjectInstanceHandler.getAllFields(value::class.java)
+
 
         // fields' info: fields' compound tags access sequence from data entry tag
         val fieldsInfo = fields.mapNotNull { field ->
@@ -90,16 +97,20 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         }
 
         val createSubTagsArgs = fieldsInfo.mapNotNull { (field,accessSequence)->
-            val fieldTagPath = getSubTagPath(dataEntryRelatePath, accessSequence)
-            val fieldIntent = buildSubTagCreationIntent(fieldTagPath, intent, subTreeRoot)
+            val fieldTagPath = getSubTagPath(builtRootToDataEntryPath, accessSequence)
+            val fieldIntent = buildSubTagCreationIntent(
+                    fieldTagPath,
+                    intent,
+                    NbtPathTool.append(targetToDataEntryPath, accessSequence.last()),
+                    subTreeRoot)
             val idTODO:Byte = 0
-            createSubTagArgs(field, value, accessSequence, idTODO, fieldIntent)
+            createSubTagArgs(field, value, accessSequence, fieldTagPath, idTODO, fieldIntent)
         }
 
 
         try {
             createSubTagsArgs.onEach {
-                val subTag = proxy.createTag(it.subTagName, it.value, it.fieldTypeToken, it.createSubTagIntent) //?:return@onEach
+                val subTag = proxy.createTag(it.name, it.value!!, it.typeToken, it.intent) //?:return@onEach
                 val creationSuccess = subTag!=null
                 if (!creationSuccess) return@onEach
                 // build sub tree contains subtag
@@ -109,7 +120,14 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                     parentValue[childName] = child
                     child
                 }
-                subTagContainer.value[it.subTagName] = subTag!!
+                subTagContainer.value[it.name!!] = subTag!!
+            }
+
+            if (intent is OverrideTag && intent.overrideTarget?.value is UnknownCompound) {
+                val overriddenDataEntryTag = NbtPathTool.goto(intent.overrideTarget!!, targetToDataEntryPath, IdTagCompound)
+                if (overriddenDataEntryTag?.value is UnknownCompound) {
+                    ToNestTagProcedure.appendMissSubTag(dataEntryTag.value, overriddenDataEntryTag as Tag<AnyCompound>)
+                }
             }
             return functionReturnedTag
         } catch(e:Exception) {
@@ -121,7 +139,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
     private fun createSubTagArgs(
             field: Field, value:Any,
-            fieldRelatedPath:List<String>, targetTagId:Byte?,
+            fieldRelatedPath:List<String>, fieldRelatedPathStr: String, targetTagId:Byte?,
             createSubTagIntent:CreateTagIntent
     ):CreateSubTagArgs? {
         try {
@@ -131,7 +149,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
             val subTagName = if (fieldRelatedPath.isNotEmpty()) fieldRelatedPath.last() else field.name
             val fieldTk = MTypeToken.of(field.genericType) as MTypeToken<out Any>
-            return CreateSubTagArgs(fieldValue, subTagName, createSubTagIntent, fieldTk, targetTagId, fieldRelatedPath)
+            return CreateSubTagArgs(fieldValue, subTagName, createSubTagIntent, fieldTk, targetTagId, fieldRelatedPath, fieldRelatedPathStr)
         } catch (e:Exception) { when (e) {
             is SecurityException,
             is IllegalAccessException,
@@ -149,13 +167,21 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     }
 
     private fun buildSubTagCreationIntent(
-            fieldTagPath:String, callerIntent: CreateTagIntent,
-            buildRoot:Tag<out Any>):CreateTagIntent {
-        return object: CreateTagIntent, RecordParents, BuiltCompoundSubTree {
-            override val createdTagRelatePath: String = fieldTagPath
-            override val root: Tag<out Any> = buildRoot
-            override val parents: Deque<Any> = if (callerIntent is RecordParents) callerIntent.parents else ArrayDeque()
-        }
+            subTreeRootToSubTagPath:String, callerIntent: CreateTagIntent,
+            returnedTagToSubTagPath:String, buildRoot:Tag<out Any>):CreateTagIntent {
+
+        val overrideTarget = if (callerIntent is OverrideTag && callerIntent.overrideTarget!=null) {
+            NbtPathTool.goto(callerIntent.overrideTarget!!, returnedTagToSubTagPath)
+        } else null
+        return Proxy.newProxyInstance(callerIntent::class.java.classLoader, callerIntent::class.java.interfaces) {
+            _,method,args ->
+            return@newProxyInstance when(method) {
+                BuiltCompoundSubTree::createdTagRelatePath.javaGetter -> subTreeRootToSubTagPath
+                BuiltCompoundSubTree::root.javaGetter -> buildRoot
+                OverrideTag::overrideTarget.javaGetter -> overrideTarget
+                else ->method.invoke(callerIntent, *args.orEmpty())
+            }
+        } as CreateTagIntent
     }
 
     // core idea: first find constructors
@@ -252,12 +278,10 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         ))
     }
 
-    data class CreateSubTagArgs(
-            val value:Any, val subTagName:String,
-            val createSubTagIntent: CreateTagIntent,
-            val fieldTypeToken: MTypeToken<out Any>, val subTagTargetId:Byte?,
-            val fieldRelatePath: List<String>
-    )
+    class CreateSubTagArgs(
+            value:Any, subTagName:String, createSubTagIntent: CreateTagIntent, fieldTypeToken: MTypeToken<out Any>,
+            val subTagTargetId:Byte?, val fieldRelatePath: List<String>, val fieldRelatedPathStr: String
+    ): ToNestTagProcedure.ToSubTagArgs(subTagName, value, fieldTypeToken, createSubTagIntent)
 
     /**
      * set reflective converter handle object with nullable properties or not.

@@ -1,9 +1,15 @@
 package mnbt.utils
 
 import com.myna.mnbt.IdTagCompound
+import com.myna.mnbt.annotations.FieldValueProvider
+import com.myna.mnbt.annotations.Ignore
+import com.myna.mnbt.annotations.LocateAt
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.tag.ListTag
+import java.lang.reflect.Field
+import kotlin.random.Random
+import kotlin.reflect.jvm.javaField
 
 open class UseBeanObjEqFun {
     override fun equals(other: Any?):Boolean {
@@ -16,6 +22,16 @@ data class DataClass1 (
     var j:String,
     var k:Long? = null // nullable member
 ): UseBeanObjEqFun()
+
+fun newDataClass1(randomFieldValue: Boolean):DataClass1 {
+    return DataClass1(
+            if (randomFieldValue) Random.nextInt() else 777,
+            if (randomFieldValue) RandomValueTool.bitStrC(10)() else "string field fix value for DataClass1",
+            if (randomFieldValue) Random.nextLong() else -513201
+    )
+}
+
+
 
 fun DataClass1.toCompound(name:String?): CompoundTag {
     val comp = CompoundTag(name)
@@ -52,4 +68,44 @@ fun DataClass3.toCompound(name:String?): CompoundTag {
         }
         ApiTestValueBuildTool.prepareTag2("dc3L", this.dc3L).also { root.add(it) }
     }
+}
+
+
+/**
+ * flat value data class with LocateAt Annotation
+ */
+@LocateAt("./midTag1/data class 4 entry/")
+data class DataClass4(
+        @LocateAt("./midTag2/int tag in data class 4 tag")
+        val dc4Int:Int,
+        @LocateAt("./string tag in data class 4 tag")
+        val dc4String: String,
+        /**
+         * val without LocateAt Annotation
+         */
+        val longVar:Long,
+        /**
+         * with Ignore Annotation
+         */
+        @Ignore(true, true, DataClassesFieldsProvider::class)
+        val dc1: DataClass1
+): UseBeanObjEqFun()
+
+fun newDataClass4(randomFieldValue:Boolean):DataClass4 {
+    return DataClass4(
+            if (randomFieldValue) Random.nextInt() else 515041,
+            if (randomFieldValue) RandomValueTool.bitStrC(10)() else "data class 4 String field value",
+            if (randomFieldValue) Random.nextLong() else 12345678910,
+            newDataClass1(randomFieldValue)
+    )
+}
+
+class DataClassesFieldsProvider:FieldValueProvider {
+    override fun provide(field: Field): Any? {
+        return when(field) {
+            DataClass4::dc1.javaField -> newDataClass1(false)
+            else -> null
+        }
+    }
+
 }

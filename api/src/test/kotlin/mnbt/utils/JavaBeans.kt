@@ -2,6 +2,7 @@ package mnbt.utils
 
 import com.myna.mnbt.Tag
 import com.myna.mnbt.tag.CompoundTag
+import kotlin.random.Random
 
 open class JavaBean {
     var i:Int? = null
@@ -33,6 +34,18 @@ open class JavaBean {
     }
 }
 
+fun randomJavaBean():JavaBean {
+    val testJavaBean = JavaBean(
+            Random.nextInt(), RandomValueTool.bitStrC(5)(),
+            Random.nextBytes(1)[0], Random.nextInt().toShort(),
+            Random.nextLong(), Random.nextFloat(), Random.nextDouble(),
+            Random.nextBytes(500), RandomValueTool.intArrC(500)(),
+            RandomValueTool.longArrC(500)()
+    )
+    testJavaBean.b = Random.nextInt() > 0
+    return testJavaBean
+}
+
 class JavaBean2 {
     var int:Int? = null
     var str:String? = null
@@ -44,6 +57,14 @@ class JavaBean2 {
             this.str?.let {ApiTestValueBuildTool.prepareTag2("str", it)}.also { comp.add(it as Tag<out Any>)}
             this.long?.let {ApiTestValueBuildTool.prepareTag2("long", it)}.also { comp.add(it as Tag<out Any>)}
         }
+    }
+}
+
+fun newJavaBean2():JavaBean2 {
+    return JavaBean2().also {
+        it.int = Random.nextInt()
+        it.str = RandomValueTool.bitStrC(15)()
+        it.long = Random.nextLong()
     }
 }
 
@@ -116,5 +137,24 @@ class JavaBean4:JavaBean3() {
 
     override fun equals(other: Any?): Boolean {
         return ApiTestTool.beanObjEqFun(this, other)
+    }
+}
+
+fun randomJavaBean4(num:Int = 10):JavaBean4 {
+    return JavaBean4().also {
+        it.bean4Var = "some string"
+        it.bean3Int = Random.nextInt()
+        it.d = Random.nextDouble()
+        it.beanMap = HashMap<String, JavaBean2>().also {
+            it["bean2 1"] = newJavaBean2()
+            it["bean2 2"] = newJavaBean2()
+            it["bean2 3"] = newJavaBean2()
+        }
+
+        it.beanList = ArrayList<JavaBean>().also{ list->
+            repeat(num) {
+                list.add(randomJavaBean())
+            }
+        }
     }
 }

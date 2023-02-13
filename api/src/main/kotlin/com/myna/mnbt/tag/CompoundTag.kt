@@ -4,6 +4,7 @@ import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 
 typealias AnyCompound = MutableMap<String, Tag<out Any>>
+typealias UnknownCompound = MutableMap<*,*>
 
 class CompoundTag(
         override val name: String?,

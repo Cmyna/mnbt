@@ -33,7 +33,7 @@ class RegexStudy {
 
     @Test
     fun regexFindAllValidation() {
-        val regex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+        val regex = Regex("(?:\\\\.|[^/])+")
         regex.findAllValidation("abc/abcc", "abc", "abcc")
         regex.findAllValidation("abc//中文字符/", "abc", "中文字符")
         regex.findAllValidation("abc/\\/ascd\\/\\//.*++", "abc", "\\/ascd\\/\\/", ".*++")

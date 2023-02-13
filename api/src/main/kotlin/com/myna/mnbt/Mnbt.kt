@@ -138,7 +138,7 @@ open class Mnbt {
      * @param typeToken see [paramTypeToken]
      * @return convert result [Tag]
      */
-    fun <V:Any> toTag(name:String, value:V, typeToken: MTypeToken<out V>):Tag<out Any>? {
+    fun <V:Any> toTag(name:String?, value:V, typeToken: MTypeToken<out V>):Tag<out Any>? {
         return converterProxy.createTag(name, value, typeToken, createTagUserIntent())
     }
 

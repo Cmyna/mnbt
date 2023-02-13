@@ -72,7 +72,7 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
         : ToNestTagProcedure<CompoundTag, ToNestTagProcedure.ToSubTagArgs> {
 
         override fun toSubTagRelatePath(args: ToNestTagProcedure.ToSubTagArgs): String {
-            return args.name!!
+            return "./${args.name!!}"
         }
 
         override fun toSubTagArgsList(): List<ToNestTagProcedure.ToSubTagArgs> {
@@ -83,18 +83,14 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
             }
         }
 
-        override fun buildTargetTag(subTags: List<Tag<out Any>?>): CompoundTag? {
+        override fun buildTargetTag(subTags: List<Pair<Tag<out Any>?,ToNestTagProcedure.ToSubTagArgs>>): CompoundTag? {
             val map:AnyCompound = mutableMapOf()
-            subTags.forEach { tag->
+            subTags.forEach { pair->
+                val tag = pair.first
                 tag?.name?.let { map[it] = tag }
             }
-            val procedureIntent = this.intent
-            if (procedureIntent is OverrideTag) {
-                if (procedureIntent.overrideTarget.id != IdTagCompound) return null
-                (procedureIntent.overrideTarget.value as AnyCompound).onEach {
-                    if (map[it.key] == null) map[it.key] = it.value
-                }
-            }
+            // try append miss Tag
+            ToNestTagProcedure.tryAppendMissSubTag(map, this.intent)
             return CompoundTag(this.targetName, map)
         }
 

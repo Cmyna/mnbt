@@ -10,7 +10,7 @@ import java.lang.StringBuilder
 object NbtPathTool{
 
     const val scheme = "mnbt://"
-    val tagNameRegex = Regex("(?:(?:\\\\\\/)|[^\\/])+")
+    val tagNameRegex = Regex("(?:\\\\/|[^\\/])+")
     val indexFormatRegex = Regex("^#\\d+$")
 
     /**
@@ -47,15 +47,14 @@ object NbtPathTool{
 
     /**
      * append a path segment into absolute path string end
-     * @param absolutePath mnbt format absolute path
+     * @param prePath mnbt format path
      * @param pathSegment path segment string
      * @return the appended result
      * @throws IllegalArgumentException if first args is not an absolute path
      */
-    fun appendSubDir(absolutePath: String, pathSegment:String):String {
-        if (!isAbsolutePath(absolutePath)) throw IllegalArgumentException("the path URL ($absolutePath) passed in is not an absolute path!")
-        return if (absolutePath.last() != '/') "$absolutePath/$pathSegment"
-        else "$absolutePath$pathSegment"
+    fun append(prePath: String, pathSegment:String):String {
+        return if (prePath.last() != '/') "$prePath/$pathSegment"
+        else "$prePath$pathSegment"
     }
 
     /**
@@ -88,8 +87,9 @@ object NbtPathTool{
 
 
     /**
+     * function will search tag by relatePath start at entry parameter passed in,
      * @param entry search entry
-     * @param relatePath mnbt relate path
+     * @param relatePath mnbt relate path, except entry tag at beginning
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
      * if no segment in path and source id match targetTagId, return [entry],

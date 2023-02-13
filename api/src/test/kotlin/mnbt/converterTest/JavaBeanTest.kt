@@ -20,8 +20,8 @@ class JavaBeanTest {
     @Test
     fun flatBeanClassConversionTest() {
         val tk = object: MTypeToken<JavaBean>() {}
-        val a = createJavaBean()
-        val a2 = createJavaBean()
+        val a = randomJavaBean()
+        val a2 = randomJavaBean()
 
         val sameCompound = CompoundTag("A1").also{
             it.add(ApiTestValueBuildTool.prepareTag(a.i!!, "i"))
@@ -187,36 +187,9 @@ class JavaBeanTest {
 
     @Test
     fun complicatedBeanTest() {
-        var c = 0
-        val bean2Creation:()->JavaBean2 = {
-            c += 1
-            JavaBean2().also {
-                it.int = Random.nextInt()
-                it.long = Random.nextLong()
-                it.str = RandomValueTool.bitStrC(10)()+c
-            }
-        }
-        val creation:()->JavaBean4 = {
-            val bean = JavaBean4()
-            bean.bean4Var = "some string"
-            bean.bean3Int = Random.nextInt()
-            bean.d = Random.nextDouble()
-            bean.beanMap = HashMap<String, JavaBean2>().also {
-                it["bean2 1"] = bean2Creation()
-                it["bean2 2"] = bean2Creation()
-                it["bean2 3"] = bean2Creation()
-            }
-
-            bean.beanList = ArrayList<JavaBean>().also{ list->
-                repeat(10) {
-                    list.add(createJavaBean())
-                }
-            }
-            bean
-        }
         val tk = object:MTypeToken<JavaBean4>() {}
-        val bean1 = creation()
-        val bean2 = creation()
+        val bean1 = randomJavaBean4()
+        val bean2 = randomJavaBean4()
         val name1 = "bean4-1"
         val name2 = "bean4-2"
         val compound = CompoundTag(name1).also { comp->
@@ -239,18 +212,5 @@ class JavaBeanTest {
         }
         converterTemplate.expectedTag = compound
         converterTemplate.apiTest(TestMnbt.inst.refConverterProxy, name1, name2, bean1, bean2, tk)
-    }
-
-
-    private fun createJavaBean():JavaBean  {
-        val testJavaBean = JavaBean(
-                Random.nextInt(), RandomValueTool.bitStrC(5)(),
-                Random.nextBytes(1)[0], Random.nextInt().toShort(),
-                Random.nextLong(), Random.nextFloat(), Random.nextDouble(),
-                Random.nextBytes(500), RandomValueTool.intArrC(500)(),
-                RandomValueTool.longArrC(500)()
-        )
-        testJavaBean.b = Random.nextInt() > 0
-        return testJavaBean
     }
 }

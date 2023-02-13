@@ -111,16 +111,17 @@ object ListConverters {
             return true
         }
 
-        override fun buildTargetTag(subTags: List<Tag<out Any>?>): ListTag<Any> {
+        override fun buildTargetTag(subTags: List<Pair<Tag<out Any>?, ListSubTagArgs>>): ListTag<Any> {
             val overrideTarget = if (intent is OverrideTag) (intent as OverrideTag).overrideTarget else null
             val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
             val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
 
 
 
-            val elementId:Byte = subTags.firstOrNull()?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
+            val elementId:Byte = subTags.firstOrNull()?.first?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
             val listTagContent:AnyTagList = mutableListOf()
-            subTags.onEachIndexed { i,tag->
+            subTags.onEachIndexed { i,pair->
+                val tag = pair.first
                 val addedTag = tag ?: if (!completeOverride) overrideTargetList?.getOrNull(i) else null
                 if (addedTag != null) listTagContent.add(addedTag)
             }
