@@ -106,6 +106,24 @@ data class DataClass5(
         val dc4: DataClass4
 )
 
+/**
+ *
+ */
+@LocateAt("./", "./#5")
+data class DataClass6(
+        val dc6Int:Int,
+        val dc6Str:String,
+        val dc6Float:Float
+        )
+
+fun newDataClass6(randomFieldValue: Boolean):DataClass6 {
+    return DataClass6(
+            if (randomFieldValue) Random.nextInt() else -10,
+            if (randomFieldValue) RandomValueTool.bitStrC(15)() else "data class 6 string field value",
+            if (randomFieldValue) Random.nextFloat() else 0.85f
+    )
+}
+
 class DataClassesFieldsProvider:FieldValueProvider {
     override fun provide(field: Field): Any? {
         return when(field) {

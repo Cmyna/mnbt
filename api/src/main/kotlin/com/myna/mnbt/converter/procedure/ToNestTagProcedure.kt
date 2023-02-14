@@ -3,17 +3,12 @@ package com.myna.mnbt.converter.procedure
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.CreateTagIntent
 import com.myna.mnbt.converter.OverrideTag
-import com.myna.mnbt.converter.TagConverter
 import com.myna.mnbt.converter.meta.NbtPathTool
 import com.myna.mnbt.converter.overrideTagIntent
-import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.UnknownList
 
-/**
- * The procedure is a state object recording some temporal data when creating new nest tag (hierarchical tag)
- */
 object ToNestTagProcedure {
 
     fun handleOverrideTargetIntent(toTargetTagPath:String, intent: CreateTagIntent): CreateTagIntent {

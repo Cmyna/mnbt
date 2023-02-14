@@ -120,7 +120,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                     parentValue[childName] = child
                     child
                 }
-                subTagContainer.value[it.name!!] = subTag!!
+                subTagContainer.value[it.name] = subTag!!
             }
 
             if (intent is OverrideTag && intent.overrideTarget?.value is UnknownCompound) {
@@ -169,7 +169,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     private fun buildSubTagCreationIntent(
             subTreeRootToSubTagPath:String, callerIntent: CreateTagIntent,
             returnedTagToSubTagPath:String, buildRoot:Tag<out Any>):CreateTagIntent {
-
         val overrideTarget = if (callerIntent is OverrideTag && callerIntent.overrideTarget!=null) {
             NbtPathTool.goto(callerIntent.overrideTarget!!, returnedTagToSubTagPath)
         } else null

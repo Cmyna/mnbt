@@ -7,7 +7,7 @@ import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.ListTag
 import java.lang.reflect.Modifier
 
-@Suppress("UnstableApiUsage")
+
 /**
  * in usual, someone who use these converter should ensure all elements in list should be same type,
  * or some unexpected consequence will happen
@@ -39,11 +39,11 @@ object ListConverters {
 
 
         override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ToValueIntent): Pair<String?, ARR>? {
-            intent as RecordParents; intent as ToValueIntent
+            intent as RecordParents
             if (tag.value !is List<*>) return null
             val value = tag.value as MutableList<out Tag<out Any>>
             if (!typeToken.isArray) return null
-            val arrComp = typeToken.componentType?: return null
+            val arrComp = typeToken.componentType
             val array = java.lang.reflect.Array.newInstance(arrComp.rawType, value.size)
             value.onEachIndexed { i, element ->
                 val v = proxy.toValue(element, arrComp, nestCIntent(intent, false))?:return@onEachIndexed
@@ -51,9 +51,6 @@ object ListConverters {
             }
             return Pair(tag.name, array as ARR)
         }
-
-
-
     }
 
     class IterableTypeConverter(override var proxy: TagConverter<Any>)
@@ -71,7 +68,7 @@ object ListConverters {
         }
 
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
-            intent as RecordParents; intent as ToValueIntent
+            intent as RecordParents
             // check tagValue is List
             if (tag.value !is List<*>) return null
             val value = tag.value as AnyTagList
@@ -114,7 +111,7 @@ object ListConverters {
     private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Any>? {
         val overrideTarget = if (intent is OverrideTag) intent.overrideTarget else null
         val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
-        val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
+        val overrideTargetList = if (isListTag) overrideTarget!!.value as AnyTagList else null
 
         val subTags = argsList.map {
             if (it.value==null) return@map null

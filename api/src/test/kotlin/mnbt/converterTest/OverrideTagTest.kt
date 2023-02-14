@@ -1,11 +1,13 @@
 package mnbt.converterTest
 
+import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.IdTagDouble
 import com.myna.mnbt.IdTagList
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.ConverterCallerIntent
 import com.myna.mnbt.converter.OverrideTag
 import com.myna.mnbt.reflect.MTypeToken
+import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.tag.ListTag
 import com.myna.mnbt.tag.NullTag
@@ -167,6 +169,23 @@ class OverrideTagTest {
         assertNotNull(overridden[JavaBean::d.name])
         assertEquals(bean1.d, overridden[JavaBean::d.name]!!.value)
         assertTrue(mockTagEq.equalsOrContains(beanMap, comp1["beanMap"]))
+    }
+
+    /**
+     * override a list, but list target overridden compound tag is redirect by LocateAt,
+     * it will accept an pojo as source, override target compound tag in a list
+     */
+    @Test
+    fun overrideCompoundInList() {
+        val tk = object: MTypeToken<DataClass6>() {}
+        val dc6 = newDataClass6(true)
+        val dc62 = newDataClass6(true)
+        val listTag = ListTag<AnyCompound>(IdTagCompound, "root")
+        repeat(4) {listTag.add(CompoundTag(null))}
+        TestMnbt.inst.toTag(null, dc6, tk).also { listTag.add(it as Tag<AnyCompound>) } // the fifth is target
+        val overridden = TestMnbt.inst.overrideTag(dc62, tk, listTag)
+        assertTrue(overridden is ListTag<*>)
+        assertTrue(MockTagEquals().structureEquals((overridden as ListTag<AnyCompound>)[5]!!, listTag[5]!!))
     }
 
     private fun prepareFlatMap():Pair<HashMap<String, Any>, HashMap<String, Any>> {

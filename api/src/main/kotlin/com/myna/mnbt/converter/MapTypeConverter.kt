@@ -8,6 +8,7 @@ import com.myna.mnbt.converter.procedure.ToNestTagProcedure.handleOverrideTarget
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
+import com.myna.mnbt.tag.UnknownCompound
 import java.lang.reflect.Modifier
 import java.util.*
 
@@ -26,12 +27,11 @@ import java.util.*
 class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
 
     override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
-        if (!typeToken.isSubtypeOf(mapTypeToken)) return null // check args
-        value as Map<String,Any>
+        if (!typeToken.isSubtypeOf(mapTypeToken) || value !is Map<*,*>) return null // check args
 
         val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
         val map:AnyCompound = mutableMapOf()
-        value.onEach { entry ->
+        (value as Map<String,Any>).onEach { entry ->
             val subTag = proxy.createTag(entry.key,  entry.value, declaredValueTypeToken, handleOverrideTargetIntent("./${entry.key}", intent))
                     ?:return@onEach
             map[entry.key] = subTag
@@ -44,15 +44,15 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
     override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         intent as RecordParents; intent as ToValueIntent
         // check tagValue is MutableMap or not
-        if (tag.value !is Map<*,*>) return null
-        val value = tag.value as Map<String, Tag<out Any>>
+        if (tag.value !is UnknownCompound) return null
+        val value = tag.value as AnyCompound
         // if ignoreTypeToken is true, toValue as default Map type
         val actualTypeTokenIn = if (intent is IgnoreValueTypeToken) mapTypeToken else typeToken
         // check type token is subtype of map or not
         if (!actualTypeTokenIn.isSubtypeOf(mapTypeToken)) return null
         // try get fix delegate from typeToken declaration
         val declaredValueTypeToken = actualTypeTokenIn.resolveType(mapValueGenericType) as MTypeToken<out Any>
-        val newMap = newMapInstance(actualTypeTokenIn)?: return null //TODO: may better calling ways to get map instance
+        val newMap = newMapInstance(actualTypeTokenIn)?: return null
         newMap as MutableMap<String, Any>
 
         value.onEach { entry->
