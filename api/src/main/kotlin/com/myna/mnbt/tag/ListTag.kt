@@ -11,8 +11,6 @@ typealias UnknownList = MutableList<*>
 /**
  *
  */
-// so the tag declaration require it is a generic type VT that there is sub-class extends Tag<VT>
-// FIXME: better way to design generic type
 class ListTag<TAG: Tag<out Any>>(
         override val name: String?,
         override val value: MutableList<TAG>,

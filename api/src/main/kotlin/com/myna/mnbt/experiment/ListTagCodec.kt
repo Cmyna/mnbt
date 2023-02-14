@@ -69,7 +69,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
     }
 
     override fun decode(intent: DecodeIntent): TagFeedback<AnyTagList> {
-        intent as DecodeIntent; intent as DecodeFromBytes
+        intent as DecodeFromBytes
         // read tag head if intent wants
         val name = TagHeadDecoder.decodeHead(id, intent)
         // read element id

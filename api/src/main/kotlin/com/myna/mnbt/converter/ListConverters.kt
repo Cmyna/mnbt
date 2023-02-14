@@ -5,6 +5,7 @@ import com.myna.mnbt.converter.procedure.ToNestTagProcedure
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.ListTag
+import com.myna.mnbt.tag.UnknownList
 import java.lang.reflect.Modifier
 
 
@@ -40,8 +41,8 @@ object ListConverters {
 
         override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ToValueIntent): Pair<String?, ARR>? {
             intent as RecordParents
-            if (tag.value !is List<*>) return null
-            val value = tag.value as MutableList<out Tag<out Any>>
+            if (tag.value !is UnknownList) return null
+            val value = tag.value as AnyTagList
             if (!typeToken.isArray) return null
             val arrComp = typeToken.componentType
             val array = java.lang.reflect.Array.newInstance(arrComp.rawType, value.size)
@@ -70,7 +71,7 @@ object ListConverters {
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             intent as RecordParents
             // check tagValue is List
-            if (tag.value !is List<*>) return null
+            if (tag.value !is UnknownList) return null
             val value = tag.value as AnyTagList
             // if ignore typeToken, then set typeToken as default List
             val actualTypeToken = if (intent is IgnoreValueTypeToken) iterableType else typeToken

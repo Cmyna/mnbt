@@ -1,9 +1,6 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.IdTagDouble
-import com.myna.mnbt.IdTagList
-import com.myna.mnbt.Tag
+import com.myna.mnbt.*
 import com.myna.mnbt.converter.ConverterCallerIntent
 import com.myna.mnbt.converter.OverrideTag
 import com.myna.mnbt.reflect.MTypeToken
@@ -18,16 +15,19 @@ import kotlin.random.Random
 
 class OverrideTagTest {
 
-    // TODO: test override that not change original tag
-
     @Test
     fun overrideFlatTag() {
         val i = 5
         val itag = ApiTestValueBuildTool.prepareTag2("int tag", 0)
+
         var override = TestMnbt.inst.overrideTag(i, MTypeToken.of(Int::class.java), itag)
         assertEquals(override!!.name, itag.name)
         assertEquals(override.id, itag.id)
         assertEquals(override.value, i)
+
+        // test original tag is not overridden
+        assertEquals(0, itag.value)
+        assertEquals("int tag", itag.name)
 
         // if wrong tag type, override will return null
         override = TestMnbt.inst.overrideTag(i, MTypeToken.of(Short::class.java), itag)
@@ -53,6 +53,11 @@ class OverrideTagTest {
         }
         assertNotNull(compOverridden[extraKey2])
         assertEquals(compOverridden[extraKey2]!!.value, map2[extraKey2])
+
+        // assert not override original tag
+        map2.onEach {
+            assertTrue(ApiTestTool.valueEqFun(it.value, comp2[it.key]?.value))
+        }
     }
 
     @Test
@@ -77,6 +82,14 @@ class OverrideTagTest {
         }
         assertNotNull(map1Comp[extraKey2])
         assertEquals(map1Comp[extraKey2]!!.value, map2[extraKey2])
+
+        // assert not override original tag
+        val flatComp = comp2["map1"]
+        assertTrue(flatComp is CompoundTag)
+        flatComp as CompoundTag
+        map2.onEach {
+            assertTrue(ApiTestTool.valueEqFun(it.value, flatComp[it.key]?.value))
+        }
     }
 
     @Test
@@ -84,11 +97,10 @@ class OverrideTagTest {
         // there is an option from Mnbt which specifies override the whole list or just replace some value in target list tag
 
         // override whole list
-        val listTag = ApiTestValueBuildTool.listPreparation(100) { Random.nextDouble() }.let { vl->
-            ListTag<Tag<Double>>(IdTagDouble, "double list tag 1").also {
-                vl.map { d-> ApiTestValueBuildTool.prepareTag2(null, d)}.onEach { dt ->
-                    it.add(dt as Tag<Double>)
-                }
+        val dataList = ApiTestValueBuildTool.listPreparation(100) { Random.nextDouble() }
+        val listTag = ListTag<Tag<Double>>(IdTagDouble, "double list tag 1").also {
+            dataList.map { d-> ApiTestValueBuildTool.prepareTag2(null, d)}.onEach { dt ->
+                it.add(dt as Tag<Double>)
             }
         }
         val doubleArray = DoubleArray(80) {Random.nextDouble()}
@@ -98,7 +110,12 @@ class OverrideTagTest {
         doubleArray.onEachIndexed { i, d ->
             assertEquals(d, overrideTag[i]!!.value)
         }
+        // assert original tag is not overridden
+        assertEquals(100, dataList.size)
+        assertEquals(dataList.size, listTag.value.size)
+        dataList.forEachIndexed { i,d -> assertEquals(d, listTag[i]?.value)}
 
+        // same override result above
         val doubleList = doubleArray.toList()
         var overrideTag2 = TestMnbt.inst.overrideTag(doubleList, object:MTypeToken<List<Double>>() {}, listTag) as ListTag<Tag<Double>>
         assertTrue(MockTagEquals().equals(overrideTag, overrideTag2))
@@ -121,6 +138,9 @@ class OverrideTagTest {
         assertTrue(MockTagEquals().equals(overrideTag, overrideTag2))
     }
 
+    /**
+     * it will override an complicate object with field Map<String, JavaBean>, List<JavaBean2>, the complicate object also inherit from another JavaBean class
+     */
     @Test
     fun overrideFromPojo() {
         val tk = object:MTypeToken<JavaBean4>() {}
@@ -169,6 +189,14 @@ class OverrideTagTest {
         assertNotNull(overridden[JavaBean::d.name])
         assertEquals(bean1.d, overridden[JavaBean::d.name]!!.value)
         assertTrue(mockTagEq.equalsOrContains(beanMap, comp1["beanMap"]))
+
+        // assert comp1 is not overridden
+        assertEquals(bean1.beanMap!!.size, (comp1["beanMap"] as CompoundTag).value.size)
+        val subComp1 = (comp1["beanMap"] as CompoundTag)[subBean.key] as CompoundTag
+        assertTrue(mockTagEq.equals(subComp, subComp1))
+        assertEquals(bean1.beanList!!.size, (comp1["beanList"] as ListTag<AnyTag>).value.size)
+        val subElement = TestMnbt.inst.toTag(null, bean1.beanList!!.last(), object:MTypeToken<JavaBean>() {})!!
+        assertTrue(mockTagEq.equals(subElement, (comp1["beanList"] as ListTag<AnyTag>).value.last()))
     }
 
 //    /**
