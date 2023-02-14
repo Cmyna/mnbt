@@ -19,7 +19,6 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
     override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent): CodecFeedback {
         intent as EncodeHead
         val hasHead = intent.encodeHead
-        val parents = (intent as RecordParentsWhenEncoding).parents
         if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
         val name = if (hasHead) tag.name?: throw NullPointerException("want serialize tag with tag head, but name was null!") else null
         var bitsLen = if (hasHead) TagIdPayload else 0
@@ -27,7 +26,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
         val nameBitsLen = nameBits?.let {nameBits.size}
         nameBitsLen?.let {bitsLen += it+ ShortSizePayload } // add tag.name payload if has head
         bitsLen += TagIdPayload + ArraySizePayload // add element id payload and element list size payload
-        val proxyIntent = toProxyEncodeToBytesIntent(false, parents)
+        val proxyIntent = toProxyIntent(false, intent)
         val bitsCache = ArrayList<ByteArray>()
         for (tags in tag.value) {
             val feedback = proxy.encode(tags, proxyIntent) as EncodedBytesFeedback
@@ -71,7 +70,6 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<AnyTagList> {
         intent as DecodeIntent; intent as DecodeFromBytes
-        val parents = (intent as RecordParentsWhenEncoding).parents
         // read tag head if intent wants
         val name = TagHeadDecoder.decodeHead(id, intent)
         // read element id
@@ -79,7 +77,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
         // read list size
         val size = intent.getInt()
         val nbtlist = ListTag<Any>(elementId, name)
-        val proxyIntent = proxyDecodeFromBytesIntent(false, parents, elementId, intent)
+        val proxyIntent = proxyDecodeFromBytesIntent(false, elementId, intent)
         for (i in 0 until size) {
             val feedback = proxy.decode(proxyIntent)
             nbtlist.add(feedback.tag)

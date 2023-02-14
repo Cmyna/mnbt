@@ -17,9 +17,8 @@ class CompoundTagCodec(override var proxy: Codec<Any>):
     }
 
     override fun encodeValue(value: AnyCompound, intent: CodecCallerIntent): CodecFeedback {
-        val parents = (intent as RecordParentsWhenEncoding).parents
         intent as EncodeToBytes
-        val proxyIntent = toProxyEncodeToBytesIntent(true, parents)
+        val proxyIntent = toProxyIntent(true, intent)
         val bitsCache = ArrayList<ByteArray>()
         var bitsLen = TagIdPayload // payload for TagEnd
         value.onEach {
@@ -42,11 +41,10 @@ class CompoundTagCodec(override var proxy: Codec<Any>):
 
     override fun decodeToValue(intent: CodecCallerIntent): AnyCompound {
         intent as DecodeFromBytes
-        val parents = (intent as RecordParentsWhenEncoding).parents
         var subTagId = intent.data[intent.pointer]
         val compound = mutableMapOf<String, Tag<out Any>>()
         while (subTagId != IdTagEnd) {
-            val proxyIntent = proxyDecodeFromBytesIntent(true, parents, subTagId, intent)
+            val proxyIntent = proxyDecodeFromBytesIntent(true, subTagId, intent)
             val feedback = proxy.decode(proxyIntent)
             compound[feedback.tag.name!!] = feedback.tag
             subTagId = intent.data[intent.pointer]

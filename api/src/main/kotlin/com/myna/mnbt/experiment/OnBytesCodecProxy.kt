@@ -55,21 +55,20 @@ class OnBytesCodecProxy:Codec<Any>  {
     }
 
     override fun decode(intent: CodecCallerIntent): TagFeedback<Any> {
-        intent as DecodeFromBytes; intent as RecordParentsWhenEncoding
-        val parents = intent.parents
+        intent as DecodeFromBytes
         var intentId = if (intent is SpecifyIdWhenDecoding) intent.id else null
         if (intent !is DecodeHead && intentId==null) throw IllegalArgumentException("specify no tag head, but no tag id passed in!")
         // if id == invalidId(-1), try find id by input bits data
         if (intentId == null) {
             intentId = intent.data[intent.pointer]
-            if (intentId == invalidFlag) throw NullPointerException("Input Stream has reached the end, while deserialization is keep going!")
+            if (intentId == invalidFlag) throw NullPointerException("ByteArray has reached the end, while deserialization is keep going!")
         }
         // find Codec by id
         val Codec = codecMap[intentId]?: throw IllegalArgumentException("can not find Codec with related id $intentId")
         Codec as Codec<Any> // runtime cast
         // deserialization
 
-        val newIntent = proxyDecodeFromBytesIntent(intent is DecodeHead, parents, intentId, intent)
+        val newIntent = proxyDecodeFromBytesIntent(intent is DecodeHead, intentId, intent)
         return Codec.decode(newIntent)
     }
 

@@ -77,53 +77,33 @@ fun toProxyIntent(intent:DecodeIntent, decodeHead: Boolean, desId: Byte, ignoreI
     } as DecodeIntent
 }
 
-// TODO: refactor this function
-fun proxyDecodeFromBytesIntent(decodeHead: Boolean, parents: Deque<Tag<out Any>>,
-                               desId: Byte, intent:DecodeFromBytes):CodecCallerIntent {
-//    val interfaces = intent::class.java.interfaces.toMutableSet()
-//    if (decodeHead) interfaces.add(DecodeHead::class.java)
-//    else interfaces.remove(DecodeHead::class.java)
-//
-//    return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) { _,method,args->
-//        return@newProxyInstance when(method) {
-//            SpecifyIdWhenDecoding::id.javaGetter -> desId
-//            DecodeHead::ignoreIdWhenDecoding.javaGetter -> false
-//            RecordParents::parents.javaGetter -> parents
-//            else -> method.invoke(intent, *args.orEmpty())
-//        }
-//    } as DecodeIntent
-    if (decodeHead) return object:RecordParentsWhenEncoding,SpecifyIdWhenDecoding,DecodeFromBytes,DecodeHead {
-        override val parents: Deque<Tag<out Any>> = parents
-        override val id: Byte = desId
-        override val data: ByteArray = intent.data
-        override val ignoreIdWhenDecoding: Boolean = false
-        override var pointer: Int
-            get() = intent.pointer
-            set(value) { intent.pointer=value}
-    } else return object:RecordParentsWhenEncoding,SpecifyIdWhenDecoding,DecodeFromBytes {
-        override val parents: Deque<Tag<out Any>> = parents
-        override val id: Byte = desId
-        override val data: ByteArray = intent.data
-        override var pointer: Int
-            get() = intent.pointer
-            set(value) { intent.pointer=value}
-    }
+
+fun proxyDecodeFromBytesIntent(decodeHead: Boolean, desId: Byte, intent:DecodeFromBytes):DecodeIntent {
+    val interfaces = intent::class.java.interfaces.toMutableSet()
+    if (decodeHead) interfaces.add(DecodeHead::class.java)
+    else interfaces.remove(DecodeHead::class.java)
+    if (intent !is SpecifyIdWhenDecoding) interfaces.add(SpecifyIdWhenDecoding::class.java)
+
+    return Proxy.newProxyInstance(intent::class.java.classLoader, interfaces.toTypedArray()) { _,method,args->
+        return@newProxyInstance when(method) {
+            SpecifyIdWhenDecoding::id.javaGetter -> desId
+            DecodeHead::ignoreIdWhenDecoding.javaGetter -> false
+            DecodeFromBytes::pointer.javaGetter -> intent.pointer
+            DecodeFromBytes::pointer.javaSetter -> intent.pointer = args.first() as Int
+            else -> method.invoke(intent, *args.orEmpty())
+        }
+    } as DecodeIntent
 }
 
 
-fun toProxyIntent(hasHead: Boolean, parents: Deque<Tag<out Any>>, outputStream: OutputStream):OnStreamToDelegatorEncodeIntent {
-    return object:OnStreamToDelegatorEncodeIntent {
-        override val parents: Deque<Tag<out Any>> = parents
-        override val outputStream: OutputStream = outputStream
-        override val encodeHead:Boolean = hasHead
-    }
-}
-
-fun toProxyEncodeToBytesIntent(hasHead: Boolean, parents: Deque<Tag<out Any>>):OnBytesToProxyEncodeIntent {
-    return object:OnBytesToProxyEncodeIntent {
-        override val parents: Deque<Tag<out Any>> = parents
-        override val encodeHead:Boolean = hasHead
-    }
+fun toProxyIntent(hasHead: Boolean, intent: EncodeIntent):EncodeIntent {
+    return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) { _, method, args->
+        return@newProxyInstance when (method) {
+            OnStreamToDelegatorEncodeIntent::encodeHead.javaGetter -> hasHead
+            OnBytesToProxyEncodeIntent::encodeHead.javaGetter -> hasHead
+            else -> method.invoke(intent, *args.orEmpty())
+        }
+    } as EncodeIntent
 }
 
 

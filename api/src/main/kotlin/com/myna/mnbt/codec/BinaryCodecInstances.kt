@@ -166,7 +166,6 @@ object BinaryCodecInstances {
         override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent):CodecFeedback {
             intent as EncodeHead; intent as EncodeOnStream
             val hasHead = intent.encodeHead
-            val parents = (intent as RecordParentsWhenEncoding).parents
             if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
             val name = if (hasHead) tag.name?: throw NullPointerException("want serialize tag with tag head, but name was null!") else null
             if (name != null) CodecTool.writeTagHead(id, name, intent.outputStream)
@@ -174,7 +173,7 @@ object BinaryCodecInstances {
             intent.outputStream.write(tag.elementId.toInt())
             // write array size
             intent.outputStream.write(tag.value.size.toBytes())
-            val proxyIntent = toProxyIntent(false, parents, intent.outputStream)
+            val proxyIntent = toProxyIntent(false, intent)
             for (tags in tag.value) {
                 proxy.encode(tags, proxyIntent)
             }
@@ -211,8 +210,7 @@ object BinaryCodecInstances {
             }
 
             override fun encodeValue(value: AnyCompound, intent: EncodeOnStream):CodecFeedback {
-                val parents = (intent as RecordParentsWhenEncoding).parents
-                val proxyIntent = toProxyIntent(true, parents, intent.outputStream)
+                val proxyIntent = toProxyIntent(true, intent)
                 value.onEach {
                     checkNotNull(it.value.name) // name should not be null
                     proxy.encode(it.value, proxyIntent)
