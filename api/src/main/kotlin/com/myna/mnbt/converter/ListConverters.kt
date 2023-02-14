@@ -108,7 +108,7 @@ object ListConverters {
     private val iterableType = MTypeToken.of(Iterable::class.java)
     private val iterableGenericType = Iterable::class.java.typeParameters[0]
 
-    private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Any>? {
+    private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Tag<out Any>>? {
         val overrideTarget = if (intent is OverrideTag) intent.overrideTarget else null
         val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
         val overrideTargetList = if (isListTag) overrideTarget!!.value as AnyTagList else null

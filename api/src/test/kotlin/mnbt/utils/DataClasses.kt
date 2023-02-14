@@ -1,6 +1,7 @@
 package mnbt.utils
 
 import com.myna.mnbt.IdTagCompound
+import com.myna.mnbt.Tag
 import com.myna.mnbt.annotations.FieldValueProvider
 import com.myna.mnbt.annotations.Ignore
 import com.myna.mnbt.annotations.LocateAt
@@ -60,7 +61,7 @@ data class DataClass3 (
 
 fun DataClass3.toCompound(name:String?): CompoundTag {
     return CompoundTag(name).also { root ->
-        ListTag<AnyCompound>(IdTagCompound, "dataClass2List").also { listTag->
+        ListTag<CompoundTag>(IdTagCompound, "dataClass2List").also { listTag->
             this.dataClass2List.onEach { dc2->
                 listTag.add(dc2.toCompound(null))
             }

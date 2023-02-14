@@ -1,5 +1,7 @@
 package com.myna.mnbt
 
+
+typealias AnyTag = Tag<out Any>
 /**
  * abstract class to represent Nbt object
  *

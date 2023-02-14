@@ -129,8 +129,8 @@ object ApiTestValueBuildTool {
         }
     }
 
-    fun <V:Any> iterableToListTag(name:String?, id:Byte, iterable:Iterable<V>, tagCreation:(v:V)->Tag<out Any>): ListTag<out Any> {
-        return ListTag<Any>(id, name).also { listTag->
+    fun <V:Any> iterableToListTag(name:String?, id:Byte, iterable:Iterable<V>, tagCreation:(v:V)->AnyTag): ListTag<AnyTag> {
+        return ListTag<AnyTag>(id, name).also { listTag->
             iterable.onEach {value->
                 listTag.add(tagCreation(value) as Tag<Any>)
             }

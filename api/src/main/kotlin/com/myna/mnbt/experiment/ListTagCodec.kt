@@ -76,7 +76,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
         val elementId = intent.getByte()
         // read list size
         val size = intent.getInt()
-        val nbtlist = ListTag<Any>(elementId, name)
+        val nbtlist = ListTag<Tag<out Any>>(elementId, name)
         val proxyIntent = proxyDecodeFromBytesIntent(false, elementId, intent)
         for (i in 0 until size) {
             val feedback = proxy.decode(proxyIntent)

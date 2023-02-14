@@ -67,7 +67,7 @@ class MockTagEquals {
 
         val mockEqualResult = when(source) {
             is CompoundTag -> equalsWithLogs(source, other as CompoundTag, currentNode, options)
-            is ListTag<*> -> equalsWithLogs(source, other as ListTag<out Any>, currentNode, options)
+            is ListTag<*> -> equalsWithLogs(source as ListTag<AnyTag>, other as ListTag<AnyTag>, currentNode, options)
             else -> simpleEqualsWithLog(source, other, currentNode, options)
         }
         checkMockResult(mockEqualResult, isEqInOriginEq, source, other, options)
@@ -128,7 +128,7 @@ class MockTagEquals {
         return keyEq && valueCeq
     }
 
-    private fun equalsWithLogs(source: ListTag<out Any>, other: ListTag<out Any>, currentNode: LogTreeNode?, options: EqualOptions):Boolean {
+    private fun equalsWithLogs(source: ListTag<AnyTag>, other: ListTag<AnyTag>, currentNode: LogTreeNode?, options: EqualOptions):Boolean {
         // first compare size
         //val sizeEq = source.value.size == other.value.size
         val path = buildPath(currentNode)

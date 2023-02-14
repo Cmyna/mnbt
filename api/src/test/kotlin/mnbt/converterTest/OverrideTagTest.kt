@@ -85,7 +85,7 @@ class OverrideTagTest {
 
         // override whole list
         val listTag = ApiTestValueBuildTool.listPreparation(100) { Random.nextDouble() }.let { vl->
-            ListTag<Double>(IdTagDouble, "double list tag 1").also {
+            ListTag<Tag<Double>>(IdTagDouble, "double list tag 1").also {
                 vl.map { d-> ApiTestValueBuildTool.prepareTag2(null, d)}.onEach { dt ->
                     it.add(dt as Tag<Double>)
                 }
@@ -93,21 +93,21 @@ class OverrideTagTest {
         }
         val doubleArray = DoubleArray(80) {Random.nextDouble()}
 
-        var overrideTag = TestMnbt.inst.overrideTag(doubleArray, object:MTypeToken<DoubleArray>() {}, listTag) as ListTag<Double>
+        var overrideTag = TestMnbt.inst.overrideTag(doubleArray, object:MTypeToken<DoubleArray>() {}, listTag) as ListTag<Tag<Double>>
         assertEquals(doubleArray.size, overrideTag.value.size)
         doubleArray.onEachIndexed { i, d ->
             assertEquals(d, overrideTag[i]!!.value)
         }
 
         val doubleList = doubleArray.toList()
-        var overrideTag2 = TestMnbt.inst.overrideTag(doubleList, object:MTypeToken<List<Double>>() {}, listTag) as ListTag<Double>
+        var overrideTag2 = TestMnbt.inst.overrideTag(doubleList, object:MTypeToken<List<Double>>() {}, listTag) as ListTag<Tag<Double>>
         assertTrue(MockTagEquals().equals(overrideTag, overrideTag2))
 
         // override some list
         TestMnbt.inst.completeOverride = false
 
         val doubleArray2 = DoubleArray(40) {Random.nextDouble()}
-        overrideTag = TestMnbt.inst.overrideTag(doubleArray2, object:MTypeToken<DoubleArray>() {}, listTag) as ListTag<Double>
+        overrideTag = TestMnbt.inst.overrideTag(doubleArray2, object:MTypeToken<DoubleArray>() {}, listTag) as ListTag<Tag<Double>>
         assertEquals(listTag.value.size, overrideTag.value.size) // because array2 smaller, so size is array1 size
         doubleArray2.onEachIndexed { i, d ->
             assertEquals(d, overrideTag[i]!!.value)
@@ -117,7 +117,7 @@ class OverrideTagTest {
         }
 
         val doubleList2 = doubleArray2.toList()
-        overrideTag2 = TestMnbt.inst.overrideTag(doubleList2, object:MTypeToken<List<Double>>() {}, listTag) as ListTag<Double>
+        overrideTag2 = TestMnbt.inst.overrideTag(doubleList2, object:MTypeToken<List<Double>>() {}, listTag) as ListTag<Tag<Double>>
         assertTrue(MockTagEquals().equals(overrideTag, overrideTag2))
     }
 

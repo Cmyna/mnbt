@@ -138,7 +138,7 @@ class JavaBeanTest {
         val name1 = "bean1"
         val name2 = "bean2"
         val tk = object: MTypeToken<Array<JavaBean>>() {}
-        val listTag = ListTag<AnyCompound>(10, name1).also { listTag->
+        val listTag = ListTag<CompoundTag>(10, name1).also { listTag->
             arr1.onEach { bean->
                 CompoundTag().also { comp->
                     ApiTestValueBuildTool.prepareTag2("bits", bean.bits!!).also {comp.add(it)}
@@ -203,10 +203,10 @@ class JavaBeanTest {
                 }
                 comp.add(beanMap)
             }
-            ListTag<AnyCompound>(IdTagCompound,"beanList").also { listTag ->
+            ListTag<CompoundTag>(IdTagCompound,"beanList").also { listTag ->
                 val subTk = object:MTypeToken<JavaBean>() {}
                 bean1.beanList!!.onEach { subBean->
-                    TestMnbt.inst.refConverterProxy.createTag(null, subBean, subTk)!!.also {listTag.add(it as Tag<AnyCompound>)}
+                    TestMnbt.inst.refConverterProxy.createTag(null, subBean, subTk)!!.also {listTag.add(it as CompoundTag)}
                 }
             }.also {comp.add(it)}
         }

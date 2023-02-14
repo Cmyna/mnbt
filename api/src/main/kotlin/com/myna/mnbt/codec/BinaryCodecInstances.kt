@@ -190,14 +190,14 @@ object BinaryCodecInstances {
             val elementId = intent.inputStream.read().toByte()
             // read list size
             val size = intent.inputStream.readNBytes(4).toBasic(0,0)
-            val nbtlist = ListTag<Any>(elementId, name)
+            val nbtlist = ListTag<Tag<out Any>>(elementId, name)
             val proxyIntent = toProxyIntent(intent, false, elementId)
             for (i in 0 until size) {
                 val feedback = proxy.decode(proxyIntent)
                 nbtlist.add(feedback.tag)
             }
             return object:TagFeedback<AnyTagList> {
-                override val tag: Tag<AnyTagList> = nbtlist
+                override val tag: Tag<AnyTagList> = nbtlist as Tag<AnyTagList>
             }
         }
     }

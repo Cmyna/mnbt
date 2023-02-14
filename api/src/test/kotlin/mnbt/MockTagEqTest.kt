@@ -72,7 +72,7 @@ class MockTagEqTest {
         val list2 = prepareListWithCompound("list1")
         assertTrue(mockTagEquals.equals(list1, list2)) // should output nothing
 
-        list1.add(prepareFlatCompound(null))
+        list1.add(prepareFlatCompound(null) as Tag<AnyCompound>)
         assertFalse(mockTagEquals.equals(list1, list2))
         list1.value.removeLast()
 
@@ -138,26 +138,26 @@ class MockTagEqTest {
         val listEntry1 = (NbtPathTool.goto(root1, "./comp1/comp2/comp5") as CompoundTag)
         val listEntry2 = (NbtPathTool.goto(root2, "./comp1/comp2/comp5") as CompoundTag)
         val listName1 = "list tag1";
-        val listTag1 = ListTag<Int>(IdTagInt, listName1).also { listTag->
+        val listTag1 = ListTag<Tag<Int>>(IdTagInt, listName1).also { listTag->
             repeat(50) {ApiTestValueBuildTool.prepareTag2(null, 0).also {listTag.add(it as Tag<Int>)}}
         }
-        val listTag2 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+        val listTag2 = ListTag<CompoundTag>(IdTagCompound, listName1).also { listTag ->
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
             CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
         }
-        val listTag3 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+        val listTag3 = ListTag<CompoundTag>(IdTagCompound, listName1).also { listTag ->
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
             CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
             CompoundTag(null).also { listTag.add(it) } // no equals number
         }
-        val listTag4 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+        val listTag4 = ListTag<CompoundTag>(IdTagCompound, listName1).also { listTag ->
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9/comp11"); listTag.add(it) } // element not structural equals
             CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 128.toLong())) }
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
         }
-        val listTag5 = ListTag<AnyCompound>(IdTagCompound, listName1).also { listTag ->
+        val listTag5 = ListTag<CompoundTag>(IdTagCompound, listName1).also { listTag ->
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp8/comp9"); listTag.add(it) }
             CompoundTag(null).also { listTag.add(it); it.add(ApiTestValueBuildTool.prepareTag2("long tag", 555555.toLong())) }
             CompoundTag(null).also { buildCompoundsByPath(it, "./comp10"); listTag.add(it) }
@@ -194,15 +194,15 @@ class MockTagEqTest {
         return comp
     }
 
-    private fun prepareSampleFlatListTag(name:String?):ListTag<ByteArray> {
+    private fun prepareSampleFlatListTag(name:String?):ListTag<Tag<ByteArray>> {
         val bytesCopy = byteArrays.map { it.copyOf() }
-        return ApiTestValueBuildTool.iterableToListTag(name, IdTagByteArray, bytesCopy, ApiTestValueBuildTool::prepareTag) as ListTag<ByteArray>
+        return ApiTestValueBuildTool.iterableToListTag(name, IdTagByteArray, bytesCopy, ApiTestValueBuildTool::prepareTag) as ListTag<Tag<ByteArray>>
     }
 
-    private fun prepareListWithCompound(name:String?):ListTag<AnyCompound> {
+    private fun prepareListWithCompound(name:String?):ListTag<Tag<AnyCompound>> {
         val compList = ArrayList<CompoundTag>()
         repeat(15) {compList.add(prepareFlatCompound(null))}
-        return ListTag<AnyCompound>(IdTagCompound, "list with compound").also {
+        return ListTag<Tag<AnyCompound>>(IdTagCompound, "list with compound").also {
             it.value.addAll(compList)
         }
     }

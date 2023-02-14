@@ -13,28 +13,28 @@ typealias UnknownList = MutableList<*>
  */
 // so the tag declaration require it is a generic type VT that there is sub-class extends Tag<VT>
 // FIXME: better way to design generic type
-class ListTag<NbtRelatedType:Any>(
+class ListTag<TAG: Tag<out Any>>(
         override val name: String?,
-        override val value: MutableList<Tag<out NbtRelatedType>>,
+        override val value: MutableList<TAG>,
         /**
          * the element tag type id allowed in list
          */
         var elementId:Byte
-        ) : Tag.NestTag<MutableList<Tag<out NbtRelatedType>>>() {
+        ) : Tag.NestTag<MutableList<TAG>>() {
 
     override val id: Byte = IdTagList
 
     constructor(elementId: Byte, name:String?=null):this(name, mutableListOf(), elementId)
 
-    fun <T: Tag<NbtRelatedType>> add(tag:T):Boolean {
+    fun add(tag:TAG):Boolean {
         if (elementId == unknownElementId) elementId = tag.id
         if (tag.id != elementId) return false
         return value.add(tag)
     }
 
-    operator fun get(i:Int):Tag<NbtRelatedType>? {
+    operator fun get(i:Int):TAG? {
         return if (value.size <= i) null
-        else value[i] as Tag<NbtRelatedType>
+        else value[i]
     }
 
     override fun equals(other: Any?): Boolean {
