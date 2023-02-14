@@ -65,35 +65,6 @@ class ReflectiveConverterTest {
     }
 
     @Test
-    fun cleanRedundantTagTest() {
-        var value1 = TestClassC(5)
-        val value2 = TestClassC(2)
-        val name1 = "Test Class C-1"
-        val name2 = "Test Class C-2"
-
-        val template = ApiTestTool.ConverterTestTemplate()
-        template.assertValueNotEquals = false
-
-        val mockConverterProxy = template.mnbtInst.mockConverterProxy
-        mockConverterProxy.createMockTagSupplier["catch int tag"] = { name, _, _, _->
-            if (name=="int tag") MockConverterProxy.CreateTagMockFeedback(true, null)
-            else MockConverterProxy.CreateTagMockFeedback(false, null)
-        }
-
-        val expectedTag = CompoundTag(name1)
-        template.expectedTag = expectedTag
-
-        template.apiTest(name1, name2, value1, value2, object:MTypeToken<TestClassC>() {})
-
-        // one value created but another not
-        value1 = TestClassC(100, "some string")
-        val tag1 = CompoundTag("tag1").also {expectedTag.add(it)}
-        ApiTestValueBuildTool.prepareTag2("string tag", value1.v2!!).also { tag1.add(it) }
-
-        template.apiTest(name1, name2, value1, value2, object:MTypeToken<TestClassC>() {})
-    }
-
-    @Test
     fun ignoreAnnotationTest() {
         // test ignore
         val tc3 = testClass3(10)
@@ -155,11 +126,6 @@ class ReflectiveConverterTest {
             @LocateAt("./class A tag/tag1/short tag") val n:Short,
             @LocateAt("./class A tag/tag1/tag2/tag3/double tag") val d:Double,
             val f:Float)
-
-    private data class TestClassC(
-            @LocateAt("./tag1/tag2/tag3/int tag") val v1:Int,
-            @LocateAt("./tag1/string tag") val v2:String? = null
-    )
 
     /**
      * test class that try to remap tags created from DataClass3

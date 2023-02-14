@@ -1,13 +1,14 @@
 package com.myna.mnbt.codec
 
 import com.myna.mnbt.Tag
+import com.myna.mnbt.converter.RecordParents
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 
-//TODO: change all intent creation called from codec to dynamic proxy
 
 fun userEncodeIntent(outputStream: OutputStream):OnStreamToDelegatorEncodeIntent {
     return object:OnStreamToDelegatorEncodeIntent {
@@ -76,8 +77,21 @@ fun toProxyIntent(intent:DecodeIntent, decodeHead: Boolean, desId: Byte, ignoreI
     } as DecodeIntent
 }
 
+// TODO: refactor this function
 fun proxyDecodeFromBytesIntent(decodeHead: Boolean, parents: Deque<Tag<out Any>>,
                                desId: Byte, intent:DecodeFromBytes):CodecCallerIntent {
+//    val interfaces = intent::class.java.interfaces.toMutableSet()
+//    if (decodeHead) interfaces.add(DecodeHead::class.java)
+//    else interfaces.remove(DecodeHead::class.java)
+//
+//    return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) { _,method,args->
+//        return@newProxyInstance when(method) {
+//            SpecifyIdWhenDecoding::id.javaGetter -> desId
+//            DecodeHead::ignoreIdWhenDecoding.javaGetter -> false
+//            RecordParents::parents.javaGetter -> parents
+//            else -> method.invoke(intent, *args.orEmpty())
+//        }
+//    } as DecodeIntent
     if (decodeHead) return object:RecordParentsWhenEncoding,SpecifyIdWhenDecoding,DecodeFromBytes,DecodeHead {
         override val parents: Deque<Tag<out Any>> = parents
         override val id: Byte = desId

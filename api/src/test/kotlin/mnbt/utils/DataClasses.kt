@@ -100,6 +100,12 @@ fun newDataClass4(randomFieldValue:Boolean):DataClass4 {
     )
 }
 
+@LocateAt("./midTag3/data class 5 entry")
+data class DataClass5(
+        @LocateAt("./midTag4/data class 4 field entry")
+        val dc4: DataClass4
+)
+
 class DataClassesFieldsProvider:FieldValueProvider {
     override fun provide(field: Field): Any? {
         return when(field) {

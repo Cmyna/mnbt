@@ -6,6 +6,7 @@ import com.myna.mnbt.converter.meta.NbtPathTool.indexFormatRegex
 import java.lang.StringBuilder
 
 typealias AnyTagList = MutableList<Tag<out Any>>
+typealias UnknownList = MutableList<*>
 
 /**
  *

@@ -83,6 +83,7 @@ class MockTagEquals {
         if (!originalEqRes) {
             val path = buildPath(currentNode)
             val msgBuilder = StringBuilder("tag value not match in comparing $tag and $other\n")
+            msgBuilder.append("\tTag value is ${tag.value} where other is ${other.value}\n")
             msgBuilder.append("\tDifference Found At: $path (tag name: ${tag.name}) where tag id is ${tag.id}\n")
             msgBuilder.append("\tBecause it is a simple comparison, no other message out\n")
             outputMsg(msgBuilder)
