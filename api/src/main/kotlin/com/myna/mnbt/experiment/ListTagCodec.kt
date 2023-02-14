@@ -16,7 +16,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
     override val id: Byte = IdTagList
     override val valueTypeToken = MutableList::class.java as Class<AnyTagList>
 
-    override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent): CodecFeedback {
+    override fun encode(tag: Tag<out AnyTagList>, intent: EncodeIntent): CodecFeedback {
         intent as EncodeHead
         val hasHead = intent.encodeHead
         if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
@@ -68,7 +68,7 @@ class ListTagCodec(override var proxy: Codec<Any>):HierarchicalCodec<AnyTagList>
         }
     }
 
-    override fun decode(intent: CodecCallerIntent): TagFeedback<AnyTagList> {
+    override fun decode(intent: DecodeIntent): TagFeedback<AnyTagList> {
         intent as DecodeIntent; intent as DecodeFromBytes
         // read tag head if intent wants
         val name = TagHeadDecoder.decodeHead(id, intent)

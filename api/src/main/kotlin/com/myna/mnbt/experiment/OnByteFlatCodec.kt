@@ -12,7 +12,7 @@ abstract class OnByteFlatCodec<NbtRelatedType:Any>(override val id: Byte, overri
     abstract fun decodeToValue(intent: CodecCallerIntent):NbtRelatedType
     abstract fun createTag(name:String?, value:NbtRelatedType): Tag<NbtRelatedType>
 
-    override fun encode(tag: Tag<out NbtRelatedType>, intent: CodecCallerIntent): CodecFeedback {
+    override fun encode(tag: Tag<out NbtRelatedType>, intent: EncodeIntent): CodecFeedback {
         intent as EncodeHead
         val hasHead = intent.encodeHead
         val name = if (hasHead) tag.name?: throw NullPointerException("want serialize tag with tag head, but name was null!") else null
@@ -23,7 +23,7 @@ abstract class OnByteFlatCodec<NbtRelatedType:Any>(override val id: Byte, overri
         }
     }
 
-    override fun decode(intent: CodecCallerIntent): TagFeedback<NbtRelatedType> {
+    override fun decode(intent: DecodeIntent): TagFeedback<NbtRelatedType> {
         val name = TagHeadDecoder.decodeHead(id, intent)
         return object: TagFeedback<NbtRelatedType> {
             override val tag: Tag<NbtRelatedType> = createTag(name, decodeToValue(intent))

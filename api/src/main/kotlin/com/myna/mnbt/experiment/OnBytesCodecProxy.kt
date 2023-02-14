@@ -29,7 +29,7 @@ class OnBytesCodecProxy:Codec<Any>  {
         }
     }
 
-    override fun encode(tag: Tag<out Any>, intent: CodecCallerIntent): CodecFeedback {
+    override fun encode(tag: Tag<out Any>, intent: EncodeIntent): CodecFeedback {
         intent as OnBytesToProxyEncodeIntent
         val parents = intent.parents
         // check null tag
@@ -54,7 +54,7 @@ class OnBytesCodecProxy:Codec<Any>  {
         return feedback
     }
 
-    override fun decode(intent: CodecCallerIntent): TagFeedback<Any> {
+    override fun decode(intent: DecodeIntent): TagFeedback<Any> {
         intent as DecodeFromBytes
         var intentId = if (intent is SpecifyIdWhenDecoding) intent.id else null
         if (intent !is DecodeHead && intentId==null) throw IllegalArgumentException("specify no tag head, but no tag id passed in!")

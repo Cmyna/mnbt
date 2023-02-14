@@ -26,7 +26,7 @@ interface Codec<NbtRelatedType>{
 //    val requiredEncodeIntent:List<EncodeIntent>
 //    val requiredDecodedIntent:List<DecodeIntent>
 
-    fun encode(tag: Tag<out NbtRelatedType>, intent:CodecCallerIntent):CodecFeedback
+    fun encode(tag: Tag<out NbtRelatedType>, intent: EncodeIntent):CodecFeedback
     /**
      * @param hasHead: declare the data has head or not (has id+name or not).
      * If no head, it means that no nbt type check, type check should be handled by caller
@@ -34,7 +34,7 @@ interface Codec<NbtRelatedType>{
      * (in consider, we may need to decode multiple tags in a byte stream, thus we need a pointer to remain data
      * after decode)
      */
-    fun decode(intent:CodecCallerIntent): TagFeedback<NbtRelatedType>
+    fun decode(intent: DecodeIntent): TagFeedback<NbtRelatedType>
 }
 
 // So the Codec accept something extends from Tag, or related java object as Tag value

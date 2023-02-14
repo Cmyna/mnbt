@@ -163,7 +163,7 @@ object BinaryCodecInstances {
         override val id: Byte = IdTagList
         override val valueTypeToken = MutableList::class.java as Class<AnyTagList>
 
-        override fun encode(tag: Tag<out AnyTagList>, intent: CodecCallerIntent):CodecFeedback {
+        override fun encode(tag: Tag<out AnyTagList>, intent: EncodeIntent):CodecFeedback {
             intent as EncodeHead; intent as EncodeOnStream
             val hasHead = intent.encodeHead
             if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
@@ -182,7 +182,7 @@ object BinaryCodecInstances {
             }
         }
 
-        override fun decode(intent: CodecCallerIntent): TagFeedback<AnyTagList> {
+        override fun decode(intent: DecodeIntent): TagFeedback<AnyTagList> {
             intent as DecodeOnStream;
             // read tag head if intent wants
             val name = if (intent is DecodeHead) intent.decodeHead(id) else null
@@ -239,13 +239,13 @@ object BinaryCodecInstances {
         // hacky way, because can not init TypeToken<Nothing>(or TypeToken<void>)
         override val valueTypeToken = Unit::class.java
 
-        override fun encode(tag: Tag<out Unit>, intent: CodecCallerIntent):CodecFeedback {
+        override fun encode(tag: Tag<out Unit>, intent: EncodeIntent):CodecFeedback {
             intent as EncodeOnStream
             intent.outputStream.write(IdTagEnd.toInt())
             return object:CodecFeedback{}
         }
 
-        override fun decode(intent: CodecCallerIntent): TagFeedback<Unit> {
+        override fun decode(intent: DecodeIntent): TagFeedback<Unit> {
             intent as DecodeOnStream; intent as DecodeHead
             val inputStream = intent.inputStream
             if (!intent.ignoreIdWhenDecoding)CodecTool.checkNbtFormat(inputStream, id)
