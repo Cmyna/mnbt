@@ -2,7 +2,6 @@ package com.myna.mnbt.converter
 
 import com.myna.mnbt.Tag
 import com.myna.mnbt.converter.procedure.ToNestTagProcedure
-import com.myna.mnbt.converter.procedure.ToNestTagProcedure.Companion.procedure
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.ListTag
@@ -26,7 +25,16 @@ object ListConverters {
 
 
         override fun <ARR:Any> createTag(name: String?, value: ARR, typeToken: MTypeToken<out ARR>, intent: CreateTagIntent): Tag<AnyTagList>? {
-            return ArrayToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
+            if (!typeToken.isArray) return null
+
+            val size = java.lang.reflect.Array.getLength(value)
+            val compType = typeToken.componentType
+            val argsList = ArrayList<ListSubTagArgs>()
+            for (i in IntRange(0, size-1)) {
+                val v = java.lang.reflect.Array.get(value, i)
+                argsList.add(ListSubTagArgs(i, null, v, compType, intent))
+            }
+            return buildListTag(name, proxy, argsList, intent)
         }
 
 
@@ -53,7 +61,13 @@ object ListConverters {
 
 
         override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyTagList>? {
-            return IterableToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
+            if(!typeToken.isSubtypeOf(iterableType)) return null
+
+            val declaredElementType = typeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
+            val argsList = (value as Iterable<*>).mapIndexed { i,sv ->
+                ListSubTagArgs(i, null, sv, declaredElementType, intent)
+            }
+            return buildListTag(name, proxy, argsList, intent)
         }
 
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
@@ -89,75 +103,37 @@ object ListConverters {
             }?: return null
             return constructor.newInstance() as MutableList<Any>
         }
-
-    }
-
-    open class ArrayToTagProcedure(override val baseArgs: ToNestTagProcedure.BaseArgs)
-        : ToNestTagProcedure<ListTag<Any>, ListSubTagArgs> {
-
-        override fun toSubTagArgsList(): List<ListSubTagArgs> {
-            val size = java.lang.reflect.Array.getLength(value)
-            val compType = typeToken.componentType
-            val list = ArrayList<ListSubTagArgs>()
-            for (i in IntRange(0, size-1)) {
-                val v = java.lang.reflect.Array.get(value, i)
-                list.add(ListSubTagArgs(i, null, v, compType, intent))
-            }
-            return list
-        }
-
-        override fun checkProcedureArgs(): Boolean {
-            if (!typeToken.isArray) return false
-            return true
-        }
-
-        override fun buildTargetTag(subTags: List<Pair<Tag<out Any>?, ListSubTagArgs>>): ListTag<Any> {
-            val overrideTarget = if (intent is OverrideTag) (intent as OverrideTag).overrideTarget else null
-            val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
-            val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
-
-
-
-            val elementId:Byte = subTags.firstOrNull()?.first?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
-            val listTagContent:AnyTagList = mutableListOf()
-            subTags.onEachIndexed { i,pair->
-                val tag = pair.first
-                val addedTag = tag ?: if (!completeOverride) overrideTargetList?.getOrNull(i) else null
-                if (addedTag != null) listTagContent.add(addedTag)
-            }
-            // append un-overridden if overridePartOfList
-            if (!completeOverride && overrideTargetList!=null && overrideTargetList.size > listTagContent.size) {
-                val remain = overrideTargetList.subList(listTagContent.size, overrideTargetList.size)
-                listTagContent.addAll(remain)
-            }
-            return ListTag(this.targetName, listTagContent, elementId)
-        }
-
-        override fun toSubTagRelatePath(args: ListSubTagArgs): String {
-            return "#${args.index}"
-        }
-    }
-
-    class IterableToTagProcedure(baseArgs: ToNestTagProcedure.BaseArgs):ArrayToTagProcedure(baseArgs) {
-        override fun toSubTagArgsList(): List<ListSubTagArgs> {
-            val declaredElementType = typeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
-            return (value as Iterable<*>).mapIndexed { i,sv ->
-                ListSubTagArgs(i, null, sv, declaredElementType, intent)
-            }
-        }
-
-        override fun checkProcedureArgs(): Boolean {
-            if(!typeToken.isSubtypeOf(iterableType)) return false
-            return true
-        }
     }
 
 
-    class ListSubTagArgs(val index:Int,
-                         name:String?, value:Any?, typeToken: MTypeToken<out Any>, intent:CreateTagIntent)
-        : ToNestTagProcedure.ToSubTagArgs(name, value, typeToken, intent)
+    class ListSubTagArgs(val index:Int, val name:String?, val value:Any?, val typeToken: MTypeToken<out Any>, val intent:CreateTagIntent)
 
     private val iterableType = MTypeToken.of(Iterable::class.java)
     private val iterableGenericType = Iterable::class.java.typeParameters[0]
+
+    private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Any>? {
+        val overrideTarget = if (intent is OverrideTag) intent.overrideTarget else null
+        val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
+        val overrideTargetList = if (isListTag) overrideTarget!!.value as List<Tag<out Any>> else null
+
+        val subTags = argsList.map {
+            if (it.value==null) return@map null
+            val subTag = proxy.createTag(it.name, it.value, it.typeToken, ToNestTagProcedure.handleOverrideTargetIntent("#${it.index}", intent))
+            subTag
+        }
+
+        val elementId:Byte = subTags.firstOrNull()?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
+        val listTagContent:AnyTagList = mutableListOf()
+        subTags.onEachIndexed { i,pair->
+            val tag = pair
+            val addedTag = tag ?: if (!completeOverride) overrideTargetList?.getOrNull(i) else null
+            if (addedTag != null) listTagContent.add(addedTag)
+        }
+
+        if (!completeOverride) { // append un-overridden if overridePartOfList
+            ToNestTagProcedure.tryAppendMissSubTag(listTagContent, intent)
+        }
+        return ListTag(name, listTagContent, elementId)
+    }
 
 }

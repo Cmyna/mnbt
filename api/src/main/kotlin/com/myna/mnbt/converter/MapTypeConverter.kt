@@ -4,7 +4,7 @@ import com.myna.mnbt.IdTagCompound
 import com.myna.mnbt.Tag
 import com.myna.mnbt.exceptions.*
 import com.myna.mnbt.converter.procedure.ToNestTagProcedure
-import com.myna.mnbt.converter.procedure.ToNestTagProcedure.Companion.procedure
+import com.myna.mnbt.converter.procedure.ToNestTagProcedure.handleOverrideTargetIntent
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.CompoundTag
@@ -26,7 +26,19 @@ import java.util.*
 class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
 
     override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
-        return MapToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
+        if (!typeToken.isSubtypeOf(mapTypeToken)) return null // check args
+        value as Map<String,Any>
+
+        val declaredValueTypeToken = typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
+        val map:AnyCompound = mutableMapOf()
+        value.onEach { entry ->
+            val subTag = proxy.createTag(entry.key,  entry.value, declaredValueTypeToken, handleOverrideTargetIntent("./${entry.key}", intent))
+                    ?:return@onEach
+            map[entry.key] = subTag
+        }
+        // try append miss Tag
+        ToNestTagProcedure.tryAppendMissSubTag(map, intent)
+        return CompoundTag(name, map)
     }
 
     override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
@@ -66,38 +78,6 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
             constructor.parameters.isEmpty()
         }?: return null
         return constructor.newInstance() as V
-    }
-
-    class MapToTagProcedure(override val baseArgs: ToNestTagProcedure.BaseArgs)
-        : ToNestTagProcedure<CompoundTag, ToNestTagProcedure.ToSubTagArgs> {
-
-        override fun toSubTagRelatePath(args: ToNestTagProcedure.ToSubTagArgs): String {
-            return "./${args.name!!}"
-        }
-
-        override fun toSubTagArgsList(): List<ToNestTagProcedure.ToSubTagArgs> {
-            val value = this.value as Map<String,Any>
-            val declaredValueTypeToken = this.typeToken.resolveType(mapValueGenericType) as MTypeToken<out Any>
-            return value.map { entry ->
-                ToNestTagProcedure.ToSubTagArgs(entry.key, entry.value, declaredValueTypeToken, this.intent)
-            }
-        }
-
-        override fun buildTargetTag(subTags: List<Pair<Tag<out Any>?,ToNestTagProcedure.ToSubTagArgs>>): CompoundTag? {
-            val map:AnyCompound = mutableMapOf()
-            subTags.forEach { pair->
-                val tag = pair.first
-                tag?.name?.let { map[it] = tag }
-            }
-            // try append miss Tag
-            ToNestTagProcedure.tryAppendMissSubTag(map, this.intent)
-            return CompoundTag(this.targetName, map)
-        }
-
-        override fun checkProcedureArgs(): Boolean {
-            if (!this.typeToken.isSubtypeOf(mapTypeToken)) return false
-            return true
-        }
     }
 
     companion object {

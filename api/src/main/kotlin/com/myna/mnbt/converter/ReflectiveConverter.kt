@@ -110,7 +110,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
         try {
             createSubTagsArgs.onEach {
-                val subTag = proxy.createTag(it.name, it.value!!, it.typeToken, it.intent) //?:return@onEach
+                val subTag = proxy.createTag(it.name, it.value, it.typeToken, it.intent) //?:return@onEach
                 val creationSuccess = subTag!=null
                 if (!creationSuccess) return@onEach
                 // build sub tree contains subtag
@@ -279,9 +279,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     }
 
     class CreateSubTagArgs(
-            value:Any, subTagName:String, createSubTagIntent: CreateTagIntent, fieldTypeToken: MTypeToken<out Any>,
+            val value:Any, val name:String, val intent: CreateTagIntent, val typeToken: MTypeToken<out Any>,
             val subTagTargetId:Byte?, val fieldRelatePath: List<String>, val fieldRelatedPathStr: String
-    ): ToNestTagProcedure.ToSubTagArgs(subTagName, value, fieldTypeToken, createSubTagIntent)
+    )
 
     /**
      * set reflective converter handle object with nullable properties or not.
