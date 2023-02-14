@@ -152,6 +152,13 @@ open class Mnbt {
         return converterProxy.toValue(tag, typeToken)
     }
 
+    /**
+     * @param value see [paramJavaObject]
+     * @param typeToken see [paramTypeToken]
+     * @param targetTag a [Tag] that will be overridden
+     * @return a new [Tag] that is combined from value and targetTag,
+     * all same tag in [targetTag] nbt structure is overridden by value
+     */
     fun <V:Any> overrideTag(value:V, typeToken: MTypeToken<out V>, targetTag:Tag<out Any>):Tag<out Any>? {
         // for flat tag, it just create a new tag and use value from parameter, use name from target tag
         // so no extra code to reach functionality of override
