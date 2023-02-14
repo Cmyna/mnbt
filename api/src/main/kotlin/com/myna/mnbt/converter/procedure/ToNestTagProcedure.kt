@@ -10,7 +10,6 @@ import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.tag.AnyTagList
 
-// TODO: try to find more simple override nest tag when sub tag has built
 /**
  * The procedure is a state object recording some temporal data when creating new nest tag (hierarchical tag)
  */

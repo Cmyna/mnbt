@@ -12,12 +12,12 @@ typealias UnknownList = MutableList<*>
  *
  */
 // so the tag declaration require it is a generic type VT that there is sub-class extends Tag<VT>
-// TODO: better way to design generic type
+// FIXME: better way to design generic type
 class ListTag<NbtRelatedType:Any>(
         override val name: String?,
         override val value: MutableList<Tag<out NbtRelatedType>>,
         /**
-         *
+         * the element tag type id allowed in list
          */
         var elementId:Byte
         ) : Tag.NestTag<MutableList<Tag<out NbtRelatedType>>>() {

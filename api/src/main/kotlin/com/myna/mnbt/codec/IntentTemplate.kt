@@ -18,11 +18,10 @@ fun userEncodeIntent(outputStream: OutputStream):OnStreamToDelegatorEncodeIntent
     }
 }
 
-fun userDecodeIntent(inputStream: InputStream):CodecCallerIntent {
+fun userDecodeIntent(inputStream: InputStream):DecodeIntent {
     return object:DecodeOnStream,DecodeHead,DecodeTreeDepth {
         override val inputStream = inputStream
         override val ignoreIdWhenDecoding: Boolean = false
-
         var _depth:Int = 0
         override var depth: Int
             get() = _depth
@@ -40,7 +39,7 @@ fun userOnBytesEncodeIntent():OnBytesToProxyEncodeIntent {
     }
 }
 
-fun userOnBytesDecodeIntent(data:ByteArray, start:Int, recordParents: Boolean = true):CodecCallerIntent {
+fun userOnBytesDecodeIntent(data:ByteArray, start:Int, recordParents: Boolean = true):DecodeIntent {
     return if (recordParents) object: CodecCallerIntent, RecordParentsWhenEncoding, DecodeFromBytes,DecodeHead {
         override val parents: Deque<Tag<out Any>> = ArrayDeque()
         override val data: ByteArray = data
