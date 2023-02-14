@@ -58,7 +58,7 @@ fun userOnBytesDecodeIntent(data:ByteArray, start:Int, recordParents: Boolean = 
     }
 }
 
-fun toProxyIntent(intent:DecodeIntent, decodeHead: Boolean, desId: Byte, ignoreIdWhenDecoding: Boolean = false):CodecCallerIntent {
+fun toProxyIntent(intent:DecodeIntent, decodeHead: Boolean, desId: Byte, ignoreIdWhenDecoding: Boolean = false):DecodeIntent {
     val interfaces = intent::class.java.interfaces.toMutableSet()
     interfaces.add(SpecifyIdWhenDecoding::class.java)
     if (decodeHead) interfaces.add(DecodeHead::class.java)

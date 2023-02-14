@@ -163,14 +163,20 @@ open class Mnbt {
     }
 
     /**
-     * doc:TODO
+     * add [converter] that with highest priority, which means all value/tag will first passed to this [converter] to handle,
+     * if no result comes out, then delegate to other [TagConverter].
+     *
+     * if register more than one [TagConverter], the last one be registered will have highest priority
+     * @return specifies that register is success or not
      */
     fun registerConverter(converter:TagConverter<Any>):Boolean {
         return this.converterProxy.registerToFirst(converter)
     }
 
     /**
-     * doc:TODO
+     * register Codec to encode/decode a tag to binary format. Because one [Codec] can only handle one Tag type (with id specified in [Tag.id]),
+     * so it will replace the [Codec] which handle same type tag
+     * @return specifies that register is success or not
      */
     fun registerCodec(codec:Codec<Any>):Boolean {
         return this.codecProxy.registerCodec(codec)
@@ -235,16 +241,16 @@ open class Mnbt {
             FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
     )
 
-    protected open val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
-    protected open val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
-    protected open val reflectiveConverter = ReflectiveConverter(this.converterProxy)
-    protected open val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
+    protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
+    protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
+    protected val reflectiveConverter = ReflectiveConverter(this.converterProxy)
+    protected val mapTypeTagConverter = MapTypeConverter(this.converterProxy)
 
-    protected open val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
-    protected open val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
+    protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
+    protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
 
-    protected open val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
-    protected open val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
+    protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
+    protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
     init {
         this.codecProxy.registerCodec(listCodec)
