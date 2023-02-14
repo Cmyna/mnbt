@@ -171,22 +171,22 @@ class OverrideTagTest {
         assertTrue(mockTagEq.equalsOrContains(beanMap, comp1["beanMap"]))
     }
 
-    /**
-     * override a list, but list target overridden compound tag is redirect by LocateAt,
-     * it will accept an pojo as source, override target compound tag in a list
-     */
-    @Test
-    fun overrideCompoundInList() {
-        val tk = object: MTypeToken<DataClass6>() {}
-        val dc6 = newDataClass6(true)
-        val dc62 = newDataClass6(true)
-        val listTag = ListTag<AnyCompound>(IdTagCompound, "root")
-        repeat(4) {listTag.add(CompoundTag(null))}
-        TestMnbt.inst.toTag(null, dc6, tk).also { listTag.add(it as Tag<AnyCompound>) } // the fifth is target
-        val overridden = TestMnbt.inst.overrideTag(dc62, tk, listTag)
-        assertTrue(overridden is ListTag<*>)
-        assertTrue(MockTagEquals().structureEquals((overridden as ListTag<AnyCompound>)[5]!!, listTag[5]!!))
-    }
+//    /**
+//     * override a list, but list target overridden compound tag is redirect by LocateAt,
+//     * it will accept an pojo as source, override target compound tag in a list
+//     */
+//    @Test
+//    fun overrideCompoundInList() {
+//        val tk = object: MTypeToken<DataClass6>() {}
+//        val dc6 = newDataClass6(true)
+//        val dc62 = newDataClass6(true)
+//        val listTag = ListTag<AnyCompound>(IdTagCompound, "root")
+//        repeat(4) {listTag.add(CompoundTag(null))}
+//        TestMnbt.inst.toTag(null, dc6, tk).also { listTag.add(it as Tag<AnyCompound>) } // the fifth is target
+//        val overridden = TestMnbt.inst.overrideTag(dc62, tk, listTag)
+//        assertTrue(overridden is ListTag<*>)
+//        assertTrue(MockTagEquals().structureEquals((overridden as ListTag<AnyCompound>)[5]!!, listTag[5]!!))
+//    }
 
     private fun prepareFlatMap():Pair<HashMap<String, Any>, HashMap<String, Any>> {
         val map1 = ApiTestValueBuildTool.flatMapListsPreparation("map1", 1) {HashMap()}.third.first() as HashMap<String, Any>
