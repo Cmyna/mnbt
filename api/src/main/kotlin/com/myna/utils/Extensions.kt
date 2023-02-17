@@ -1,4 +1,4 @@
-package com.myna.mnbt.utils
+package com.myna.utils
 
 object Extensions {
 

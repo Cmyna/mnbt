@@ -4,7 +4,7 @@ import com.myna.mnbt.ByteSizePayload
 import com.myna.mnbt.IntSizePayload
 import com.myna.mnbt.codec.*
 import com.myna.mnbt.core.CodecTool
-import com.myna.mnbt.utils.Extensions.toBasic
+import com.myna.utils.Extensions.toBasic
 
 object CodecIntentExentions {
 

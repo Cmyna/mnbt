@@ -6,7 +6,7 @@ import com.myna.mnbt.tag.AnyTagList
 import com.myna.mnbt.tag.ListTag
 import com.myna.mnbt.utils.CodecIntentExentions.getByte
 import com.myna.mnbt.utils.CodecIntentExentions.getInt
-import com.myna.mnbt.utils.Extensions.toBytes
+import com.myna.utils.Extensions.toBytes
 import java.lang.IllegalArgumentException
 import java.lang.NullPointerException
 import java.util.ArrayList

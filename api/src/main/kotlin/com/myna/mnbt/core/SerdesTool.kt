@@ -1,9 +1,9 @@
 package com.myna.mnbt.core
 
 import com.myna.mnbt.StringSizePayload
-import com.myna.mnbt.utils.Extensions.toBytes
-import com.myna.mnbt.utils.Extensions.toShort
-import com.myna.mnbt.utils.Extensions.toString
+import com.myna.utils.Extensions.toBytes
+import com.myna.utils.Extensions.toShort
+import com.myna.utils.Extensions.toString
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.IllegalArgumentException

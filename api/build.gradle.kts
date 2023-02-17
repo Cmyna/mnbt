@@ -69,4 +69,5 @@ sourceSets.main {
 
 sourceSets.test {
     java.srcDirs("src/test/kotlin")
+    resources.srcDirs("src/test/resources")
 }

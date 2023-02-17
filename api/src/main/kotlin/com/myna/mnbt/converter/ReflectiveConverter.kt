@@ -79,7 +79,6 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             child
         }
 
-
         val fields = ObjectInstanceHandler.getAllFields(value::class.java)
 
 
@@ -224,8 +223,8 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                 if (ignoreFromTag != null) return@mapValues IgnoreFromTag.tryProvide(ignoreFromTag.fieldValueProvider, field)
                 val fieldTypeToken = MTypeToken.of(field.genericType)
 
-                val targetTag = NbtPathTool.findTag(dataEntryTag, it.value)?: return@mapValues null
-                val value = proxy.toValue(targetTag, fieldTypeToken, nestCIntent(intent, false))
+                val fieldTag = NbtPathTool.findTag(dataEntryTag, it.value)?: return@mapValues null
+                val value = proxy.toValue(fieldTag, fieldTypeToken, nestCIntent(intent, false))
 
                 value?.second
             }.onEach { entry-> // set field into instance
