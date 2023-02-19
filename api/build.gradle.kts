@@ -1,4 +1,5 @@
 
+
 plugins {
     // Apply the java-library plugin to add support for Java Library
     id("java-library")
@@ -10,6 +11,8 @@ plugins {
 
     //use jlink to do modular work
     id("org.beryx.jlink") version "2.23.1"
+
+    id("me.champeau.jmh") version "0.6.8"
 }
 
 // jlink task
@@ -40,7 +43,12 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation("org.assertj:assertj-core:3.18.1")
-
+    // JMH in test
+    testImplementation("org.openjdk.jmh:jmh-core:1.36")
+    testImplementation("org.openjdk.jmh:jmh-generator-annprocess:1.36")
+    kaptTest("org.openjdk.jmh:jmh-generator-annprocess:1.36")
+//    testImplementation("org.openjdk.jmh:jmh-kotlin-benchmark-archetype:1.36")
+//    kaptTest("org.openjdk.jmh:jmh-kotlin-benchmark-archetype:1.36")
 
     implementation("com.google.code.gson:gson:2.8.6")
 
@@ -71,3 +79,12 @@ sourceSets.test {
     java.srcDirs("src/test/kotlin")
     resources.srcDirs("src/test/resources")
 }
+
+// the handle error when use ./gradlew build ----- Execution failed for task ':api:processTestResources'.
+// > Entry nbt_data/regions/r.3.4.mca is a duplicate but no duplicate handling strategy has been set
+tasks.processTestResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+
+
