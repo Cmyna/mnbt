@@ -9,20 +9,9 @@ plugins {
     kotlin("jvm") version "1.6.10"
     kotlin("kapt") version "1.4.20"
 
-    //use jlink to do modular work
-    id("org.beryx.jlink") version "2.23.1"
-
     id("me.champeau.jmh") version "0.6.8"
-}
 
-// jlink task
-// we use jlink to extract the module we want from project
-// to make modular work, we need module-info.java at the project root to declare requirements, exports, etc.
-jlink {
-    // commands args:
-    // --compress 2: compress resources with zip format
-    // --strip-debug: not shows debug from the output image
-    // reference at : https://docs.oracle.com/javase/9/tools/jlink.htm#JSWOR-GUID-CECAC52B-CFEE-46CB-8166-F17A8E9280E9
+    id("maven-publish")
 }
 
 
@@ -40,7 +29,7 @@ dependencies {
     implementation("com.google.guava:guava:28.0-jre")
 
     // Use JUnit test framework
-    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    //implementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation("org.assertj:assertj-core:3.18.1")
     // JMH in test
@@ -57,19 +46,7 @@ dependencies {
 
     // annotation
     implementation(project(":annotation"))
-    // annotation processor
-//    annotationProcessor(project(":processor"))
-//    testAnnotationProcessor(project(":processor"))
-//    kapt(project(":processor"))
-//    kaptTest(project(":processor"))
 }
-
-//kapt {
-//    arguments {
-//        arg("key", "value")
-//    }
-//}
-
 
 sourceSets.main {
     java.srcDirs("src/main/kotlin")
@@ -86,5 +63,15 @@ tasks.processTestResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "net.myna.mnbt"
+            artifactId = "api"
+            version = "alpha-1.0"
 
+            from(components["java"])
+        }
+    }
+}
 

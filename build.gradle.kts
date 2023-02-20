@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+group = "net.myna.mnbt"
+
 plugins {
     id("java-library")
     id("idea")
@@ -7,7 +9,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     kotlin("kapt") version "1.4.20"
 
-    id("org.beryx.jlink") version "2.23.1"
+    id("maven-publish")
 }
 
 allprojects {
@@ -33,7 +35,20 @@ allprojects {
             freeCompilerArgs = listOf()
         }
     }
+
+
+
 }
+
+//publishing {
+//    publications {
+//        create<MavenPublication>("maven") {
+//            from(components["java"])
+//        }
+//    }
+//}
+
+
 
 
 
