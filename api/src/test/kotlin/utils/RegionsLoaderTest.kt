@@ -1,5 +1,6 @@
 package utils
 
+import Tools.cleanDir
 import com.myna.mnbt.AnyTag
 import com.myna.mnbt.Mnbt
 import com.myna.mnbt.converter.meta.NbtPathTool
@@ -64,7 +65,7 @@ class RegionsLoaderTest {
 
     @Test
     fun testOverrideChunk() {
-        withTestDirScene { scene ->
+        Tools.withTestDirScene { scene ->
             // copy region file
             val testRegion = scene.resolve("r.3.4.mca")
             regionFile.copyTo(testRegion)
@@ -99,7 +100,7 @@ class RegionsLoaderTest {
 
     @Test
     fun testOverrideChunk2() {
-        withTestDirScene { scene ->
+        Tools.withTestDirScene { scene ->
             val testRegion = scene.resolve("r.3.4.mca")
             regionFile.copyTo(testRegion)
 
@@ -122,7 +123,7 @@ class RegionsLoaderTest {
                 val comp = CompoundTag("test override tag")
                 tag.add(comp)
                 val bytes = mnbt.encode(tag)
-                regionLoader.writeTargetChunkData(16, 3, bytes, NO_COMPRESS) // just let it not compress
+                regionLoader.writeTargetChunkData(testCLX, testCLZ, bytes, NO_COMPRESS) // just let it not compress
 
                 //reflective way to get freeSegPointer
                 assertTrue(rFreeSpaceMap.size==1)
@@ -175,28 +176,23 @@ class RegionsLoaderTest {
         return decodeTargetTag(localChunkX, localChunkZ, RegionLoader(testRegionFile))
     }
 
-    private inline fun withTestDirScene(func:(sceneDir:File)->Unit) {
-        val sceneDir = this::class.java.getResource("").toURI().resolve("test_scene").let {File(it)}
-        cleanDir(sceneDir)
-        if (!sceneDir.isDirectory) sceneDir.mkdir()
-        try {
-            func(sceneDir)
-        } catch (e:Exception) {
-            e.printStackTrace()
-        }
-        // clean directory
-        cleanDir(sceneDir)
-    }
+//    inline fun withTestDirScene(func:(sceneDir:File)->Unit) {
+//        val sceneDir = this::class.java.getResource("").toURI().resolve("test_scene").let {
+//            println(it)
+//            File(it)
+//        }
+//        cleanDir(sceneDir)
+//        if (!sceneDir.isDirectory) sceneDir.mkdir()
+//        try {
+//            func(sceneDir)
+//        } catch (e:Exception) {
+//            e.printStackTrace()
+//        }
+//        // clean directory
+//        cleanDir(sceneDir)
+//    }
 
     private val regionFile = File(this::class.java.getResource("/nbt_data/regions/r.3.4.mca").toURI())
     private val testCLX = 16
     private val testCLZ = 3
-
-    private fun cleanDir(dir:File, withoutTopDir:Boolean = true) {
-        dir.listFiles()?.onEach {
-            if (it.isDirectory) cleanDir(it, false)
-            else it.delete()
-        }
-        if (!withoutTopDir) dir.delete()
-    }
 }

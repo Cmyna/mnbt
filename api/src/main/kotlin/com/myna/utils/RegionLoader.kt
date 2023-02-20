@@ -59,6 +59,8 @@ class RegionLoader(private val regionFile: File) {
      * @param localChunkX the local chunk x position
      * @param localChunkZ the local chunk z position
      * @throws IllegalArgumentException if x/z posititon is not in local chunk range(0-31)
+     * @return first element in pair is [BufferedInputStream],
+     * second element is bytes length info recorded in chunk data head
      */
     fun getChunkBinaryInputStream(localChunkX:Int, localChunkZ:Int):Pair<BufferedInputStream, Int>? {
         checkIsLocalChunkPos(localChunkX, localChunkZ)

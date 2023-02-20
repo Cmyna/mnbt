@@ -1,3 +1,5 @@
+import java.io.File
+
 object Tools {
 
     /**
@@ -32,4 +34,29 @@ object Tools {
     fun toMs(ns:Long):Float {
         return ns/1000.0f/1000
     }
+
+    fun cleanDir(dir: File, withoutTopDir:Boolean = true) {
+        dir.listFiles()?.onEach {
+            if (it.isDirectory) cleanDir(it, false)
+            else it.delete()
+        }
+        if (!withoutTopDir) dir.delete()
+    }
+
+    fun withTestDirScene(func:(sceneDir:File)->Unit) {
+        val sceneDir = func::class.java.getResource("").toURI().resolve("test_scene").let {
+            File(it)
+        }
+        cleanDir(sceneDir)
+        if (!sceneDir.isDirectory) sceneDir.mkdir()
+        try {
+            func(sceneDir)
+        } catch (e:Exception) {
+            e.printStackTrace()
+        }
+        // clean directory
+        cleanDir(sceneDir)
+    }
+
+
 }
