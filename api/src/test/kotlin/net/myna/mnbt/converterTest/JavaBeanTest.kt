@@ -2,7 +2,6 @@ package net.myna.mnbt.converterTest
 
 import net.myna.mnbt.*
 import net.myna.mnbt.reflect.MTypeToken
-import net.myna.mnbt.tag.AnyCompound
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.tag.ListTag
 import net.myna.mnbt.utils.*
