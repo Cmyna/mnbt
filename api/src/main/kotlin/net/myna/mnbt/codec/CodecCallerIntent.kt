@@ -1,5 +1,6 @@
 package net.myna.mnbt.codec
 
+import com.google.common.annotations.Beta
 import net.myna.mnbt.Tag
 import java.io.InputStream
 import java.io.OutputStream
@@ -17,8 +18,10 @@ import java.util.Deque
 
 interface CodecCallerIntent
 
+@Beta
 interface EncodeIntent:CodecCallerIntent
 
+@Beta
 interface EncodeHead:EncodeIntent{
     /**
      * declares that caller want Codec to encode with head or not.
@@ -32,6 +35,7 @@ interface EncodeHead:EncodeIntent{
     val encodeHead:Boolean
 }
 
+@Beta
 interface RecordParentsWhenEncoding:EncodeIntent {
     /**
      * pass parents tag info to HierarchicalCodec
@@ -41,6 +45,7 @@ interface RecordParentsWhenEncoding:EncodeIntent {
     val parents: Deque<Tag<out Any>>
 }
 
+@Beta
 /**
  * specify that serialization base on an output stream
  */
@@ -48,19 +53,23 @@ interface EncodeOnStream:EncodeIntent {
     val outputStream: OutputStream
 }
 
+@Beta
 interface OnStreamToDelegatorEncodeIntent:EncodeHead,EncodeOnStream,RecordParentsWhenEncoding
 
+@Beta
 /**
  * an interface specifies that encode tag to ByteArray,
  * the Codec should return object implements [EncodedBytesFeedback] to contain ByteArray
  */
 interface EncodeToBytes:EncodeIntent
 
+@Beta
 interface OnBytesToProxyEncodeIntent:EncodeHead,EncodeToBytes,RecordParentsWhenEncoding
 
-
+@Beta
 interface DecodeIntent:CodecCallerIntent
 
+@Beta
 /**
  * decode head or not where tag head contains id+tag name.
  * it also means input binary data has tag head info
@@ -74,6 +83,7 @@ interface DecodeHead:DecodeIntent {
     val ignoreIdWhenDecoding:Boolean
 }
 
+@Beta
 /**
  * specify that deserialization base on an input stream
  */
@@ -81,6 +91,7 @@ interface DecodeOnStream:DecodeIntent {
     val inputStream: InputStream
 }
 
+@Beta
 /**
  * record binary data tree depth when decoding
  */
@@ -88,6 +99,7 @@ interface DecodeTreeDepth:DecodeIntent {
     var depth:Int
 }
 
+@Beta
 interface SpecifyIdWhenDecoding:DecodeIntent {
     /**
      * used for deserialization, caller specifies tag id in binary nbt data, typical use case: delegate deserialization to proxy when hasHead is false
@@ -95,6 +107,7 @@ interface SpecifyIdWhenDecoding:DecodeIntent {
     val id:Byte
 }
 
+@Beta
 /**
  * an interface specifies that decode binary tag from a ByteArray
  */

@@ -5,13 +5,10 @@ import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.EncodedBytesFeedback
 import net.myna.mnbt.codec.userOnBytesDecodeIntent
 import net.myna.mnbt.codec.userOnBytesEncodeIntent
-import net.myna.mnbt.converter.DefaultConverterProxy
-import net.myna.mnbt.converter.TagConverter
 import net.myna.mnbt.experiment.CompoundTagCodec
 import net.myna.mnbt.experiment.FlatCodeses
 import net.myna.mnbt.experiment.ListTagCodec
 import net.myna.mnbt.experiment.OnBytesCodecProxy
-import kotlin.reflect.full.memberProperties
 
 class TestMnbt: Mnbt() {
 

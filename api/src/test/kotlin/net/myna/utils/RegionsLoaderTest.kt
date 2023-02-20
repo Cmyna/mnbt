@@ -1,15 +1,12 @@
 package net.myna.utils
 
 import net.myna.Tools
-import net.myna.Tools.cleanDir
 import net.myna.mnbt.AnyTag
 import net.myna.mnbt.Mnbt
 import net.myna.mnbt.converter.meta.NbtPathTool
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.tag.ListTag
 import net.myna.utils.Extensions.toBytes
-import net.myna.utils.RegionLoader
-import net.myna.utils.RegionsLoader
 import net.myna.utils.RegionsLoader.Companion.NO_COMPRESS
 import net.myna.utils.RegionsLoader.Companion.ZLIB
 import net.myna.mnbt.utils.ApiTestValueBuildTool
