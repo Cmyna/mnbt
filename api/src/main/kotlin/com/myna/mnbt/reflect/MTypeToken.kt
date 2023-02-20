@@ -7,6 +7,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 
+@Suppress("UnstableApiUsage", "DEPRECATION")
 open class MTypeToken<T> {
 
     @Deprecated("This property will be replaced in the future")
@@ -17,6 +18,7 @@ open class MTypeToken<T> {
     val isArray get() = gToken.isArray
     val componentType get() = MTypeToken(gToken.componentType as TypeToken<out Any>)
 
+    @Suppress("UNCHECKED_CAST")
     constructor() {
         val superclass = javaClass.genericSuperclass
         if (superclass !is ParameterizedType) {
@@ -27,7 +29,7 @@ open class MTypeToken<T> {
         gToken = TypeToken.of(runtimeType) as TypeToken<T>
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     constructor(field: Field) {
         this.gToken = TypeToken.of(field.genericType) as TypeToken<T>
     }

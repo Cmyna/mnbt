@@ -7,10 +7,10 @@ import java.util.Deque
 
 //TODO: find better way to manage those intents with feedback
 // in general, an intent may related to an feedback, or also it may not related to an feedback
-// there are some feedbacks that dont related to any specific intents, or we regard them as 'feedbacks to all intents'
+// there are some feedbacks that don't related to any specific intents, or we regard them as 'feedbacks to all intents'
 // it seems that we need something like channel?
 
-// For flexibility I want a set of intents that can do types intersection together
+// For flexibility, I want a set of intents that can do types intersection together
 // However in kotlin(also java) there is no interface type intersection
 // I have to develop those intent interfaces as below(high flexibility, less type safety checking)
 // so there is a rule in using these intents: do checking when first receive an intent! check the type you want!
@@ -23,9 +23,9 @@ interface EncodeHead:EncodeIntent{
     /**
      * declares that caller want Codec to encode with head or not.
      *
-     * if encodeHead=false when encode, the Codec will only encode value.
+     * if encodeHead=false when encoded, the Codec will only encode value.
      *
-     * if encodeHead=false when decode, which means caller specifies pointer to data is start point
+     * if encodeHead=false when decoded, which means caller specifies pointer to data is start point
      * of tag value, which also means that Codec can not check nbt tag format, format check
      * should be done by caller
      */
@@ -63,7 +63,7 @@ interface DecodeIntent:CodecCallerIntent
 
 /**
  * decode head or not where tag head contains id+tag name.
- * if use this interface, which means input binary data has tag head info
+ * it also means input binary data has tag head info
  */
 interface DecodeHead:DecodeIntent {
 

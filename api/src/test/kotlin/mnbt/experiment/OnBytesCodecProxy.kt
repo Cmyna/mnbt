@@ -41,7 +41,6 @@ class OnBytesCodecProxy:Codec<Any>  {
         //      so we check (parents number+1)> maximumTreeDepth
         if (parents.size > defaultTreeDepthLimit - 1) throw MaxNbtTreeDepthException(parents.size)
         // circular check
-        // TODO: may can change ways to handle circular reference, like return empty ByteArray when found circular ref
         val foundCirRef = parents.any { tag === it }
         if (foundCirRef) throw CircularReferenceException(tag)
         // need to push tagValue in stack before pass to delegate, then pop it

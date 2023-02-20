@@ -7,10 +7,9 @@ import com.myna.mnbt.exceptions.CircularReferenceException
 import com.myna.mnbt.reflect.MTypeToken
 import kotlin.collections.ArrayDeque
 
-@Suppress("UnstableApiUsage")
 /**
  * default proxy for delegatorConverter.
- * it use gson like searching rules, store delegate to a list,
+ * it uses gson like searching rules, store delegate to a list,
  * so that for delegate at front will have higher priority to handle a type require
  * (if there are other delegate at end can handle same type)
  */
@@ -25,7 +24,7 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
      * register converter with bottom priority (if no other converter register last after)
      */
     fun registerToLast(delegate: TagConverter<Any>):Boolean {
-        delegateList.add(delegate as TagConverter<Any>)
+        delegateList.add(delegate)
         return true
     }
 
@@ -33,13 +32,16 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
      * register converter with top priority (if no other converter register first after)
      */
     fun registerToFirst(delegate: TagConverter<Any>):Boolean {
-        delegateList.addFirst(delegate as TagConverter<Any>)
+        delegateList.addFirst(delegate)
         return true
     }
 
+    /**
+     * @throws CircularReferenceException if circular reference is found in [value]
+     */
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<out Any>? {
         intent as RecordParents
-        // try restrict type token if it is top bound(Object)
+        // try to restrict type token if it is top bound(Object)
         val restrictedTypeToken = if (typeToken.rawType==Any::class.java) MTypeToken.of(value::class.java) else typeToken
         // check depth
         if (intent.parents.size > defaultTreeDepthLimit-1) throw MaxNbtTreeDepthException(intent.parents.size)
@@ -60,6 +62,7 @@ class DefaultConverterProxy : HierarchicalTagConverter<Any>() {
         return tag
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // restrict typeToken to tag.value::class.java if typeToken.rawType is Any
         // so unexpectedly the code below also restrict the type variable... although it is what I want

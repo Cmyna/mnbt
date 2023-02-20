@@ -5,6 +5,7 @@ import com.myna.utils.AdaptedInputStream
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.exceptions.ConverterNullResultException
 import com.myna.mnbt.codec.*
+import com.myna.mnbt.exceptions.CircularReferenceException
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.utils.UnsupportedProperty
@@ -15,24 +16,22 @@ import java.io.OutputStream
 import java.lang.NullPointerException
 
 //TODO: Exception analyse, refactoring and handling
-
-@Suppress("UnstableApiUsage")
 open class Mnbt {
 
-
-
+    @Suppress("UNCHECKED_CAST")
     /**
      * serialize value to Nbt binary data stored in a ByteArray(byte[])
      *
-     * if value is a Tag, then it will be encapsulated by an compound Tag with name passed in,
+     * if value is a Tag, then it will be encapsulated by a compound Tag with name passed in,
      * then serialize to bytes,
-     * else value with value will first converted to Tag then serialized to bytes
+     * else value with value will first convert to Tag then serialized to bytes
      * @param name name of nbt root tag, see [varTopTagName]
      * @param value the value want to serialize, see [paramJavaObject]
      * @param typeToken extra typeToken info for value (if ignore this parameter, TypeToken will use value.class as TypeTokenInfo)
      * see [paramTypeToken]
      * @return a ByteArray stores data starts at 0 ends at ByteArray.size
      * @throws ConverterNullResultException if result of value->tag is null
+     * @throws CircularReferenceException if circular reference is found
      */
     open fun <V:Any> toBytes(name:String, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):ByteArray {
         if (value is Tag<*>) {
@@ -43,6 +42,7 @@ open class Mnbt {
         return encode(tag)
     }
 
+    @Suppress("UNCHECKED_CAST")
     /**
      * deserialize nbt binary data from a ByteArray starts at pointer passed in
      * @param bytes the ByteArray stores nbt data
@@ -50,6 +50,7 @@ open class Mnbt {
      * @param typeToken see [paramTypeToken]
      * if null it will return default type
      * @return a pair that first element stores root tag name, second one stores deserialized tag value
+     * @throws NullPointerException TODO
      */
     open fun <V:Any> fromBytes(bytes:ByteArray, start:Int, typeToken: MTypeToken<out V>? = null):Pair<String, V>? {
         val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
@@ -106,6 +107,7 @@ open class Mnbt {
      * encode a [Tag] to an byte array
      * @param tag the [Tag] want to encode
      * @return a byte array stores encoded result starts at index 0, ends at byte array's end
+     * @throws CircularReferenceException if circular references is found in [tag]
      */
     open fun encode(tag:Tag<out Any>):ByteArray {
         val outputStream = ByteArrayOutputStream()
@@ -161,7 +163,7 @@ open class Mnbt {
      * all same tag in [targetTag] nbt structure is overridden by value
      */
     fun <V:Any> overrideTag(value:V, typeToken: MTypeToken<out V>, targetTag:Tag<out Any>):Tag<out Any>? {
-        // for flat tag, it just create a new tag and use value from parameter, use name from target tag
+        // for flat tag, it just creates a new tag and use value from parameter, use name from target tag
         // so no extra code to reach functionality of override
         // problem is need to check tag type is equals or not
         val res = converterProxy.createTag(targetTag.name, value, typeToken, overrideTagUserIntent(targetTag))
@@ -171,10 +173,10 @@ open class Mnbt {
     }
 
     /**
-     * add [converter] that with highest priority, which means all value/tag will first passed to this [converter] to handle,
+     * add [converter] that with the highest priority, which means all value/tag will first be passed to this [converter] to handle,
      * if no result comes out, then delegate to other [TagConverter].
      *
-     * if register more than one [TagConverter], the last one be registered will have highest priority
+     * if register more than one [TagConverter], the last one be registered will have the highest priority
      * @return specifies that register is success or not
      */
     fun registerConverter(converter:TagConverter<Any>):Boolean {
@@ -190,6 +192,7 @@ open class Mnbt {
         return this.codecProxy.registerCodec(codec)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun encapsulatedWithCompoundTag(name:String, value:Tag<*>):Tag<AnyCompound> {
         val compound = CompoundTag(name)
         compound.add(value as Tag<out Any>)
@@ -200,7 +203,7 @@ open class Mnbt {
     // options start
 
     /**
-     * This options is experimental and may be removed in the future!
+     * This option is experimental and may be removed in the future!
      *
      * Specifies that use an AdaptedInputStream that inherit and encapsulate all functionality from the original InputStream
      * and optimize its performance by refactor its method code
@@ -213,19 +216,20 @@ open class Mnbt {
      * if value is true, object returned from deserialize/fromBytes may have some null properties that Mnbt can not handle
      *
      * if value is false, object returned from deserialize/fromByte will be null if Mnbt can not handle some properties in returned object
-     * (can not converted to field expected type or can not access field)
+     * (can not convert to field expected type or can not access field)
      */
     var returnObjectContainsNullableProperties:Boolean
         get() = reflectiveConverter.returnObjectWithNullableProperties
         set(b) {reflectiveConverter.returnObjectWithNullableProperties = b}
 
     /**
-     * override part of list if override target is an list tag.
+     * override part of list if override target is a list tag.
      * Converters will only override value in source index to target list tag index element
      */
     var completeOverride: Boolean
         get() = ListConverters.completeOverride
         set(value) {ListConverters.completeOverride = value}
+
 
 
     // options end

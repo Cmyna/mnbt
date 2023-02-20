@@ -25,15 +25,18 @@ class DefaultCodecProxy(): Codec<Any> {
     }
 
     constructor(codecInstances:List<Codec<Any>>):this() {
-        for (Codec in codecInstances) codecMap[Codec.id] = Codec
+        for (codec in codecInstances) codecMap[codec.id] = codec
     }
 
     constructor(vararg codecInstances:Codec<out Any>):this() {
-        for (Codec in codecInstances) {
-            codecMap[Codec.id] = Codec
+        for (codec in codecInstances) {
+            codecMap[codec.id] = codec
         }
     }
 
+    /**
+     * @throws CircularReferenceException if circular reference found
+     */
     override fun encode(tag: Tag<out Any>, intent: EncodeIntent):CodecFeedback {
         intent as OnStreamToDelegatorEncodeIntent
         val parents = intent.parents
@@ -46,7 +49,6 @@ class DefaultCodecProxy(): Codec<Any> {
         // throw Exception
         if (parents.size >= defaultTreeDepthLimit) throw MaxNbtTreeDepthException(parents.size)
         // circular check
-        // TODO: may can change ways to handle circular reference, like return empty ByteArray when found circular ref
         val foundCirRef = parents.any { tag === it }
         if (foundCirRef) throw CircularReferenceException(tag)
         // need to push tagValue in stack before pass to delegate, then pop it
@@ -89,7 +91,6 @@ class DefaultCodecProxy(): Codec<Any> {
                 DecodeHead::ignoreIdWhenDecoding.javaGetter -> return@newProxyInstance ignoreId
                 else -> return@newProxyInstance method.invoke(intent, *args.orEmpty())
             }
-            return@newProxyInstance null
         } as DecodeIntent
         val result = codec.decode(newIntent)
 

@@ -4,7 +4,7 @@ import java.io.*
 import java.lang.IllegalArgumentException
 
 /**
- * an helper class for loading from/writing to an Region
+ * a helper class for loading from/writing to an Region
  */
 class RegionsLoader {
 
@@ -44,7 +44,10 @@ class RegionsLoader {
         }
 
         fun toOffset(data:ByteArray, start:Int = 0):Int {
-            if (data.size < start+3) throw IllegalArgumentException() // TODO: finish exception msg
+            if (data.size < start+3) {
+                throw IllegalArgumentException("The data passed in can not convert to offset: " +
+                        "byte array length no enough(byte array starts at $start, but length only${data.size}, where offset data takes 3 bytes)")
+            }
             return (data[start].toUInt() shl 16) or (data[start+1].toUInt() shl 8) or (data[start+2].toUInt())
         }
 

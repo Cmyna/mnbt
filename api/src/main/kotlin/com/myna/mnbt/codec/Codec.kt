@@ -41,11 +41,12 @@ interface Codec<NbtRelatedType>{
 // to simplify the interface, there is no 1 to many relation like TagConverter
 // each Nbt Binary type related to one java class type, related to one Tag sub-class that implement it, related to one Codec
 
-//TODO: the delegator not guarantees to handle circular ref, so it should not be called directly,
-// (if call it directly, proxy's circular check will miss the top level tagValue passed to this delegator)
 /**
  * this Codec is for those Tag with hierarchical tag structure.
  * so the Codec needs a proxy helping handle element tags inside the specific tag,
+ *
+ * it is not recommend to call Codec directly, because circular reference check will miss top Tag,
+ * which will cause some unexpected result. If you want to use Codec with functionality, use proxy (registered the Codec) instead
  */
 interface HierarchicalCodec<NbtRelatedType>: Codec<NbtRelatedType> {
     var proxy: Codec<Any>

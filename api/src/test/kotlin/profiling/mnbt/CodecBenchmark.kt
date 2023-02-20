@@ -27,7 +27,7 @@ open class CodecBenchmark {
 
 
     @Benchmark
-    fun encodeToBytes(blackhole: Blackhole) {
+    fun encodeByBytesCodec(blackhole: Blackhole) {
         tagsList.onEach {
             blackhole.consume(mnbt.encode(it))
         }
@@ -43,7 +43,7 @@ open class CodecBenchmark {
     }
 
     @Benchmark
-    fun decodeFromBytes(blackhole: Blackhole) {
+    fun decodeByBytesCodec(blackhole: Blackhole) {
         decodeBytes.onEach {
             blackhole.consume(mnbt.decode(it, 0))
         }
@@ -58,6 +58,11 @@ open class CodecBenchmark {
     }
 
     companion object {
+
+        /**
+         * this benchmark check performance difference between on bytes Codec and on Stream Codec
+         */
+        // the result shows that on bytes Codec has lower performance
         @JvmStatic
         fun main(args: Array<String>) {
             val opt = OptionsBuilder()
@@ -65,7 +70,7 @@ open class CodecBenchmark {
                 .forks(1)
                 .build()
 
-            Runner(opt).run();
+            Runner(opt).run()
         }
     }
 }
