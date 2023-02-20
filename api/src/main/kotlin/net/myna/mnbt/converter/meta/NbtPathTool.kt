@@ -10,7 +10,7 @@ import java.lang.StringBuilder
 object NbtPathTool{
 
     const val scheme = "mnbt://"
-    val tagNameRegex = Regex("(?:\\\\/|[^\\/])+")
+    val tagNameRegex = Regex("(?:\\\\/|[^/])+")
     val indexFormatRegex = Regex("^#\\d+$")
 
     /**
@@ -71,7 +71,7 @@ object NbtPathTool{
      * check is mnbt format relate path or not
      */
     fun isRelatedPath(path:String):Boolean {
-        return path.length>=2 && path.first()=='.' && path.get(1)=='/'
+        return path.length>=2 && path.first()=='.' && path[1] =='/'
     }
 
     /**
@@ -93,10 +93,9 @@ object NbtPathTool{
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
      * if no segment in path and source id match targetTagId, return [entry],
-     * if path is not an relate path or not found match tag, return null.
+     * if path is not relate path or not found match tag, return null.
      * @throws IllegalArgumentException if path segment in sequence has illegal format
      * @throws IndexOutOfBoundsException if path segment is an index, but index over the related container's length
-     * if sequence is empty and source id match targetTagId, return [start]
      */
     fun goto(entry:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
         if (!isRelatedPath(relatePath)) return null
@@ -106,7 +105,7 @@ object NbtPathTool{
 
     /**
      * @param start start point tag
-     * @param accessSequence an access sequences with path segments name
+     * @param accessSequence access sequences with path segments name
      * @param targetTagId the target tag id, if it is null, then not check found id
      * @return a tag if path and id matched,
      * @throws IllegalArgumentException if path segment in sequence has illegal format
@@ -123,10 +122,11 @@ object NbtPathTool{
             current = subTag
             sequenceMatchFlag = true
         }
-        val idMatch = if (current!=null && targetTagId!=null) current!!.id==targetTagId else true
+        val idMatch = if (targetTagId!=null) current!!.id==targetTagId else true
         return if (sequenceMatchFlag && idMatch) current else null
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun getSubTag(container:Any?, pathSegment: String):Tag<out Any>? {
         val element = if (pathSegment.first() == '#') {
             if (indexFormatRegex.matchEntire(pathSegment) == null) {

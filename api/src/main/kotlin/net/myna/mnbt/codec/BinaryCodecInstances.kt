@@ -130,7 +130,6 @@ object BinaryCodecInstances {
 
         override fun createTag(name: String?, value: ARR): Tag<ARR> = tagCreation(name, value)
 
-        @Suppress("UNCHECKED_CAST")
         override fun encodeValue(value: ARR, intent: EncodeOnStream):CodecFeedback {
             val elementNum = RArray.getLength(value)
             val outputStream = intent.outputStream
@@ -197,13 +196,14 @@ object BinaryCodecInstances {
                 nbtlist.add(feedback.tag)
             }
             return object:TagFeedback<AnyTagList> {
-                override val tag: Tag<AnyTagList> = nbtlist as Tag<AnyTagList>
+                override val tag: Tag<AnyTagList> = nbtlist
             }
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     class CompoundTagCodec(override var proxy: Codec<Any>)
-        : DefaultCodec<AnyCompound>(IdTagCompound, Collection::class.java as Class<AnyCompound>),HierarchicalCodec<AnyCompound> {
+        : DefaultCodec<AnyCompound>(IdTagCompound, Map::class.java as Class<AnyCompound>),HierarchicalCodec<AnyCompound> {
 
             override fun createTag(name: String?, value: AnyCompound): Tag<AnyCompound> {
                 return CompoundTag(name, value)

@@ -22,10 +22,11 @@ import java.util.*
  * if the type token declaration have nest Map type like Map<String, SomTypeDef<...,Map<String, Any>>>,
  * and converter proxy ensures all map type handle in this converter, then it is expected to handle inner parrameterized Map type like above.
  *
- * if want to use this converter the create map from Tag/TagValue, it also can only handle enum map types, but not all sub-classes of map
+ * if want to use this converter the creation map from Tag/TagValue, it also can only handle enum map types, but not all subclasses of map
  */
 class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagConverter<AnyCompound>() {
 
+    @Suppress("UNCHECKED_CAST")
     override fun <V:Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
         if (!typeToken.isSubtypeOf(mapTypeToken) || value !is Map<*,*>) return null // check args
 
@@ -36,13 +37,14 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
                     ?:return@onEach
             map[entry.key] = subTag
         }
-        // try append miss Tag
+        // try appends miss Tag
         ToNestTagProcedure.tryAppendMissSubTag(map, intent)
         return CompoundTag(name, map)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <V:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
-        intent as RecordParents; intent as ToValueIntent
+        intent as RecordParents
         // check tagValue is MutableMap or not
         if (tag.value !is UnknownCompound) return null
         val value = tag.value as AnyCompound
@@ -58,7 +60,7 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
         value.onEach { entry->
             val subTag = entry.value
             checkNotNull(subTag.name)
-            val subTagValueTypeToken = MTypeToken.of(subTag.value::class.java) as MTypeToken<out Any>
+            // val subTagValueTypeToken = MTypeToken.of(subTag.value::class.java) as MTypeToken<out Any>
             // because proxy will auto restrict to tag.value type if type token is type variable, so we do not need to handle it
             val res = proxy.toValue(subTag, declaredValueTypeToken, nestCIntent(intent, false))?: return@onEach
             newMap[subTag.name!!] = res.second
@@ -68,6 +70,7 @@ class MapTypeConverter(override var proxy: TagConverter<Any>): HierarchicalTagCo
         return Pair(tag.name, newMap as V)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun <V> newMapInstance(typeToken: MTypeToken<V>):V? {
         val rawType = typeToken.rawType
         // if it is interface/abstract class extends Map interface

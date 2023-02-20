@@ -7,7 +7,7 @@ import java.lang.RuntimeException
  */
 class CircularReferenceException(value: Any):RuntimeException() {
 
-    override val message: String? = "found circular reference \n" +
+    override val message: String = "found circular reference \n" +
             "circular reference Instance: ${value}, circular object Type: ${value::class.java}"
 
 }

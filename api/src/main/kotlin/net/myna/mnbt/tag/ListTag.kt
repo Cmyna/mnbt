@@ -11,6 +11,7 @@ typealias UnknownList = MutableList<*>
 /**
  *
  */
+@Suppress("EqualsOrHashCode")
 class ListTag<TAG: Tag<out Any>>(
         override val name: String?,
         override val value: MutableList<TAG>,
@@ -35,6 +36,7 @@ class ListTag<TAG: Tag<out Any>>(
         else value[i]
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         // because NbtRelatedType is from other object
         // the equals function may not perform as expected
@@ -53,6 +55,7 @@ class ListTag<TAG: Tag<out Any>>(
         return builder.toString()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {
         if (indexFormatRegex.matchEntire(pathSegment)==null) return null
         val index = pathSegment.substring(1, pathSegment.length).toInt()

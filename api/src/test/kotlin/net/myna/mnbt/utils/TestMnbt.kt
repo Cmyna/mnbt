@@ -10,7 +10,7 @@ import net.myna.mnbt.experiment.FlatCodeses
 import net.myna.mnbt.experiment.ListTagCodec
 import net.myna.mnbt.experiment.OnBytesCodecProxy
 
-class TestMnbt: Mnbt() {
+open class TestMnbt: Mnbt() {
 
     val mockConverterProxy = MockConverterProxy(super.converterProxy)
     val mockCodecProxy = MockCodecProxy(super.codecProxy)

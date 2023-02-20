@@ -32,12 +32,15 @@ object ArrayTag {
         return true
     }
 
+    @Suppress("EqualsOrHashCode")
     class IntArrayTag(override val name: String?, override val value: IntArray, override val id: Byte = IdTagIntArray) : Tag<IntArray>() {
         override fun equals(other: Any?): Boolean = reflectiveArrayTagEq(this, other)
     }
+    @Suppress("EqualsOrHashCode")
     class ByteArrayTag(override val name: String?, override val value: ByteArray, override val id: Byte = IdTagByteArray) : Tag<ByteArray>() {
         override fun equals(other: Any?): Boolean = reflectiveArrayTagEq(this, other)
     }
+    @Suppress("EqualsOrHashCode")
     class LongArrayTag(override val name: String?, override val value: LongArray, override val id: Byte = IdTagLongArray) : Tag<LongArray>() {
         override fun equals(other: Any?): Boolean = reflectiveArrayTagEq(this, other)
     }

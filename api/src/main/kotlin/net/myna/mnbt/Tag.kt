@@ -8,7 +8,7 @@ typealias AnyTag = Tag<out Any>
  * generic type [NbtRelatedType]: the java class type that refers to a actual nbt data type
  */
 abstract class Tag<NbtRelatedType> {
-    // in consideration, Tag should have limit sub-class only related to specific nbt-bin data structure
+    // in consideration, Tag should have limit subclass only related to specific nbt-bin data structure,
     // but I want it more extendable, thus use a generic type, problem is hard to restrict generic type
     // finally it seems impossible to restrict it in Tag class, I decide to restrict it in other interface
     // now Tag is consider as a "package" of NbtData,

@@ -6,6 +6,7 @@ import net.myna.mnbt.Tag
 typealias AnyCompound = MutableMap<String, Tag<out Any>>
 typealias UnknownCompound = MutableMap<*,*>
 
+@Suppress("EqualsOrHashCode")
 class CompoundTag(
         override val name: String?,
         override val value: AnyCompound,
@@ -14,6 +15,7 @@ class CompoundTag(
 
     constructor(name:String?=null):this(name, mutableMapOf())
 
+    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (!isTagAndEqName(this, other)) return false
         other as Tag<AnyCompound>
@@ -29,6 +31,7 @@ class CompoundTag(
         return this.value[name]
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {
         val res = value[pathSegment]
         return if (res != null) res as Tag<out V> else null

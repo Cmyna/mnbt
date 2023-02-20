@@ -47,7 +47,7 @@ class StringPerformanceProfiling {
         }.also { println("array string to long string cost: ${Tools.toMs(it.first)} ms")}
 
         Tools.timeProfiling(1) {
-            var builder = java.lang.StringBuilder()
+            val builder = java.lang.StringBuilder()
             data.onEach {
                 builder.append(it)
                 builder.append('/')

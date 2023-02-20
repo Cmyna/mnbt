@@ -42,7 +42,7 @@ class DefaultCodecProxy(): Codec<Any> {
         val parents = intent.parents
         // check null tag
         val tag2 = tag as Tag<*>
-        if (tag2 is NullTag || tag2.value is Nothing || tag2.value==null) return codecMap[IdTagEnd]!!.encode(tag as Tag<Nothing>, intent)
+        if (tag2 is NullTag || tag2.value==null) return codecMap[IdTagEnd]!!.encode(tag as Tag<Nothing>, intent)
         val codec = codecMap[tag.id]?: throw NullPointerException("can not find Codec be tag id:${tag.id} with value ${tag.value}).")
 
         // if parents.size reach tree depth limit (consider the tag passed in, data structure will over tree depth limit)

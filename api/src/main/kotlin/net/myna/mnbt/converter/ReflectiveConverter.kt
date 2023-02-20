@@ -36,6 +36,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     //      the compound tag structure is root=>dataEntryTag=>subTagDataEntryTag->subTag
     //          (or root->...->dataEntryTag->...->subTagDataEntryTag->subTag)
     //      ( '=>' means directly/indirectly contains, '->' means directly contains)
+    @Suppress("UNCHECKED_CAST")
     override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<AnyCompound>? {
         // return ReflectiveToTagProcedure(ToNestTagProcedure.BaseArgs(proxy, name, value, typeToken, intent)).procedure()
         // parameters check
@@ -136,6 +137,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         }
     }
 
+
     private fun createSubTagArgs(
             field: Field, value:Any,
             fieldRelatedPath:List<String>, fieldRelatedPathStr: String, targetTagId:Byte?,
@@ -183,12 +185,13 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     }
 
     // core idea: first find constructors
-    // try deserialize them with field related class as typeToken
+    // try to deserialize them with field related class as typeToken
     // if one of return is null, means total conversion failed, final result will become null
     // if can not construct instance, return null
+    @Suppress("UNCHECKED_CAST")
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // parameter check
-        intent as RecordParents; intent as ToValueIntent
+        intent as RecordParents
         if (tag.value !is Map<*,*>) return null
         val declaredRawType = typeToken.rawType
         if (isExcluded(declaredRawType)) return null
@@ -199,7 +202,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
         val classLocateAtMeta = typeToken.rawType.getAnnotation(LocateAt::class.java)
 
         val dataEntryTag = if (classLocateAtMeta != null) {
-            // try get data entry tag from annotation LocateAt
+            // try to get data entry tag from annotation LocateAt
             val found = NbtPathTool.goto(tag, NbtPathTool.format(LocateAt.getDecodePath(classLocateAtMeta)))
             if (found!=null && found.id== IdTagCompound) found else tag
         } else tag

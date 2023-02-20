@@ -25,12 +25,14 @@ object ToNestTagProcedure {
         resultMap.putAll(miss)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun tryAppendMissSubTag(resultMap: AnyCompound, intent:CreateTagIntent) {
         if (intent is OverrideTag && intent.overrideTarget?.value is Map<*,*>) {
             appendMissSubTag(resultMap, intent.overrideTarget!! as Tag<AnyCompound>)
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun tryAppendMissSubTag(resultList: AnyTagList, intent: CreateTagIntent) {
         if (intent is OverrideTag) {
             val target = intent.overrideTarget

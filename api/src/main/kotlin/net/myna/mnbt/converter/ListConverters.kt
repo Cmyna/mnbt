@@ -19,7 +19,7 @@ object ListConverters {
 
     /**
      * create a new list Tag converter that can convert ListTag between ArrayType object
-     * ARR is another value type that may used to create tag / get value
+     * ARR is another value type that may be used to create tag / get value
      */
     class ArrayTypeListTagConverter(override var proxy: TagConverter<Any>):
             HierarchicalTagConverter<AnyTagList>() {
@@ -38,7 +38,7 @@ object ListConverters {
             return buildListTag(name, proxy, argsList, intent)
         }
 
-
+        @Suppress("UNCHECKED_CAST")
         override fun <ARR:Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out ARR>, intent: ToValueIntent): Pair<String?, ARR>? {
             intent as RecordParents
             if (tag.value !is UnknownList) return null
@@ -68,6 +68,7 @@ object ListConverters {
             return buildListTag(name, proxy, argsList, intent)
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             intent as RecordParents
             // check tagValue is List
@@ -77,7 +78,7 @@ object ListConverters {
             val actualTypeToken = if (intent is IgnoreValueTypeToken) iterableType else typeToken
             if (!actualTypeToken.isSubtypeOf(iterableType)) return null
             val declaredElementType = actualTypeToken.resolveType(iterableGenericType) as MTypeToken<out Any>
-            // try get list instance from typetoken
+            // try gets list instance from type token
             val list = newList(actualTypeToken)?: return null
 
             value.onEach { elementTagValue->
@@ -90,11 +91,12 @@ object ListConverters {
             return Pair(tag.name, list as V)
         }
 
+        @Suppress("UNCHECKED_CAST")
         fun newList(typeToken: MTypeToken<*>):MutableList<Any>? {
             val rawType = typeToken.rawType
             // if it is interface/abstract class extends List interface
             if (rawType.isInterface || Modifier.isAbstract(rawType.modifiers) && iterableType.isSupertypeOf(rawType)) return mutableListOf()
-            // try find empty constructor
+            // try finds empty constructor
             val constructors = rawType.constructors
             val constructor = constructors.find { constructor->
                 constructor.parameters.isEmpty()
@@ -109,7 +111,8 @@ object ListConverters {
     private val iterableType = MTypeToken.of(Iterable::class.java)
     private val iterableGenericType = Iterable::class.java.typeParameters[0]
 
-    private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Tag<out Any>>? {
+    @Suppress("UNCHECKED_CAST")
+    private fun buildListTag(name:String?, proxy: TagConverter<Any>, argsList: List<ListSubTagArgs>, intent:CreateTagIntent):ListTag<Tag<out Any>> {
         val overrideTarget = if (intent is OverrideTag) intent.overrideTarget else null
         val isListTag = overrideTarget is Tag.NestTag && overrideTarget.value is List<*>
         val overrideTargetList = if (isListTag) overrideTarget!!.value as AnyTagList else null
@@ -122,8 +125,7 @@ object ListConverters {
 
         val elementId:Byte = subTags.firstOrNull()?.id ?: overrideTargetList?.firstOrNull()?.id ?: ListTag.unknownElementId
         val listTagContent:AnyTagList = mutableListOf()
-        subTags.onEachIndexed { i,pair->
-            val tag = pair
+        subTags.onEachIndexed { i,tag->
             val addedTag = tag ?: if (!completeOverride) overrideTargetList?.getOrNull(i) else null
             if (addedTag != null) listTagContent.add(addedTag)
         }

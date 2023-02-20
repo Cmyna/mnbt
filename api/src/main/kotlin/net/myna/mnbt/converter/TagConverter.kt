@@ -6,17 +6,17 @@ import net.myna.mnbt.reflect.MTypeToken
 // NbtRelatedType: a type directly related to an actual Nbt bin value type
 // eg. Tag_Int value type related to Int, Tag_IntArray value type related to IntArray
 /**
- * a interface that declare a converter to specific tag
+ * an interface that declare a converter to specific tag
  *
  * generic type T: class extends Tag
  *
  * generic type V: another value type want to convert to Tag
  */
 // to fix Tag generic type problem, the caller no necessary to know what actual generic type of created Tag it is
-// they just need to know one Converter accept one kind of sub-class of Tag
+// they just need to know one Converter accept one kind of subclass of Tag
 interface TagConverter<out NbtRelatedType:Any> {
     // I had considered add isCompatible function to check value can be used to TagConverter or not
-    // but it causes duplicate code that creatTag and toValue also need check,
+    // but it causes duplicate code that createTag and toValue also need check,
     // so I decided to change return type nullable, which means it will return null if value not compat
     // FIXME: createTag parameter typeToken seems useless?
     fun defaultToValueIntent(): ToValueIntent

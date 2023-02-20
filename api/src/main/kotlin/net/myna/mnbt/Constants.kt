@@ -3,7 +3,7 @@ package net.myna.mnbt
 
 
 /**
- * tag head payload: 3 bytes(1 bytes for id, two bytes for name len)
+ * tag head payload: 3 bytes(1 byte for id, two bytes for name len)
  */
 const val TagHeadFixPayload = 3
 /**

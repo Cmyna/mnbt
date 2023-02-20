@@ -21,7 +21,7 @@ open class IntentDesignBenchmark {
     val j = "some string"
     val dynamicProxyInst = Proxy.newProxyInstance(this::class.java.classLoader,
         arrayOf(Sub1::class.java, Sub2::class.java, Sub3::class.java)
-    ) { _,method,_args ->
+    ) { _,method,_ ->
         return@newProxyInstance when(method) {
             Sub1::j.javaGetter -> j
             else -> null
@@ -46,7 +46,7 @@ open class IntentDesignBenchmark {
     fun createByDynamicProxies(blackhole:Blackhole) {
         val inst = Proxy.newProxyInstance(this::class.java.classLoader,
             arrayOf(Sub1::class.java, Sub2::class.java, Sub3::class.java)
-        ) { _,method,_args ->
+        ) { _,_,_ ->
         } as Root
         blackhole.consume(inst)
     }

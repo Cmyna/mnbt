@@ -42,6 +42,7 @@ object TagConverters {
             } else return null
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             if (tag.value !is Byte) return null
             if (typeToken.type == Boolean::class.java || typeToken.type == java.lang.Boolean::class.java) {
@@ -67,6 +68,7 @@ object TagConverters {
             return object: CreateTagIntent {}
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<out NbtRelatedType>? {
             // check value can be Tag type T accepted or not
             if (!castable(typeToken)) return null
@@ -75,6 +77,7 @@ object TagConverters {
             return newTagFun(name, value as NbtRelatedType)
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             if (!castable(typeToken)) return null
             return Pair(tag.name, tag.value as V)
@@ -108,6 +111,7 @@ object TagConverters {
             return createTagUserIntent()
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): T? {
             val arrComp = value::class.java.componentType?: return null
             if (!TypeCheckTool.isCastable(MTypeToken.of(arrComp), component)) return null
@@ -126,6 +130,7 @@ object TagConverters {
             return newTagFun(name, arr)
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
             // check tag is primitive array tag
             if (!tag.value::class.java.isArray) return null
@@ -136,7 +141,7 @@ object TagConverters {
             val size = java.lang.reflect.Array.getLength(tag.value)
             val result = java.lang.reflect.Array.newInstance(valueComp, size)
 
-            val componentEq = valueComp==component
+            val componentEq = valueComp==component.rawType
             // if array type totally equals, direct copy
             if (componentEq) System.arraycopy(tag.value, 0, result, 0, size)
             else {

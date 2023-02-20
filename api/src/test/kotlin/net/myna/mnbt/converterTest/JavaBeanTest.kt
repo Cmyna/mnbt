@@ -12,7 +12,6 @@ class JavaBeanTest {
 
     private val converterTemplate = ApiTestTool.ConverterTestTemplate()
 
-
     /**
      * test java bean class (use ReflectiveConverter)
      */
