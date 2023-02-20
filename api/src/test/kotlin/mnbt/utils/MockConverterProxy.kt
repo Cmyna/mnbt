@@ -1,8 +1,8 @@
 package mnbt.utils
 
-import com.myna.mnbt.Tag
-import com.myna.mnbt.converter.*
-import com.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.Tag
+import net.myna.mnbt.converter.*
+import net.myna.mnbt.reflect.MTypeToken
 
 @Suppress("UnstableApiUsage")
 /**

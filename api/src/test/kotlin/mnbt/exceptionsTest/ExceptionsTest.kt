@@ -1,18 +1,18 @@
 package mnbt.exceptionsTest
 
 
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.IdTagEnd
-import com.myna.mnbt.IdTagList
-import com.myna.mnbt.Tag
-import com.myna.mnbt.codec.BinaryCodecInstances
-import com.myna.mnbt.codec.userDecodeIntent
-import com.myna.mnbt.codec.userEncodeIntent
-import com.myna.mnbt.converter.ExcluderConverter
-import com.myna.mnbt.exceptions.CircularReferenceException
-import com.myna.mnbt.exceptions.MaxNbtTreeDepthException
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.*
+import net.myna.mnbt.IdTagCompound
+import net.myna.mnbt.IdTagEnd
+import net.myna.mnbt.IdTagList
+import net.myna.mnbt.Tag
+import net.myna.mnbt.codec.BinaryCodecInstances
+import net.myna.mnbt.codec.userDecodeIntent
+import net.myna.mnbt.codec.userEncodeIntent
+import net.myna.mnbt.converter.ExcluderConverter
+import net.myna.mnbt.exceptions.CircularReferenceException
+import net.myna.mnbt.exceptions.MaxNbtTreeDepthException
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.*
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

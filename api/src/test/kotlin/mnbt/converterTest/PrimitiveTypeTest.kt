@@ -1,9 +1,9 @@
 package mnbt.converterTest
 
 
-import com.myna.mnbt.converter.TagConverters
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.ArrayTag
+import net.myna.mnbt.converter.TagConverters
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.ArrayTag
 import mnbt.utils.ApiTestTool
 import mnbt.utils.RandomValueTool
 import org.junit.jupiter.api.Test

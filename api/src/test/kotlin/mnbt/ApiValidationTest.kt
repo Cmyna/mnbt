@@ -1,13 +1,13 @@
 package mnbt
 
-import com.myna.mnbt.ArraySizePayload
-import com.myna.mnbt.IntSizePayload
-import com.myna.mnbt.StringSizePayload
-import com.myna.mnbt.TagIdPayload
-import com.myna.mnbt.codec.BinaryCodecInstances
-import com.myna.mnbt.converter.TagConverters
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.PrimitiveTag
+import net.myna.mnbt.ArraySizePayload
+import net.myna.mnbt.IntSizePayload
+import net.myna.mnbt.StringSizePayload
+import net.myna.mnbt.TagIdPayload
+import net.myna.mnbt.codec.BinaryCodecInstances
+import net.myna.mnbt.converter.TagConverters
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.PrimitiveTag
 import mnbt.utils.ApiTestTool
 import mnbt.utils.ApiTestTool.nestedListTest
 import mnbt.utils.ApiTestValueBuildTool

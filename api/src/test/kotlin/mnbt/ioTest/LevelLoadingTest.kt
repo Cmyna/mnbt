@@ -1,7 +1,7 @@
 package mnbt.ioTest
 
-import com.myna.mnbt.annotations.LocateAt
-import com.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.annotations.LocateAt
+import net.myna.mnbt.reflect.MTypeToken
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

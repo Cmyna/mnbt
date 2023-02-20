@@ -11,7 +11,7 @@ a POJO class like code below:
 
 Java:
 ```
-import com.myna.mnbt.Mnbt;
+import net.myna.mnbt.Mnbt;
 
 class SamplePojo {
     private int member1;
@@ -33,7 +33,7 @@ SamplePojo pojo = mnbt.fromBytes<SamplePojo>(bytes, 0, new MTypeToken<SamplePojo
 
 Kotlin:
 ```
-import com.myna.mnbt.Mnbt
+import net.myna.mnbt.Mnbt
 
 data class SampleDataClass(val i:Int, val str:String)
 val mnbt = Mnbt()

@@ -1,6 +1,6 @@
 package study
 
-import com.myna.mnbt.annotations.LocateAt
+import net.myna.mnbt.annotations.LocateAt
 
 @LocateAt("testTag")
 class TestClassB {

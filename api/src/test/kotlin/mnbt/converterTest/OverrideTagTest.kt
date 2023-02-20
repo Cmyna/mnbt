@@ -1,13 +1,13 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.*
-import com.myna.mnbt.converter.ConverterCallerIntent
-import com.myna.mnbt.converter.OverrideTag
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
-import com.myna.mnbt.tag.NullTag
+import net.myna.mnbt.*
+import net.myna.mnbt.converter.ConverterCallerIntent
+import net.myna.mnbt.converter.OverrideTag
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
+import net.myna.mnbt.tag.NullTag
 import mnbt.utils.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

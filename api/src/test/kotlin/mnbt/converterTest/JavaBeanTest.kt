@@ -1,10 +1,10 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.*
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.*
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
 import mnbt.utils.*
 import org.junit.jupiter.api.Test
 import kotlin.random.Random

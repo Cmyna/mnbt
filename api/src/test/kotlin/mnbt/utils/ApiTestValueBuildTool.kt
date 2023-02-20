@@ -1,11 +1,11 @@
 package mnbt.utils
 
 
-import com.myna.mnbt.*
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.ArrayTag
-import com.myna.mnbt.tag.ListTag
-import com.myna.mnbt.tag.PrimitiveTag
+import net.myna.mnbt.*
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.ArrayTag
+import net.myna.mnbt.tag.ListTag
+import net.myna.mnbt.tag.PrimitiveTag
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.set

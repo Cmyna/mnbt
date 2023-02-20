@@ -1,12 +1,12 @@
 package mnbt.experiment
 
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.IdTagEnd
-import com.myna.mnbt.Tag
-import com.myna.mnbt.TagIdPayload
-import com.myna.mnbt.codec.*
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.IdTagCompound
+import net.myna.mnbt.IdTagEnd
+import net.myna.mnbt.Tag
+import net.myna.mnbt.TagIdPayload
+import net.myna.mnbt.codec.*
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.CompoundTag
 import java.util.ArrayList
 
 class CompoundTagCodec(override var proxy: Codec<Any>):

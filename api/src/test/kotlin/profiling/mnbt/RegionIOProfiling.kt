@@ -1,10 +1,10 @@
 package profiling.mnbt
 
 import Tools.withTestDirScene
-import com.myna.mnbt.Mnbt
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.utils.RegionLoader
-import com.myna.utils.RegionsLoader
+import net.myna.mnbt.Mnbt
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.utils.RegionLoader
+import net.myna.utils.RegionsLoader
 import org.junit.jupiter.api.Test
 import java.io.File
 

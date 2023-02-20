@@ -1,7 +1,7 @@
 package mnbt.exceptionsTest
 
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.CompoundTag
 import mnbt.utils.ApiTestTool
 import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.TestMnbt

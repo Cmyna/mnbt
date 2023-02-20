@@ -1,9 +1,9 @@
 package mnbt.meta
 
-import com.myna.mnbt.*
-import com.myna.mnbt.converter.meta.NbtPathTool
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.*
+import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
 import mnbt.utils.ApiTestValueBuildTool
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

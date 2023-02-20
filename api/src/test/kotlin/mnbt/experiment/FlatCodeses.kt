@@ -1,14 +1,14 @@
 package mnbt.experiment
 
-import com.myna.mnbt.*
-import com.myna.mnbt.codec.*
-import com.myna.mnbt.presets.BitsArrayLengthGetter
-import com.myna.mnbt.reflect.TypeCheckTool
-import com.myna.mnbt.tag.ArrayTag
-import com.myna.mnbt.tag.PrimitiveTag
-import com.myna.utils.Extensions.toBasic
-import com.myna.utils.Extensions.toBytes
-import com.myna.utils.Extensions.toString
+import net.myna.mnbt.*
+import net.myna.mnbt.codec.*
+import net.myna.mnbt.presets.BitsArrayLengthGetter
+import net.myna.mnbt.reflect.TypeCheckTool
+import net.myna.mnbt.tag.ArrayTag
+import net.myna.mnbt.tag.PrimitiveTag
+import net.myna.utils.Extensions.toBasic
+import net.myna.utils.Extensions.toBytes
+import net.myna.utils.Extensions.toString
 import java.lang.IllegalArgumentException
 
 object FlatCodeses {

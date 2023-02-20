@@ -1,6 +1,6 @@
 package profiling.mnbt
 
-import com.myna.mnbt.Mnbt
+import net.myna.mnbt.Mnbt
 import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.TestMnbt
 import org.openjdk.jmh.annotations.*

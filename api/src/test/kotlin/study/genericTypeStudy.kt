@@ -1,7 +1,7 @@
 package study
 
 import com.google.common.reflect.TypeToken
-import com.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.reflect.MTypeToken
 import org.junit.jupiter.api.Test
 
 class genericTypeStudy {

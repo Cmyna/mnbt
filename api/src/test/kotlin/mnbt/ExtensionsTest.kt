@@ -1,9 +1,9 @@
 package mnbt
 
-import com.myna.utils.Extensions.toBasic
-import com.myna.utils.Extensions.toBytes
-import com.myna.utils.Extensions.toInt
-import com.myna.utils.Extensions.toShort
+import net.myna.utils.Extensions.toBasic
+import net.myna.utils.Extensions.toBytes
+import net.myna.utils.Extensions.toInt
+import net.myna.utils.Extensions.toShort
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test

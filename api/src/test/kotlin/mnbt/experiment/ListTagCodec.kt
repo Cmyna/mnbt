@@ -1,12 +1,12 @@
 package mnbt.experiment
 
-import com.myna.mnbt.*
-import com.myna.mnbt.codec.*
-import com.myna.mnbt.tag.AnyTagList
-import com.myna.mnbt.tag.ListTag
-import com.myna.mnbt.utils.CodecIntentExentions.getByte
-import com.myna.mnbt.utils.CodecIntentExentions.getInt
-import com.myna.utils.Extensions.toBytes
+import net.myna.mnbt.*
+import net.myna.mnbt.codec.*
+import net.myna.mnbt.tag.AnyTagList
+import net.myna.mnbt.tag.ListTag
+import net.myna.mnbt.utils.CodecIntentExentions.getByte
+import net.myna.mnbt.utils.CodecIntentExentions.getInt
+import net.myna.utils.Extensions.toBytes
 import java.lang.IllegalArgumentException
 import java.lang.NullPointerException
 import java.util.ArrayList

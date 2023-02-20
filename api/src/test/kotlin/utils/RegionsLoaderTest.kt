@@ -1,16 +1,16 @@
 package utils
 
 import Tools.cleanDir
-import com.myna.mnbt.AnyTag
-import com.myna.mnbt.Mnbt
-import com.myna.mnbt.converter.meta.NbtPathTool
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
-import com.myna.utils.Extensions.toBytes
-import com.myna.utils.RegionLoader
-import com.myna.utils.RegionsLoader
-import com.myna.utils.RegionsLoader.Companion.NO_COMPRESS
-import com.myna.utils.RegionsLoader.Companion.ZLIB
+import net.myna.mnbt.AnyTag
+import net.myna.mnbt.Mnbt
+import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
+import net.myna.utils.Extensions.toBytes
+import net.myna.utils.RegionLoader
+import net.myna.utils.RegionsLoader
+import net.myna.utils.RegionsLoader.Companion.NO_COMPRESS
+import net.myna.utils.RegionsLoader.Companion.ZLIB
 import mnbt.utils.ApiTestValueBuildTool
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

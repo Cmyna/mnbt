@@ -1,12 +1,12 @@
 package mnbt.annotationTest
 
-import com.myna.mnbt.annotations.LocateAt
-import com.myna.mnbt.converter.OverrideTag
-import com.myna.mnbt.converter.meta.NbtPathTool
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.UnknownCompound
+import net.myna.mnbt.annotations.LocateAt
+import net.myna.mnbt.converter.OverrideTag
+import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.UnknownCompound
 import mnbt.utils.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

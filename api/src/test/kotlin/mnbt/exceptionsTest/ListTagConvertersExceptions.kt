@@ -1,7 +1,7 @@
 package mnbt.exceptionsTest
 
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.ListTag
 import mnbt.utils.TestMnbt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

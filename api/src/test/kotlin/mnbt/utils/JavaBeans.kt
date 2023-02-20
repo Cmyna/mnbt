@@ -1,7 +1,7 @@
 package mnbt.utils
 
-import com.myna.mnbt.Tag
-import com.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.Tag
+import net.myna.mnbt.tag.CompoundTag
 import kotlin.random.Random
 
 open class JavaBean {

@@ -1,8 +1,8 @@
 package mnbt.utils
 
-import com.myna.mnbt.*
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.*
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
 import java.lang.IllegalStateException
 import java.lang.StringBuilder
 

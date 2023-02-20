@@ -1,11 +1,11 @@
 package meta
 
-import com.myna.mnbt.annotations.FieldValueProvider
-import com.myna.mnbt.annotations.FieldValueProvider.Companion.tryProvide
-import com.myna.mnbt.annotations.Ignore
-import com.myna.mnbt.annotations.IgnoreFromTag
-import com.myna.mnbt.annotations.IgnoreToTag
-import com.myna.mnbt.annotations.meta.AnnotationAlias.Companion.toAliasTarget
+import meta.AnnotationAlias.Companion.toAliasTarget
+import net.myna.mnbt.annotations.FieldValueProvider
+import net.myna.mnbt.annotations.FieldValueProvider.Companion.tryProvide
+import net.myna.mnbt.annotations.Ignore
+import net.myna.mnbt.annotations.IgnoreFromTag
+import net.myna.mnbt.annotations.IgnoreToTag
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -16,10 +16,10 @@ import kotlin.reflect.jvm.javaField
 class AnnotationsTest {
 
     data class TestClassA(
-            @IgnoreToTag val i:Int,
-            @IgnoreFromTag(TestClassAFProvider::class)val j:Int,
-            @Ignore(true, true, TestClassAFProvider::class) val k:String,
-            @Ignore(true, false, Ignore.NullProvider::class) val m:Float,
+        @IgnoreToTag val i:Int,
+        @IgnoreFromTag(TestClassAFProvider::class)val j:Int,
+        @Ignore(true, true, TestClassAFProvider::class) val k:String,
+        @Ignore(true, false, Ignore.NullProvider::class) val m:Float,
             )
 
     class TestClassAFProvider: FieldValueProvider {
@@ -52,7 +52,7 @@ class AnnotationsTest {
 
     @Test
     fun throwProviderStateException() {
-        val provider = object:FieldValueProvider{
+        val provider = object: FieldValueProvider {
             override fun provide(field: Field): Any? {
                 throw NullPointerException()
             }

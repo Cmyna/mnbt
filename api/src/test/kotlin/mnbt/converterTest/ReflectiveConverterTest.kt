@@ -1,9 +1,9 @@
 package mnbt.converterTest
 
-import com.myna.mnbt.annotations.*
+import net.myna.mnbt.annotations.*
 
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.CompoundTag
 import mnbt.utils.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -138,8 +138,8 @@ class ReflectiveConverterTest {
     )
 
     private data class TestClassE(
-            @IgnoreToTag val i:Int,
-            @IgnoreFromTag(FVProvider::class) @LocateAt("./a string tag call j") val j:String
+        @IgnoreToTag val i:Int,
+        @IgnoreFromTag(FVProvider::class) @LocateAt("./a string tag call j") val j:String
     )
 
     private fun TestClassE.toCompound(name:String?):CompoundTag {

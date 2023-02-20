@@ -1,13 +1,13 @@
 package mnbt
 
-import com.myna.mnbt.IdTagByteArray
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.IdTagInt
-import com.myna.mnbt.Tag
-import com.myna.mnbt.converter.meta.NbtPathTool
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.IdTagByteArray
+import net.myna.mnbt.IdTagCompound
+import net.myna.mnbt.IdTagInt
+import net.myna.mnbt.Tag
+import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
 import mnbt.utils.ApiTestValueBuildTool
 import mnbt.utils.MockTagEquals
 import org.junit.jupiter.api.Assertions.assertFalse

@@ -1,12 +1,12 @@
 package mnbt.experiment
 
-import com.myna.mnbt.IdTagEnd
-import com.myna.mnbt.Tag
-import com.myna.mnbt.codec.*
-import com.myna.mnbt.defaultTreeDepthLimit
-import com.myna.mnbt.exceptions.CircularReferenceException
-import com.myna.mnbt.exceptions.MaxNbtTreeDepthException
-import com.myna.mnbt.tag.NullTag
+import net.myna.mnbt.IdTagEnd
+import net.myna.mnbt.Tag
+import net.myna.mnbt.codec.*
+import net.myna.mnbt.defaultTreeDepthLimit
+import net.myna.mnbt.exceptions.CircularReferenceException
+import net.myna.mnbt.exceptions.MaxNbtTreeDepthException
+import net.myna.mnbt.tag.NullTag
 import java.util.HashMap
 
 class OnBytesCodecProxy:Codec<Any>  {

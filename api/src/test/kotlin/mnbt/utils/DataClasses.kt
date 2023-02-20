@@ -1,13 +1,11 @@
 package mnbt.utils
 
-import com.myna.mnbt.IdTagCompound
-import com.myna.mnbt.Tag
-import com.myna.mnbt.annotations.FieldValueProvider
-import com.myna.mnbt.annotations.Ignore
-import com.myna.mnbt.annotations.LocateAt
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.CompoundTag
-import com.myna.mnbt.tag.ListTag
+import net.myna.mnbt.IdTagCompound
+import net.myna.mnbt.annotations.FieldValueProvider
+import net.myna.mnbt.annotations.Ignore
+import net.myna.mnbt.annotations.LocateAt
+import net.myna.mnbt.tag.CompoundTag
+import net.myna.mnbt.tag.ListTag
 import java.lang.reflect.Field
 import kotlin.random.Random
 import kotlin.reflect.jvm.javaField
@@ -125,7 +123,7 @@ fun newDataClass6(randomFieldValue: Boolean):DataClass6 {
     )
 }
 
-class DataClassesFieldsProvider:FieldValueProvider {
+class DataClassesFieldsProvider: FieldValueProvider {
     override fun provide(field: Field): Any? {
         return when(field) {
             DataClass4::dc1.javaField -> newDataClass1(false)

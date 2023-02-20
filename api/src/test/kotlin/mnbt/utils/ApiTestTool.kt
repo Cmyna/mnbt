@@ -1,16 +1,16 @@
 package mnbt.utils
 
 
-import com.myna.mnbt.*
-import com.myna.mnbt.codec.Codec
-import com.myna.mnbt.codec.HierarchicalCodec
-import com.myna.mnbt.codec.userDecodeIntent
-import com.myna.mnbt.codec.userEncodeIntent
-import com.myna.mnbt.converter.*
-import com.myna.mnbt.reflect.MTypeToken
-import com.myna.mnbt.reflect.ObjectInstanceHandler
-import com.myna.mnbt.tag.AnyCompound
-import com.myna.mnbt.tag.AnyTagList
+import net.myna.mnbt.*
+import net.myna.mnbt.codec.Codec
+import net.myna.mnbt.codec.HierarchicalCodec
+import net.myna.mnbt.codec.userDecodeIntent
+import net.myna.mnbt.codec.userEncodeIntent
+import net.myna.mnbt.converter.*
+import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.reflect.ObjectInstanceHandler
+import net.myna.mnbt.tag.AnyCompound
+import net.myna.mnbt.tag.AnyTagList
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Assertions.*
 import java.io.ByteArrayInputStream

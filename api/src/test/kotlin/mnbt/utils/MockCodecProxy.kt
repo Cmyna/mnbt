@@ -1,7 +1,7 @@
 package mnbt.utils
 
-import com.myna.mnbt.Tag
-import com.myna.mnbt.codec.*
+import net.myna.mnbt.Tag
+import net.myna.mnbt.codec.*
 
 class MockCodecProxy(var functionalProxy:Codec<Any>): Codec<Any> {
     override val id: Byte

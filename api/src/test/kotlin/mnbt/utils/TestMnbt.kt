@@ -1,12 +1,12 @@
 package mnbt.utils
 
-import com.myna.mnbt.Mnbt
-import com.myna.mnbt.Tag
-import com.myna.mnbt.codec.EncodedBytesFeedback
-import com.myna.mnbt.codec.userOnBytesDecodeIntent
-import com.myna.mnbt.codec.userOnBytesEncodeIntent
-import com.myna.mnbt.converter.DefaultConverterProxy
-import com.myna.mnbt.converter.TagConverter
+import net.myna.mnbt.Mnbt
+import net.myna.mnbt.Tag
+import net.myna.mnbt.codec.EncodedBytesFeedback
+import net.myna.mnbt.codec.userOnBytesDecodeIntent
+import net.myna.mnbt.codec.userOnBytesEncodeIntent
+import net.myna.mnbt.converter.DefaultConverterProxy
+import net.myna.mnbt.converter.TagConverter
 import mnbt.experiment.CompoundTagCodec
 import mnbt.experiment.FlatCodeses
 import mnbt.experiment.ListTagCodec
