@@ -1,5 +1,6 @@
 package study.performanceProfiling
 
+import Tools
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 

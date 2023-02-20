@@ -1,5 +1,7 @@
 package com.myna.utils
 
+import com.myna.mnbt.Tag
+import com.myna.mnbt.tag.AnyCompound
 import com.myna.utils.Extensions.toBytes
 import com.myna.utils.Extensions.toInt
 import java.io.*
@@ -128,7 +130,6 @@ class RegionLoader(private val regionFile: File) {
 
         // update offset
         val chunkInfoByteOffset = RegionsLoader.getChunkOffsetTableIndex(localChunkX, localChunkZ).toLong()
-//            val newSegOffset = ceil(compressedBytesLen.toDouble() / segmentByteLength).toInt()
         access.seek(chunkInfoByteOffset)
         FileOutputStream(access.fd).also {
             it.write(newSegOffset.toBytes().copyOfRange(1, 4))
@@ -162,7 +163,7 @@ class RegionLoader(private val regionFile: File) {
     }
 
     data class ChunkPosition(val x:Int, val z:Int)
-    
+
     data class ChunkInfo(
             /**
              * the segment offset(count with segment num)

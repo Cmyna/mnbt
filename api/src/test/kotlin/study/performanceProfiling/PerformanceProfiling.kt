@@ -1,7 +1,7 @@
 package study
 
 import org.junit.jupiter.api.Test
-import study.performanceProfiling.Tools.timeProfiling
+import Tools.timeProfiling
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream

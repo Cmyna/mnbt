@@ -1,5 +1,3 @@
-package study.performanceProfiling
-
 object Tools {
 
     /**

@@ -1,4 +1,4 @@
-package com.myna.mnbt.experiment
+package mnbt.experiment
 
 import com.myna.mnbt.*
 import com.myna.mnbt.codec.*

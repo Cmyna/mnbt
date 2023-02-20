@@ -67,6 +67,7 @@ object ApiTestValueBuildTool {
     //
     /**
      * @param profiling value is used for profiling: which means all type of object will have same payload, tag.name will be empty for clean memory structure
+     * @param payloadEachType the bytes payload for each tag type
      * @return Triple: first element is tag name, second one is target tag value payload(without tag head payload),
      * third one is object prepared to transfer to tag
      */
@@ -193,6 +194,7 @@ object ApiTestValueBuildTool {
 
     /**
      * @param profiling value is used for profiling: which means all type of object will have same payload, tag.name will be empty for clean memory structure
+     * @return a list contains tag that each tag type has almost 4000 bytes binary data size
      */
     fun flatTagsPreparation(profiling:Boolean=false):List<Tag<out Any>> {
         val list = flatTagValuesPreparation(profiling)

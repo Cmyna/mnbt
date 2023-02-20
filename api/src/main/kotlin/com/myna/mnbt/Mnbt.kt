@@ -5,13 +5,11 @@ import com.myna.utils.AdaptedInputStream
 import com.myna.mnbt.tag.CompoundTag
 import com.myna.mnbt.exceptions.ConverterNullResultException
 import com.myna.mnbt.codec.*
-import com.myna.mnbt.experiment.CompoundTagCodec
-import com.myna.mnbt.experiment.FlatCodeses
-import com.myna.mnbt.experiment.ListTagCodec
-import com.myna.mnbt.experiment.OnBytesCodecProxy
 import com.myna.mnbt.reflect.MTypeToken
 import com.myna.mnbt.tag.AnyCompound
 import com.myna.mnbt.utils.UnsupportedProperty
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.NullPointerException
@@ -36,13 +34,13 @@ open class Mnbt {
      * @return a ByteArray stores data starts at 0 ends at ByteArray.size
      * @throws ConverterNullResultException if result of value->tag is null
      */
-    fun <V:Any> toBytes(name:String, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):ByteArray {
+    open fun <V:Any> toBytes(name:String, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):ByteArray {
         if (value is Tag<*>) {
-            return (onByteCodecProxy.encode(encapsulatedWithCompoundTag(name, value), userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
+            return encode(value as Tag<out Any>)
         }
         val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent())
                 ?: throw ConverterNullResultException(value)
-        return (onByteCodecProxy.encode(tag, userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
+        return encode(tag)
     }
 
     /**
@@ -53,11 +51,11 @@ open class Mnbt {
      * if null it will return default type
      * @return a pair that first element stores root tag name, second one stores deserialized tag value
      */
-    fun <V:Any> fromBytes(bytes:ByteArray, start:Int, typeToken: MTypeToken<out V>? = null):Pair<String, V>? {
+    open fun <V:Any> fromBytes(bytes:ByteArray, start:Int, typeToken: MTypeToken<out V>? = null):Pair<String, V>? {
         val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
-        val feedback = onByteCodecProxy.decode(userOnBytesDecodeIntent(bytes, start))
+        val tag = decode(bytes, start)
         val converterCallerIntent = if (typeToken == null)  converterCallerIntent(true) else converterCallerIntent(false)
-        val res = converterProxy.toValue(feedback.tag, actualTypeToken, converterCallerIntent)
+        val res = converterProxy.toValue(tag, actualTypeToken, converterCallerIntent)
         if (res?.first==null) throw NullPointerException()
         return res as Pair<String, V>? // runtime check
     }
@@ -70,7 +68,7 @@ open class Mnbt {
      * @param outputStream see [paramBinOutputStream]
      * @return return encode process success or not
      */
-    fun <V:Any> toStream(name:String, value:V, typeToken: MTypeToken<out V>, outputStream:OutputStream):Boolean {
+    open fun <V:Any> toStream(name:String, value:V, typeToken: MTypeToken<out V>, outputStream:OutputStream):Boolean {
         if (value is Tag<*>) {
             codecProxy.encode(encapsulatedWithCompoundTag(name, value), userEncodeIntent(outputStream))
             return true
@@ -88,7 +86,7 @@ open class Mnbt {
      * @param converterIntent TODO
      * @return see [returnFromTagResult]
      */
-    fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
+    open fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
         val stream = if (adaptedInputStream) AdaptedInputStream(inputStream) else inputStream
         val feedback = codecProxy.decode(userDecodeIntent(stream))
         return if (converterIntent!=null) converterProxy.toValue(feedback.tag, typeToken, converterIntent)
@@ -100,7 +98,7 @@ open class Mnbt {
      * @param tag the [Tag] want to encode
      * @param outputStream see [paramBinOutputStream]
      */
-    fun encode(tag:Tag<out Any>, outputStream: OutputStream) {
+    open fun encode(tag:Tag<out Any>, outputStream: OutputStream) {
         codecProxy.encode(tag, userEncodeIntent(outputStream))
     }
 
@@ -109,8 +107,10 @@ open class Mnbt {
      * @param tag the [Tag] want to encode
      * @return a byte array stores encoded result starts at index 0, ends at byte array's end
      */
-    fun encode(tag:Tag<out Any>):ByteArray {
-        return (onByteCodecProxy.encode(tag, userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
+    open fun encode(tag:Tag<out Any>):ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        codecProxy.encode(tag, userEncodeIntent(outputStream))
+        return outputStream.toByteArray()
     }
 
     /**
@@ -118,7 +118,7 @@ open class Mnbt {
      * @param inputStream see [paramBinInputStream]
      * @return decoded [Tag]
      */
-    fun decode(inputStream: InputStream):Tag<out Any> {
+    open fun decode(inputStream: InputStream):Tag<out Any> {
         return codecProxy.decode(userDecodeIntent(inputStream)).tag
     }
 
@@ -127,8 +127,9 @@ open class Mnbt {
      * @start specifies where the nbt binary data starts
      * @return the decoded result
      */
-    fun decode(bytes: ByteArray, start:Int):Tag<out Any> {
-        return onByteCodecProxy.decode(userOnBytesDecodeIntent(bytes, start)).tag
+    open fun decode(bytes: ByteArray, start:Int):Tag<out Any> {
+        val inputStream = ByteArrayInputStream(bytes.copyOfRange(start, bytes.size))
+        return codecProxy.decode(userDecodeIntent(inputStream)).tag
     }
 
     /**
@@ -240,13 +241,6 @@ open class Mnbt {
             BinaryCodecInstances.byteArrayCodec, BinaryCodecInstances.longArrayCodec,
             BinaryCodecInstances.nullTagCodec)
 
-    protected val onByteCodecProxy:OnBytesCodecProxy = OnBytesCodecProxy(
-            FlatCodeses.intCodec, FlatCodeses.shortCodec,
-            FlatCodeses.byteCodec, FlatCodeses.longCodec,
-            FlatCodeses.floatCodec, FlatCodeses.doubleCodec,
-            FlatCodeses.stringCodec, FlatCodeses.intArrayCodec,
-            FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
-    )
 
     protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
     protected val listTypeConverter = ListConverters.IterableTypeConverter(this.converterProxy)
@@ -256,14 +250,10 @@ open class Mnbt {
     protected val listCodec = BinaryCodecInstances.ListTagCodec(this.codecProxy)
     protected val compoundTagCodec = BinaryCodecInstances.CompoundTagCodec(this.codecProxy)
 
-    protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
-    protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
     init {
         this.codecProxy.registerCodec(listCodec)
         this.codecProxy.registerCodec(compoundTagCodec)
-        this.onByteCodecProxy.registerCodec(onByteCompoundTagCodec)
-        this.onByteCodecProxy.registerCodec(onByteListCodec)
         converterProxy.also {
             it.registerToFirst(ExcluderConverter.instance)
             it.registerToLast(TagConverters.booleanConverter)
