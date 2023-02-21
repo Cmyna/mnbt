@@ -1,5 +1,7 @@
 package net.myna.mnbt
 
+import net.myna.mnbt.utils.SnbtTools
+
 
 typealias AnyTag = Tag<out Any>
 /**
@@ -19,6 +21,13 @@ abstract class Tag<NbtRelatedType> {
      * the nbt data type id of a tag
      */
     abstract val id:Byte
+
+    abstract fun valueToString():String
+
+    override fun toString(): String {
+        val escapedName = if (this.name==null) "null" else SnbtTools.escape(this.name!!)
+        return "{\"$escapedName\":${valueToString()}}"
+    }
 
     abstract class NestTag<NbtRelatedType>:Tag<NbtRelatedType>() {
         abstract fun <V> getElementByPath(pathSegment:String): Tag<out V>?

@@ -5,6 +5,7 @@ import net.myna.mnbt.*
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.tag.ArrayTag
 import net.myna.mnbt.tag.ListTag
+import net.myna.mnbt.tag.ListTag.Companion.unknownElementId
 import net.myna.mnbt.tag.PrimitiveTag
 import java.util.*
 import kotlin.collections.HashMap
@@ -214,6 +215,14 @@ object ApiTestValueBuildTool {
             tagList.add(listTag)
         }
         return tagList
+    }
+
+    fun <T:AnyTag> valueSequenceToListTag(name:String?, value:Sequence<Any>):ListTag<T> {
+        val listTag = ListTag<T>(unknownElementId, name)
+        value.forEach {
+            listTag.add(prepareTag2(null, it) as T)
+        }
+        return listTag
     }
 
 

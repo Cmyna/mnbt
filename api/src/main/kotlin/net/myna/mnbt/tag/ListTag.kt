@@ -36,6 +36,16 @@ class ListTag<TAG: Tag<out Any>>(
         else value[i]
     }
 
+    override fun valueToString(): String {
+        val builder = StringBuilder("[")
+        value.fold(true) { isFirst, cur ->
+            if (!isFirst) builder.append(",${cur.valueToString()}")
+            else builder.append(cur.valueToString())
+            false
+        }
+        return builder.append("]").toString()
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         // because NbtRelatedType is from other object
@@ -46,14 +56,14 @@ class ListTag<TAG: Tag<out Any>>(
         return listEqFun(value as List<Tag<Any>>, other.value)
     }
 
-    override fun toString(): String {
-        val builder = StringBuilder()
-        builder.append("[List Tag]\n")
-        builder.append("\tTag name: $name\n")
-        builder.append("\tlist size: ${value.size}\n")
-        if (value.size > 0 ) builder.append("\telement type: ${value.get(0)!!::class.java}")
-        return builder.toString()
-    }
+//    override fun toString(): String {
+//        val builder = StringBuilder()
+//        builder.append("[List Tag]\n")
+//        builder.append("\tTag name: $name\n")
+//        builder.append("\tlist size: ${value.size}\n")
+//        if (value.size > 0 ) builder.append("\telement type: ${value.get(0)!!::class.java}")
+//        return builder.toString()
+//    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {

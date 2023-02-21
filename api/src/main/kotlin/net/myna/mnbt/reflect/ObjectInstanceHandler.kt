@@ -31,7 +31,7 @@ object ObjectInstanceHandler {
     }
 
     fun <T> fromObjectConstructor(type:Class<T>):T? {
-        // try find empty constructor by reflection
+        // try to find empty constructor by reflection
         return try {
             val constructor = type.getDeclaredConstructor()
             // if not accessible, try set it accessible
@@ -66,6 +66,7 @@ object ObjectInstanceHandler {
         return fields
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun <T> fromUnsafe(type:Class<T>):T? {
         val unsafeClass = Class.forName("sun.misc.Unsafe")
         val field = unsafeClass.getDeclaredField("theUnsafe")

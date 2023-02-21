@@ -21,6 +21,10 @@ class NullTag private constructor(): Tag<Unit>() {
         return super.hashCode()
     }
 
+    override fun valueToString(): String {
+        TODO()
+    }
+
     companion object {
         val inst:NullTag = NullTag()
     }

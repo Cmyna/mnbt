@@ -16,8 +16,6 @@ plugins {
 
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     //jcenter()
     mavenCentral()
 }
@@ -39,7 +37,7 @@ dependencies {
 //    testImplementation("org.openjdk.jmh:jmh-kotlin-benchmark-archetype:1.36")
 //    kaptTest("org.openjdk.jmh:jmh-kotlin-benchmark-archetype:1.36")
 
-    implementation("com.google.code.gson:gson:2.8.6")
+//    implementation("com.google.code.gson:gson:2.8.6")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")

@@ -16,6 +16,7 @@ annotation class AnnotationAlias<S:Any,T:Annotation>(
 
     companion object {
 
+        @Suppress("UNCHECKED_CAST")
         /**
          * @return aliasTarget instance from current annotation instance passed in
          */

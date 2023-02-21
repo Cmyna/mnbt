@@ -31,6 +31,10 @@ class CompoundTag(
         return this.value[name]
     }
 
+    override fun valueToString(): String {
+        TODO()
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun <V> getElementByPath(pathSegment: String): Tag<out V>? {
         val res = value[pathSegment]
