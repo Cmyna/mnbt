@@ -4,6 +4,7 @@ import net.myna.mnbt.*
 import net.myna.mnbt.Tag
 import net.myna.mnbt.Tag.Companion.isTagAndEqName
 import net.myna.mnbt.utils.SnbtTools.escape
+import java.util.*
 
 object PrimitiveTag {
 
@@ -26,7 +27,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagInt
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -34,7 +35,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagByte
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -42,7 +43,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagShort
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -50,7 +51,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagLong
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -58,7 +59,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagFloat
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -66,7 +67,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagDouble
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return value.toString()
         }
     }
@@ -74,7 +75,7 @@ object PrimitiveTag {
         override val id: Byte = IdTagString
         override fun equals(other: Any?): Boolean = primitiveEqFun(this, other)
         override fun hashCode(): Int = primitiveHashCode(this)
-        override fun valueToString(): String {
+        override fun valueToString(parents: Deque<Tag<*>>): String {
             return "\"${escape(value)}\""
         }
     }

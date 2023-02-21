@@ -2,9 +2,7 @@ package net.myna.mnbt.tag
 
 import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.Tag
-import java.lang.NullPointerException
-import java.lang.RuntimeException
-import kotlin.reflect.KProperty
+import java.util.*
 
 /**
  * Null Tag express that it is null
@@ -21,7 +19,7 @@ class NullTag private constructor(): Tag<Unit>() {
         return super.hashCode()
     }
 
-    override fun valueToString(): String {
+    override fun valueToString(parents: Deque<Tag<*>>): String {
         TODO()
     }
 

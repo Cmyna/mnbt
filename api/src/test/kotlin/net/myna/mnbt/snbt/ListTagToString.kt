@@ -1,10 +1,11 @@
 package net.myna.mnbt.snbt
 
 import net.myna.mnbt.AnyTag
+import net.myna.mnbt.IdTagList
+import net.myna.mnbt.tag.AnyTagList
 import net.myna.mnbt.tag.ListTag
 import net.myna.mnbt.tag.ListTag.Companion.unknownElementId
 import net.myna.mnbt.tag.PrimitiveTag
-import net.myna.mnbt.tag.UnknownList
 import net.myna.mnbt.utils.ApiTestValueBuildTool
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -66,5 +67,14 @@ class ListTagToString {
                 ^\{"empty list"\s*:\s*\[]}$
             """.trimIndent()).containsMatchIn(emptyListTag.toString())
         )
+    }
+
+    @Test
+    fun handleCircularReference() {
+        val list1 = ListTag<AnyTag>(IdTagList, "list1")
+        val list2 = ListTag<AnyTag>(IdTagList, "list2")
+        list1.add(list2)
+        list2.add(list1)
+        println(list1)
     }
 }

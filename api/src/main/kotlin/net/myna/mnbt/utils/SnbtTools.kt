@@ -14,9 +14,21 @@ object SnbtTools {
         }.toString()
     }
 
+    /**
+     * flat value to String
+     * if array too long, value will be hidden
+     */
     fun sequenceToString(sequence: Sequence<Any>):String {
         val builder = StringBuilder("[")
+        var havenShownSkip = true
         sequence.fold(true) { isFirst, cur ->
+            if (builder.length > 50) {
+                if (havenShownSkip) {
+                    builder.append("...")
+                    havenShownSkip = false
+                }
+                return@fold false
+            }
             if (!isFirst) builder.append(",$cur")
             else builder.append("$cur")
             false

@@ -1,7 +1,10 @@
 package net.myna.mnbt.tag
 
+import net.myna.mnbt.AnyTag
 import net.myna.mnbt.IdTagCompound
 import net.myna.mnbt.Tag
+import net.myna.mnbt.utils.SnbtTools
+import java.util.*
 
 typealias AnyCompound = MutableMap<String, Tag<out Any>>
 typealias UnknownCompound = MutableMap<*,*>
@@ -31,8 +34,44 @@ class CompoundTag(
         return this.value[name]
     }
 
-    override fun valueToString(): String {
-        TODO()
+    override fun valueToString(parents: Deque<Tag<*>>): String {
+        val cirRef = parents.any { this === it }
+        if (cirRef) {
+            return "CircularReference: ${this::class.java} @${this.hashCode()}"
+        }
+        parents.push(this)
+        val hasNestTag = value.any { it.value is NestTag }
+        val builder = StringBuilder("{")
+        value.entries.forEachIndexed { i, e ->
+            if (hasNestTag) {
+                builder.append("\n")
+                repeat(parents.size) {builder.append("\t")}
+            }
+            elementToString(builder, e.value, parents)
+            if (i<value.size-1) {
+                builder.append(", ")
+            }
+        }
+        parents.pop()
+        if (hasNestTag) {
+            builder.append("\n")
+            repeat(parents.size) {builder.append("\t")}
+        }
+        builder.append("}")
+        return builder.toString()
+    }
+
+    private fun elementToString(builder: StringBuilder, element:AnyTag, parents: Deque<Tag<*>>) {
+        val realName = element.name ?: "null"
+        builder.append("\"${SnbtTools.escape(realName)}\": ")
+
+        builder.append(element.valueToString(parents))
+    }
+
+    override fun toString(): String {
+        val deque: Deque<Tag<*>> = ArrayDeque()
+        return if (this.name==null) valueToString(deque)
+        else "{\"${SnbtTools.escape(this.name)}\":${valueToString(deque)}}"
     }
 
     @Suppress("UNCHECKED_CAST")

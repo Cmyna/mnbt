@@ -4,6 +4,7 @@ import net.myna.mnbt.IdTagList
 import net.myna.mnbt.Tag
 import net.myna.mnbt.converter.meta.NbtPathTool.indexFormatRegex
 import java.lang.StringBuilder
+import java.util.*
 
 typealias AnyTagList = MutableList<Tag<out Any>>
 typealias UnknownList = MutableList<*>
@@ -36,13 +37,36 @@ class ListTag<TAG: Tag<out Any>>(
         else value[i]
     }
 
-    override fun valueToString(): String {
-        val builder = StringBuilder("[")
-        value.fold(true) { isFirst, cur ->
-            if (!isFirst) builder.append(",${cur.valueToString()}")
-            else builder.append(cur.valueToString())
-            false
+    override fun valueToString(parents: Deque<Tag<*>>): String {
+        // check circular reference:
+        val cirRef = parents.any { this === it }
+        if (cirRef) {
+            return "CircularReference: ${this::class.java} @${this.hashCode()}"
         }
+        parents.push(this)
+        val builder = StringBuilder("[")
+        var havenShownSkip = true
+        value.asSequence()
+            .filter { it.id == this.elementId }
+            .fold(true) { isFirst, cur ->
+                if (cur !is NestTag<*> && builder.length > 50) {
+                    if (havenShownSkip) {
+                        builder.append("...")
+                        havenShownSkip = false
+                    }
+                    return@fold false
+                }
+                if (!isFirst) {
+                    builder.append(',')
+                    if (cur is NestTag<*>) {
+                        builder.append('\n')
+                        repeat(parents.size) {builder.append('\t')}
+                    }
+                    builder.append(cur.valueToString(parents))
+                } else builder.append(cur.valueToString(parents))
+                false
+            }
+        parents.pop()
         return builder.append("]").toString()
     }
 
