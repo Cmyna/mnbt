@@ -54,17 +54,12 @@ interface EncodeOnStream: EncodeIntent {
 }
 
 @Beta
-interface OnStreamToDelegatorEncodeIntent: EncodeHead, EncodeOnStream, RecordParentsWhenEncoding
-
-@Beta
 /**
  * an interface specifies that encode tag to ByteArray,
  * the Codec should return object implements [EncodedBytesFeedback] to contain ByteArray
  */
 interface EncodeToBytes: EncodeIntent
 
-@Beta
-interface OnBytesToProxyEncodeIntent: EncodeHead, EncodeToBytes, RecordParentsWhenEncoding
 
 @Beta
 interface DecodeIntent: CodecCallerIntent

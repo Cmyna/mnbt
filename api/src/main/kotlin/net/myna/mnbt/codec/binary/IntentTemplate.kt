@@ -10,8 +10,8 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaSetter
 
 
-fun userEncodeIntent(outputStream: OutputStream): OnStreamToDelegatorEncodeIntent {
-    return object: OnStreamToDelegatorEncodeIntent {
+fun userEncodeIntent(outputStream: OutputStream): EncodeIntent {
+    return object: EncodeHead, EncodeOnStream, RecordParentsWhenEncoding {
         override val parents: Deque<Tag<out Any>> = ArrayDeque()
         override val outputStream: OutputStream = outputStream
         override val encodeHead:Boolean = true
@@ -32,8 +32,8 @@ fun userDecodeIntent(inputStream: InputStream): DecodeIntent {
 /**
  * intent that want Codec serialize tag to bytes
  */
-fun userOnBytesEncodeIntent(): OnBytesToProxyEncodeIntent {
-    return object: OnBytesToProxyEncodeIntent {
+fun userOnBytesEncodeIntent(): EncodeIntent {
+    return object: EncodeHead, EncodeToBytes, RecordParentsWhenEncoding {
         override val parents: Deque<Tag<out Any>> = ArrayDeque()
         override val encodeHead:Boolean = true
     }
@@ -98,8 +98,7 @@ fun proxyDecodeFromBytesIntent(decodeHead: Boolean, desId: Byte, intent: DecodeF
 fun toProxyIntent(hasHead: Boolean, intent: EncodeIntent): EncodeIntent {
     return Proxy.newProxyInstance(intent::class.java.classLoader, intent::class.java.interfaces) { _, method, args->
         return@newProxyInstance when (method) {
-            OnStreamToDelegatorEncodeIntent::encodeHead.javaGetter -> hasHead
-            OnBytesToProxyEncodeIntent::encodeHead.javaGetter -> hasHead
+            EncodeHead::encodeHead.javaGetter -> hasHead
             else -> method.invoke(intent, *args.orEmpty())
         }
     } as EncodeIntent

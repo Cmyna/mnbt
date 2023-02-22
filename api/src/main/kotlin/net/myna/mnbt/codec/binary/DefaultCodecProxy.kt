@@ -38,7 +38,7 @@ class DefaultCodecProxy(): Codec<Any> {
      * @throws CircularReferenceException if circular reference found
      */
     override fun encode(tag: Tag<out Any>, intent: EncodeIntent): CodecFeedback {
-        intent as OnStreamToDelegatorEncodeIntent
+        intent as RecordParentsWhenEncoding
         val parents = intent.parents
         // check null tag
         val tag2 = tag as Tag<*>

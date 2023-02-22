@@ -31,11 +31,11 @@ class OnBytesCodecProxy: Codec<Any> {
     }
 
     override fun encode(tag: Tag<out Any>, intent: EncodeIntent): CodecFeedback {
-        intent as OnBytesToProxyEncodeIntent
+        intent as RecordParentsWhenEncoding
         val parents = intent.parents
         // check null tag
         val tag2 = tag as Tag<*>
-        if (tag2 is NullTag || tag2.value is Nothing || tag2.value==null) return codecMap[IdTagEnd]!!.encode(tag as Tag<Nothing>, intent)
+        if (tag2 is NullTag || tag2.value==null) return codecMap[IdTagEnd]!!.encode(tag as Tag<Nothing>, intent)
         val Codec = codecMap[tag.id]?: throw NullPointerException("can not find Codec be tag id:${tag.id} with value ${tag.value}).")
         // do stack depth checking
         // why maximumTreeDepth-1? Ans: because the known depth here is parents number + 1(all parents appears above and the current passed tagValue)
