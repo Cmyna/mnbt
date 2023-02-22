@@ -26,7 +26,7 @@ interface Codec<NbtRelatedType>{
 //    val requiredEncodeIntent:List<EncodeIntent>
 //    val requiredDecodedIntent:List<DecodeIntent>
 
-    fun encode(tag: Tag<out NbtRelatedType>, intent: EncodeIntent):CodecFeedback
+    fun encode(tag: Tag<out NbtRelatedType>, intent: EncodeIntent): CodecFeedback
     /**
      * @param intent a [DecodeIntent]
      * @return a Pair, first element is the Tag instance, second one points to the tag end in input byte array

@@ -2,6 +2,7 @@ package net.myna.mnbt.experiment
 
 import net.myna.mnbt.*
 import net.myna.mnbt.codec.*
+import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.presets.BitsArrayLengthGetter
 import net.myna.mnbt.reflect.TypeCheckTool
 import net.myna.mnbt.tag.ArrayTag
@@ -80,14 +81,14 @@ object FlatCodeses {
 
     private class StringCodec: OnByteFlatCodec<String>(IdTagString, String::class.java) {
 
-        override fun encodeValue(value: String, intent: CodecCallerIntent):CodecFeedback {
+        override fun encodeValue(value: String, intent: CodecCallerIntent): CodecFeedback {
             val valueBits = value.toByteArray(Charsets.UTF_8)
             if (valueBits.size > 65535) throw IllegalArgumentException("String Tag value length is over 65535!")
             val valueLen = valueBits.size
             val bits = ByteArray(ShortSizePayload+valueBits.size)
             System.arraycopy(valueLen.toShort().toBytes(), 0, bits, 0, ShortSizePayload)
             System.arraycopy(valueBits, 0, bits, ShortSizePayload, valueLen)
-            return object:EncodedBytesFeedback {
+            return object: EncodedBytesFeedback {
                 override val bytes: ByteArray = bits
             }
 
@@ -133,7 +134,7 @@ object FlatCodeses {
         override fun createTag(name: String?, value: ARR): Tag<ARR> = tagCreation(name, value)
 
         @Suppress("UNCHECKED_CAST")
-        override fun encodeValue(value: ARR, intent: CodecCallerIntent):CodecFeedback {
+        override fun encodeValue(value: ARR, intent: CodecCallerIntent): CodecFeedback {
             val elementNum = RArray.getLength(value)
 
             val bits = ByteArray(IntSizePayload+elementNum*elementSize)

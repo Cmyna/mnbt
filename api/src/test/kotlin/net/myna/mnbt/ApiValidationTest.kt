@@ -1,6 +1,6 @@
 package net.myna.mnbt
 
-import net.myna.mnbt.codec.BinaryCodecInstances
+import net.myna.mnbt.codec.binary.BinaryCodecInstances
 import net.myna.mnbt.converter.TagConverters
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.tag.PrimitiveTag

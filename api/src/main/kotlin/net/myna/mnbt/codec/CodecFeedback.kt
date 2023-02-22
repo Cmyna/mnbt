@@ -16,11 +16,11 @@ interface TagFeedback<NbtRelatedType> {
 }
 
 @Beta
-interface OutputStreamFeedback:CodecFeedback{
+interface OutputStreamFeedback: CodecFeedback {
     val outputStream:OutputStream
 }
 
 @Beta
-interface EncodedBytesFeedback:CodecFeedback{
+interface EncodedBytesFeedback: CodecFeedback {
     val bytes:ByteArray
 }

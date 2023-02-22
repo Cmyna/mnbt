@@ -3,8 +3,8 @@ package net.myna.mnbt.utils
 import net.myna.mnbt.Mnbt
 import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.EncodedBytesFeedback
-import net.myna.mnbt.codec.userOnBytesDecodeIntent
-import net.myna.mnbt.codec.userOnBytesEncodeIntent
+import net.myna.mnbt.codec.binary.userOnBytesDecodeIntent
+import net.myna.mnbt.codec.binary.userOnBytesEncodeIntent
 import net.myna.mnbt.experiment.CompoundTagCodec
 import net.myna.mnbt.experiment.FlatCodeses
 import net.myna.mnbt.experiment.ListTagCodec

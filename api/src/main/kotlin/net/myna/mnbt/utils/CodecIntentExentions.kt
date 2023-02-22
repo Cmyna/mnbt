@@ -2,8 +2,10 @@ package net.myna.mnbt.utils
 
 import net.myna.mnbt.ByteSizePayload
 import net.myna.mnbt.IntSizePayload
-import net.myna.mnbt.codec.*
-import net.myna.mnbt.core.CodecTool
+import net.myna.mnbt.codec.DecodeFromBytes
+import net.myna.mnbt.codec.DecodeHead
+import net.myna.mnbt.codec.DecodeOnStream
+import net.myna.mnbt.codec.binary.CodecTool
 import net.myna.utils.Extensions.toBasic
 
 object CodecIntentExentions {

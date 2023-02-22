@@ -1,7 +1,10 @@
-package net.myna.mnbt.codec
+package net.myna.mnbt.codec.binary
 
 import net.myna.mnbt.TagIdPayload
-import net.myna.mnbt.core.CodecTool
+import net.myna.mnbt.codec.CodecCallerIntent
+import net.myna.mnbt.codec.DecodeFromBytes
+import net.myna.mnbt.codec.DecodeHead
+import net.myna.mnbt.codec.DecodeOnStream
 
 object TagHeadDecoder {
 

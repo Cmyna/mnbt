@@ -1,13 +1,12 @@
 package net.myna.mnbt
 
 import net.myna.mnbt.converter.*
-import net.myna.utils.AdaptedInputStream
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.exceptions.ConverterNullResultException
 import net.myna.mnbt.codec.*
+import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.exceptions.CircularReferenceException
 import net.myna.mnbt.reflect.MTypeToken
-import net.myna.mnbt.tag.AnyCompound
 import net.myna.mnbt.utils.UnsupportedProperty
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -17,6 +16,7 @@ import java.lang.NullPointerException
 
 //TODO: Exception analyse, refactoring and handling
 //TODO: ensure Java usability
+//TODO: intent parameters passed in mnbt methods(provide optional intent parameters)
 open class Mnbt {
 
     @Suppress("UNCHECKED_CAST")
@@ -89,8 +89,7 @@ open class Mnbt {
      * @return see [returnFromTagResult]
      */
     open fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
-        val stream = if (adaptedInputStream) AdaptedInputStream(inputStream) else inputStream
-        val feedback = codecProxy.decode(userDecodeIntent(stream))
+        val feedback = codecProxy.decode(userDecodeIntent(inputStream))
         return if (converterIntent!=null) converterProxy.toValue(feedback.tag, typeToken, converterIntent)
         else converterProxy.toValue(feedback.tag, typeToken)
     }
@@ -189,7 +188,7 @@ open class Mnbt {
      * so it will replace the [Codec] which handle same type tag
      * @return specifies that register is success or not
      */
-    fun registerCodec(codec:Codec<Any>):Boolean {
+    fun registerCodec(codec: Codec<Any>):Boolean {
         return this.codecProxy.registerCodec(codec)
     }
 
@@ -202,14 +201,6 @@ open class Mnbt {
 
 
     // options start
-
-    /**
-     * This option is experimental and may be removed in the future!
-     *
-     * Specifies that use an AdaptedInputStream that inherit and encapsulate all functionality from the original InputStream
-     * and optimize its performance by refactor its method code
-     */
-    var adaptedInputStream:Boolean = false
 
     /**
      * set convert object that has nullable properties or not. in default the value is true
@@ -239,7 +230,7 @@ open class Mnbt {
 
 
     protected val converterProxy:DefaultConverterProxy = DefaultConverterProxy()
-    protected val codecProxy:DefaultCodecProxy = DefaultCodecProxy(BinaryCodecInstances.intCodec, BinaryCodecInstances.shortCodec,
+    protected val codecProxy: DefaultCodecProxy = DefaultCodecProxy(BinaryCodecInstances.intCodec, BinaryCodecInstances.shortCodec,
             BinaryCodecInstances.byteCodec, BinaryCodecInstances.longCodec,
             BinaryCodecInstances.floatCodec, BinaryCodecInstances.doubleCodec,
             BinaryCodecInstances.stringCodec, BinaryCodecInstances.intArrayCodec,

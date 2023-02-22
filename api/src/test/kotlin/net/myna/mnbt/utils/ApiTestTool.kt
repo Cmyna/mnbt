@@ -4,8 +4,8 @@ package net.myna.mnbt.utils
 import net.myna.mnbt.*
 import net.myna.mnbt.codec.Codec
 import net.myna.mnbt.codec.HierarchicalCodec
-import net.myna.mnbt.codec.userDecodeIntent
-import net.myna.mnbt.codec.userEncodeIntent
+import net.myna.mnbt.codec.binary.userDecodeIntent
+import net.myna.mnbt.codec.binary.userEncodeIntent
 import net.myna.mnbt.converter.*
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.reflect.ObjectInstanceHandler
@@ -114,7 +114,8 @@ object ApiTestTool {
 
     fun nestedListTest(
             converter: HierarchicalTagConverter<AnyTagList>,
-            Codec: HierarchicalCodec<AnyTagList>) {
+            Codec: HierarchicalCodec<AnyTagList>
+    ) {
         // test Array<Array<Int>>
         // but the tag hierarchy seems like List<IntArray>
         val template = Template()
@@ -225,8 +226,8 @@ object ApiTestTool {
         private val mockTagEq = MockTagEquals()
 
         fun <NbtT:Any, VT:Any> apiTest(
-                tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
-                valueBitsLen: Int, typeToken: MTypeToken<VT>, valueCreation:()->VT) {
+            tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
+            valueBitsLen: Int, typeToken: MTypeToken<VT>, valueCreation:()->VT) {
             apiTest(
                     tagConverter, codec,
                     RandomValueTool.bitStrC(5)(),
@@ -237,10 +238,10 @@ object ApiTestTool {
 
 
         fun <NbtT:Any, VT:Any> apiTest(
-                tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
-                name1:String, name2:String,
-                value1:VT, value2:VT,
-                valueBitsLen: Int, typeToken: MTypeToken<out VT>) {
+            tagConverter: TagConverter<NbtT>, codec: Codec<NbtT>,
+            name1:String, name2:String,
+            value1:VT, value2:VT,
+            valueBitsLen: Int, typeToken: MTypeToken<out VT>) {
             val actualName1 = "name1: $name1"
             val actualName2 = "name1: $name2"
             val tag1 = tagConverter.createTag(actualName1, value1, typeToken)!!

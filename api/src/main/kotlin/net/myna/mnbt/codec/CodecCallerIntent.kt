@@ -19,10 +19,10 @@ import java.util.Deque
 interface CodecCallerIntent
 
 @Beta
-interface EncodeIntent:CodecCallerIntent
+interface EncodeIntent: CodecCallerIntent
 
 @Beta
-interface EncodeHead:EncodeIntent{
+interface EncodeHead: EncodeIntent {
     /**
      * declares that caller want Codec to encode with head or not.
      *
@@ -36,7 +36,7 @@ interface EncodeHead:EncodeIntent{
 }
 
 @Beta
-interface RecordParentsWhenEncoding:EncodeIntent {
+interface RecordParentsWhenEncoding: EncodeIntent {
     /**
      * pass parents tag info to HierarchicalCodec
      *
@@ -49,32 +49,32 @@ interface RecordParentsWhenEncoding:EncodeIntent {
 /**
  * specify that serialization base on an output stream
  */
-interface EncodeOnStream:EncodeIntent {
+interface EncodeOnStream: EncodeIntent {
     val outputStream: OutputStream
 }
 
 @Beta
-interface OnStreamToDelegatorEncodeIntent:EncodeHead,EncodeOnStream,RecordParentsWhenEncoding
+interface OnStreamToDelegatorEncodeIntent: EncodeHead, EncodeOnStream, RecordParentsWhenEncoding
 
 @Beta
 /**
  * an interface specifies that encode tag to ByteArray,
  * the Codec should return object implements [EncodedBytesFeedback] to contain ByteArray
  */
-interface EncodeToBytes:EncodeIntent
+interface EncodeToBytes: EncodeIntent
 
 @Beta
-interface OnBytesToProxyEncodeIntent:EncodeHead,EncodeToBytes,RecordParentsWhenEncoding
+interface OnBytesToProxyEncodeIntent: EncodeHead, EncodeToBytes, RecordParentsWhenEncoding
 
 @Beta
-interface DecodeIntent:CodecCallerIntent
+interface DecodeIntent: CodecCallerIntent
 
 @Beta
 /**
  * decode head or not where tag head contains id+tag name.
  * it also means input binary data has tag head info
  */
-interface DecodeHead:DecodeIntent {
+interface DecodeHead: DecodeIntent {
 
     /**
      * ignore id when decode head is true, if it is true,
@@ -87,7 +87,7 @@ interface DecodeHead:DecodeIntent {
 /**
  * specify that deserialization base on an input stream
  */
-interface DecodeOnStream:DecodeIntent {
+interface DecodeOnStream: DecodeIntent {
     val inputStream: InputStream
 }
 
@@ -95,12 +95,12 @@ interface DecodeOnStream:DecodeIntent {
 /**
  * record binary data tree depth when decoding
  */
-interface DecodeTreeDepth:DecodeIntent {
+interface DecodeTreeDepth: DecodeIntent {
     var depth:Int
 }
 
 @Beta
-interface SpecifyIdWhenDecoding:DecodeIntent {
+interface SpecifyIdWhenDecoding: DecodeIntent {
     /**
      * used for deserialization, caller specifies tag id in binary nbt data, typical use case: delegate deserialization to proxy when hasHead is false
      */
@@ -111,7 +111,7 @@ interface SpecifyIdWhenDecoding:DecodeIntent {
 /**
  * an interface specifies that decode binary tag from a ByteArray
  */
-interface DecodeFromBytes:DecodeIntent {
+interface DecodeFromBytes: DecodeIntent {
     val data:ByteArray
     /**
      * current pointer to data

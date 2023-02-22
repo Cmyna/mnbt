@@ -1,12 +1,12 @@
-package net.myna.mnbt.codec
+package net.myna.mnbt.codec.binary
 
 import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.Tag
+import net.myna.mnbt.codec.*
 import net.myna.mnbt.defaultTreeDepthLimit
 import net.myna.mnbt.exceptions.*
 import net.myna.mnbt.tag.NullTag
 import net.myna.mnbt.utils.CodecIntentExentions.tryGetId
-import java.io.*
 import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.reflect.jvm.javaGetter
@@ -28,7 +28,7 @@ class DefaultCodecProxy(): Codec<Any> {
         for (codec in codecInstances) codecMap[codec.id] = codec
     }
 
-    constructor(vararg codecInstances:Codec<out Any>):this() {
+    constructor(vararg codecInstances: Codec<out Any>):this() {
         for (codec in codecInstances) {
             codecMap[codec.id] = codec
         }
@@ -37,7 +37,7 @@ class DefaultCodecProxy(): Codec<Any> {
     /**
      * @throws CircularReferenceException if circular reference found
      */
-    override fun encode(tag: Tag<out Any>, intent: EncodeIntent):CodecFeedback {
+    override fun encode(tag: Tag<out Any>, intent: EncodeIntent): CodecFeedback {
         intent as OnStreamToDelegatorEncodeIntent
         val parents = intent.parents
         // check null tag

@@ -5,12 +5,14 @@ import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.Tag
 import net.myna.mnbt.TagIdPayload
 import net.myna.mnbt.codec.*
+import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.tag.AnyCompound
 import net.myna.mnbt.tag.CompoundTag
 import java.util.ArrayList
 
 class CompoundTagCodec(override var proxy: Codec<Any>):
-        OnByteFlatCodec<AnyCompound>(IdTagCompound, Collection::class.java as Class<AnyCompound>), HierarchicalCodec<AnyCompound> {
+        OnByteFlatCodec<AnyCompound>(IdTagCompound, Collection::class.java as Class<AnyCompound>),
+    HierarchicalCodec<AnyCompound> {
 
     override fun createTag(name: String?, value: AnyCompound): Tag<AnyCompound> {
         return CompoundTag(name, value)

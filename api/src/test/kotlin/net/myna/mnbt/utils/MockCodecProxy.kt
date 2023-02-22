@@ -3,7 +3,7 @@ package net.myna.mnbt.utils
 import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.*
 
-class MockCodecProxy(var functionalProxy:Codec<Any>): Codec<Any> {
+class MockCodecProxy(var functionalProxy: Codec<Any>): Codec<Any> {
     override val id: Byte
         get() = 0
     override val valueTypeToken: Class<Any>

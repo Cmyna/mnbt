@@ -2,7 +2,8 @@ package net.myna.mnbt.experiment
 
 import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.*
-import net.myna.mnbt.core.CodecTool
+import net.myna.mnbt.codec.binary.*
+import net.myna.mnbt.codec.binary.CodecTool
 import java.lang.NullPointerException
 
 abstract class OnByteFlatCodec<NbtRelatedType:Any>(override val id: Byte, override val valueTypeToken: Class<NbtRelatedType>)

@@ -1,4 +1,4 @@
-package net.myna.mnbt.core
+package net.myna.mnbt.codec.binary
 
 import net.myna.mnbt.StringSizePayload
 import net.myna.utils.Extensions.toBytes

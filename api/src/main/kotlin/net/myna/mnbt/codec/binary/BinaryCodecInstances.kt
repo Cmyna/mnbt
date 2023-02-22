@@ -1,4 +1,4 @@
-package net.myna.mnbt.codec
+package net.myna.mnbt.codec.binary
 
 import net.myna.utils.Extensions.toBasic
 import net.myna.utils.Extensions.toBytes
@@ -6,7 +6,7 @@ import net.myna.mnbt.tag.*
 import net.myna.mnbt.reflect.TypeCheckTool
 import java.lang.IllegalArgumentException
 import net.myna.mnbt.*
-import net.myna.mnbt.core.CodecTool
+import net.myna.mnbt.codec.*
 import net.myna.mnbt.presets.BitsArrayLengthGetter
 import net.myna.mnbt.utils.CodecIntentExentions.decodeHead
 import net.myna.mnbt.utils.CodecIntentExentions.tryGetId
@@ -64,13 +64,13 @@ object BinaryCodecInstances {
 
     private class StringCodec: DefaultCodec<String>(IdTagString, String::class.java) {
 
-        override fun encodeValue(value: String, intent: EncodeOnStream):CodecFeedback {
+        override fun encodeValue(value: String, intent: EncodeOnStream): CodecFeedback {
             val valueBits = value.toByteArray(Charsets.UTF_8)
             if (valueBits.size > 65535) throw IllegalArgumentException("String Tag value length is over 65535!")
             val valueLen = valueBits.size
             intent.outputStream.write(valueLen.toShort().toBytes())
             intent.outputStream.write(valueBits)
-            return object:CodecFeedback {}
+            return object: CodecFeedback {}
         }
 
         override fun decodeToValue(intent: DecodeOnStream): String {
@@ -93,9 +93,9 @@ object BinaryCodecInstances {
             DefaultCodec<V>(id, inst::class.java as Class<V>) {
         val instSize = inst.toBytes().size
 
-        override fun encodeValue(value: V, intent: EncodeOnStream):CodecFeedback {
+        override fun encodeValue(value: V, intent: EncodeOnStream): CodecFeedback {
             intent.outputStream.write(value.toBytes())
-            return object:CodecFeedback {}
+            return object: CodecFeedback {}
         }
         override fun decodeToValue(intent: DecodeOnStream):V {
             return intent.inputStream.readNBytes(instSize).toBasic(0, inst)
@@ -130,7 +130,7 @@ object BinaryCodecInstances {
 
         override fun createTag(name: String?, value: ARR): Tag<ARR> = tagCreation(name, value)
 
-        override fun encodeValue(value: ARR, intent: EncodeOnStream):CodecFeedback {
+        override fun encodeValue(value: ARR, intent: EncodeOnStream): CodecFeedback {
             val elementNum = RArray.getLength(value)
             val outputStream = intent.outputStream
             outputStream.write(elementNum.toBytes())
@@ -138,7 +138,7 @@ object BinaryCodecInstances {
                 val elementBits = elementToBits(value, i)
                 outputStream.write(elementBits)
             }
-            return object:CodecFeedback {}
+            return object: CodecFeedback {}
         }
 
 
@@ -162,7 +162,7 @@ object BinaryCodecInstances {
         override val id: Byte = IdTagList
         override val valueTypeToken = MutableList::class.java as Class<AnyTagList>
 
-        override fun encode(tag: Tag<out AnyTagList>, intent: EncodeIntent):CodecFeedback {
+        override fun encode(tag: Tag<out AnyTagList>, intent: EncodeIntent): CodecFeedback {
             intent as EncodeHead; intent as EncodeOnStream
             val hasHead = intent.encodeHead
             if (tag !is ListTag<*>) throw IllegalArgumentException("List Tag Codec can only handle tag type that is ListTag, but ${tag::class.java} is passed")
@@ -176,7 +176,7 @@ object BinaryCodecInstances {
             for (tags in tag.value) {
                 proxy.encode(tags, proxyIntent)
             }
-            return object:OutputStreamFeedback{
+            return object: OutputStreamFeedback {
                 override val outputStream = intent.outputStream
             }
         }
@@ -195,7 +195,7 @@ object BinaryCodecInstances {
                 val feedback = proxy.decode(proxyIntent)
                 nbtlist.add(feedback.tag)
             }
-            return object:TagFeedback<AnyTagList> {
+            return object: TagFeedback<AnyTagList> {
                 override val tag: Tag<AnyTagList> = nbtlist
             }
         }
@@ -203,13 +203,14 @@ object BinaryCodecInstances {
 
     @Suppress("UNCHECKED_CAST")
     class CompoundTagCodec(override var proxy: Codec<Any>)
-        : DefaultCodec<AnyCompound>(IdTagCompound, Map::class.java as Class<AnyCompound>),HierarchicalCodec<AnyCompound> {
+        : DefaultCodec<AnyCompound>(IdTagCompound, Map::class.java as Class<AnyCompound>),
+        HierarchicalCodec<AnyCompound> {
 
             override fun createTag(name: String?, value: AnyCompound): Tag<AnyCompound> {
                 return CompoundTag(name, value)
             }
 
-            override fun encodeValue(value: AnyCompound, intent: EncodeOnStream):CodecFeedback {
+            override fun encodeValue(value: AnyCompound, intent: EncodeOnStream): CodecFeedback {
                 val proxyIntent = toProxyIntent(true, intent)
                 value.onEach {
                     checkNotNull(it.value.name) // name should not be null
@@ -217,7 +218,7 @@ object BinaryCodecInstances {
                 }
                 // write TagEnd
                 intent.outputStream.write(IdTagEnd.toInt())
-                return object: CodecFeedback{}
+                return object: CodecFeedback {}
             }
 
             override fun decodeToValue(intent: DecodeOnStream): AnyCompound {
@@ -239,17 +240,17 @@ object BinaryCodecInstances {
         // hacky way, because can not init TypeToken<Nothing>(or TypeToken<void>)
         override val valueTypeToken = Unit::class.java
 
-        override fun encode(tag: Tag<out Unit>, intent: EncodeIntent):CodecFeedback {
+        override fun encode(tag: Tag<out Unit>, intent: EncodeIntent): CodecFeedback {
             intent as EncodeOnStream
             intent.outputStream.write(IdTagEnd.toInt())
-            return object:CodecFeedback{}
+            return object: CodecFeedback {}
         }
 
         override fun decode(intent: DecodeIntent): TagFeedback<Unit> {
             intent as DecodeOnStream; intent as DecodeHead
             val inputStream = intent.inputStream
-            if (!intent.ignoreIdWhenDecoding)CodecTool.checkNbtFormat(inputStream, id)
-            return object:TagFeedback<Unit> {
+            if (!intent.ignoreIdWhenDecoding) CodecTool.checkNbtFormat(inputStream, id)
+            return object: TagFeedback<Unit> {
                 override val tag = NullTag.inst
             }
         }
