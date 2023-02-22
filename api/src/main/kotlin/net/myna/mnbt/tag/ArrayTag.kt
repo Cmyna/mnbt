@@ -7,51 +7,23 @@ import net.myna.mnbt.Tag
 import net.myna.mnbt.utils.SnbtTools
 import java.util.*
 
-object ArrayTag {
-
-    fun reflectiveArrayTagEq(tag: Tag<*>, other: Any?):Boolean {
-        if(!Tag.isTagAndEqName(tag, other)) return false
-        other as Tag<*>
-        return reflectArrayTagValueEq(tag.value, other.value)
-    }
-
-    fun reflectArrayTagValueEq(tv: Any?, other: Any?):Boolean {
-        if (tv==null && other==null) return true
-        if (tv==null || other==null) return false
-        if (!tv::class.java.isArray) throw IllegalArgumentException("input value type ${tv::class.java} is not Array!")
-        if (!other::class.java.isArray) return false
-        if (tv::class.java.componentType!=other::class.java.componentType) return false
-        // compare size
-        val l1 = java.lang.reflect.Array.getLength(tv)
-        val l2 = java.lang.reflect.Array.getLength(other)
-        if (l1 != l2) return false
-        // compare each element in array
-        for (i in IntRange(0,l1-1)) {
-            val v1 = java.lang.reflect.Array.get(tv, i)
-            val v2 = java.lang.reflect.Array.get(other, i)
-            if (v1 != v2) return false
-        }
-        return true
-    }
-}
-
 @Suppress("EqualsOrHashCode")
 class IntArrayTag(override val name: String?, override val value: IntArray, override val id: Byte = IdTagIntArray) : Tag<IntArray>() {
-    override fun equals(other: Any?): Boolean = ArrayTag.reflectiveArrayTagEq(this, other)
+    override fun equals(other: Any?): Boolean = TagTools.reflectiveArrayTagEq(this, other)
     override fun valueToString(parents: Deque<Tag<*>>): String {
         return SnbtTools.sequenceToString(value.asSequence())
     }
 }
 @Suppress("EqualsOrHashCode")
 class ByteArrayTag(override val name: String?, override val value: ByteArray, override val id: Byte = IdTagByteArray) : Tag<ByteArray>() {
-    override fun equals(other: Any?): Boolean = ArrayTag.reflectiveArrayTagEq(this, other)
+    override fun equals(other: Any?): Boolean = TagTools.reflectiveArrayTagEq(this, other)
     override fun valueToString(parents: Deque<Tag<*>>): String {
         return SnbtTools.sequenceToString(value.asSequence())
     }
 }
 @Suppress("EqualsOrHashCode")
 class LongArrayTag(override val name: String?, override val value: LongArray, override val id: Byte = IdTagLongArray) : Tag<LongArray>() {
-    override fun equals(other: Any?): Boolean = ArrayTag.reflectiveArrayTagEq(this, other)
+    override fun equals(other: Any?): Boolean = TagTools.reflectiveArrayTagEq(this, other)
     override fun valueToString(parents: Deque<Tag<*>>): String {
         return SnbtTools.sequenceToString(value.asSequence())
     }

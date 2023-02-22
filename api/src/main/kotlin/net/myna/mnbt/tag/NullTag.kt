@@ -5,7 +5,7 @@ import net.myna.mnbt.Tag
 import java.util.*
 
 /**
- * Null Tag express that it is null
+ * Null Tag express that it is null. It is not a valid tag in nbt protocol
  */
 class NullTag private constructor(): Tag<Unit>() {
     override val id: Byte = IdTagEnd

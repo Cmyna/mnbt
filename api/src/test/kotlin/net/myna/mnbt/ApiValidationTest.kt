@@ -4,7 +4,6 @@ import net.myna.mnbt.codec.binary.BinaryCodecInstances
 import net.myna.mnbt.converter.TagConverters
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.tag.ByteTag
-import net.myna.mnbt.tag.PrimitiveTag
 import net.myna.mnbt.utils.ApiTestTool
 import net.myna.mnbt.utils.ApiTestTool.nestedListTest
 import net.myna.mnbt.utils.ApiTestValueBuildTool

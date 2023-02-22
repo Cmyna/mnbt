@@ -3,7 +3,6 @@ package net.myna.mnbt.converterTest
 
 import net.myna.mnbt.converter.TagConverters
 import net.myna.mnbt.reflect.MTypeToken
-import net.myna.mnbt.tag.ArrayTag
 import net.myna.mnbt.tag.ByteArrayTag
 import net.myna.mnbt.tag.IntArrayTag
 import net.myna.mnbt.tag.LongArrayTag
