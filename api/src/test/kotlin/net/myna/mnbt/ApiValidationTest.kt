@@ -20,7 +20,6 @@ import kotlin.random.Random
 // FIXME: HARD TO RECURRENT ISSUE: some times not equals assertion failed (on ApiTestTool.template assert tag1 and tag3)
 //  seems their name and value are all equals, name represent a chars sequence with unsupported symbols: `<?>`
 //  it may comes from unreliable random string creation
-@Suppress("UnstableApiUsage")
 class ApiValidationTest {
 
     private val valueEqFun = ApiTestTool::valueEqFun
@@ -148,7 +147,7 @@ class ApiValidationTest {
         listOfArrays.onEachIndexed { i,tri->
             template.apiTest(
                     TestMnbt.inst.refConverterProxy, TestMnbt.inst.refCodecProxy,
-                    tri.first, listOfArrays2.get(i).first, tri.third, listOfArrays2.get(i).third,
+                    tri.first, listOfArrays2[i].first, tri.third, listOfArrays2.get(i).third,
                     tri.second, object:MTypeToken<List<Any>>() {}
             )
         }
@@ -236,7 +235,7 @@ class ApiValidationTest {
 
     /**
      * test the functionality when there are circular references in Java object/Tag object.
-     * in general, it may throws Exceptions, but maybe we can choose different ways to handle it, for eg. just ignore those reference (like they are null)
+     * in general, it may throw Exceptions, but maybe we can choose different ways to handle it, for eg. just ignore those reference (like they are null)
      */
     @Test
     fun circularReferenceTest() {

@@ -12,6 +12,7 @@ import java.util.zip.*
 import kotlin.math.ceil
 import kotlin.properties.Delegates
 
+//TODO: ensure Java usability
 class RegionLoader(private val regionFile: File) {
 
     private val chunksInfoMap:MutableMap<ChunkPosition, ChunkInfo> = HashMap()

@@ -31,12 +31,12 @@ open class IntentDesignBenchmark {
         override val set: Set<Root> = setOf(
             object:Sub1 {
                 override val i: Int
-                    get() = TODO("Not yet implemented")
+                    get() = throw NotImplementedError()
                 override val j: String = this@IntentDesignBenchmark.j
                 override val k: Deque<Any>
-                    get() = TODO("Not yet implemented")
+                    get() = throw NotImplementedError()
                 override val b: Boolean
-                    get() = TODO("Not yet implemented")
+                    get() = throw NotImplementedError()
 
             }
         )
@@ -55,17 +55,17 @@ open class IntentDesignBenchmark {
     fun createDirectly(blackhole: Blackhole) {
         val inst = object:Sub1, Sub2, Sub3 {
             override val i: Int
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val j: String
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val k: Deque<Any>
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val b: Boolean
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val obj: Any
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val inputStream: InputStream
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
 
         } as Root
         blackhole.consume(inst)
@@ -75,24 +75,24 @@ open class IntentDesignBenchmark {
     fun createWithContainer(blackhole: Blackhole) {
         val sub1 = object:Sub1 {
             override val i: Int
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val j: String
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val k: Deque<Any>
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
             override val b: Boolean
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
 
         }
 
         val sub2 = object:Sub2 {
             override val obj: Any
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
         }
 
         val sub3 = object:Sub3 {
             override val inputStream: InputStream
-                get() = TODO("Not yet implemented")
+                get() = throw NotImplementedError()
         }
         val inst = object:interfaceContainer {
             override val set = setOf(sub1, sub2, sub3)

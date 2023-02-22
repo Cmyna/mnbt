@@ -20,7 +20,7 @@ class NullTag private constructor(): Tag<Unit>() {
     }
 
     override fun valueToString(parents: Deque<Tag<*>>): String {
-        TODO()
+        return "NullTag @${this.hashCode()}"
     }
 
     companion object {

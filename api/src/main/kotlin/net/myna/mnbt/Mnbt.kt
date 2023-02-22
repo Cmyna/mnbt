@@ -16,6 +16,7 @@ import java.io.OutputStream
 import java.lang.NullPointerException
 
 //TODO: Exception analyse, refactoring and handling
+//TODO: ensure Java usability
 open class Mnbt {
 
     @Suppress("UNCHECKED_CAST")

@@ -36,8 +36,7 @@ object SnbtTools {
         return builder.append("]").toString()
     }
 
-    //private val escapedChars = arrayOf('/','\\','\t','\b','\n', '\"', '\r')
-    private val escapedChars = mapOf<Char, String>(
+    private val escapedChars = mapOf(
         '/' to "\\/",
         '\\' to "\\\\",
         '\"' to "\\\"",
