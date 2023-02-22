@@ -8,7 +8,6 @@ import net.myna.mnbt.annotations.LocateAt;
 import net.myna.mnbt.converter.meta.NbtPathTool;
 import net.myna.mnbt.reflect.MTypeToken;
 import net.myna.mnbt.tag.CompoundTag;
-import org.assertj.core.internal.bytebuddy.build.BuildLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ import static net.myna.mnbt.ConstantsKt.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 //TODO: complete most of the api used in java
-
+// use encode/decode, use toTag/fromTag
 public class UseTest {
     @Test
     public void testWithTestJClassA() {
@@ -30,17 +29,16 @@ public class UseTest {
         obj1.i = 233;
         obj1.l = 123456789;
 
-        Tag<?> tag = mnbt.toTag("root", obj1, new MTypeToken<TestJClassA>() {});
+        Tag<?> tag = mnbt.toTag("root", obj1);
         assert tag instanceof CompoundTag;
         assertEquals("root", tag.getName());
         // test LocateAt annotation
-        assertNotNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag", IdTagCompound));
-        assertNotNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag/tag2/strTag", IdTagString));
+        assertNotNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag"));
+        assertNotNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag/tag2/strTag"));
 
         // test Ignore annotation
-        assertNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag/bytes", IdTagByteArray));
-        TestJClassA obj2 = Objects.requireNonNull(mnbt.fromTag(tag, new MTypeToken<TestJClassA>() {
-        })).getSecond();
+        assertNull(NbtPathTool.INSTANCE.findTag(tag, "./tag1/JClassATag/bytes"));
+        TestJClassA obj2 = Objects.requireNonNull(mnbt.fromTag(tag, new MTypeToken<TestJClassA>() {})).getSecond();
         assertEquals(233, obj2.i);
         assertEquals(123456789, obj2.l);
         assertEquals("some string", obj2.str);

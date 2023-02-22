@@ -20,6 +20,7 @@ import java.lang.NullPointerException
 //TODO: let InputStream passed in support mark methods(may use BufferedInputStream)
 open class Mnbt {
 
+    @JvmOverloads
     @Suppress("UNCHECKED_CAST")
     /**
      * serialize value to Nbt binary data stored in a ByteArray(byte[])
@@ -44,6 +45,7 @@ open class Mnbt {
         return encode(tag)
     }
 
+    @JvmOverloads
     @Suppress("UNCHECKED_CAST")
     /**
      * deserialize nbt binary data from a ByteArray starts at pointer passed in
@@ -82,6 +84,7 @@ open class Mnbt {
         return true
     }
 
+    @JvmOverloads
     /**
      * decode binary nbt data from an [InputStream], and convert it to an object with specified object type
      * @param typeToken see [paramTypeToken]
@@ -135,14 +138,15 @@ open class Mnbt {
         return codecProxy.decode(userDecodeIntent(inputStream)).tag
     }
 
+    @JvmOverloads
     /**
      * convert a java object to [Tag]
      * @param name see [varTopTagName]
      * @param value see [paramJavaObject]
-     * @param typeToken see [paramTypeToken]
+     * @param typeToken optional, see [paramTypeToken]
      * @return convert result [Tag]
      */
-    fun <V:Any> toTag(name:String?, value:V, typeToken: MTypeToken<out V>):Tag<out Any>? {
+    fun <V:Any> toTag(name:String?, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):Tag<out Any>? {
         return converterProxy.createTag(name, value, typeToken, createTagUserIntent())
     }
 

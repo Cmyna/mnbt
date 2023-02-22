@@ -15,6 +15,7 @@ fun nestCIntent(intent: ToValueIntent, ignoreTypeToken:Boolean): ToValueIntent {
     } as ToValueIntent
 }
 
+@JvmOverloads
 fun converterCallerIntent(ignoreTypeToken:Boolean = false): ToValueIntent {
     return if (ignoreTypeToken) object: IgnoreValueTypeToken,RecordParents {
         override val parents: Deque<Any> = ArrayDeque()

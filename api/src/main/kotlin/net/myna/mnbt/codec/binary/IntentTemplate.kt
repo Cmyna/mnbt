@@ -39,6 +39,7 @@ fun userOnBytesEncodeIntent(): EncodeIntent {
     }
 }
 
+@JvmOverloads
 fun userOnBytesDecodeIntent(data:ByteArray, start:Int, recordParents: Boolean = true): DecodeIntent {
     return if (recordParents) object: CodecCallerIntent, RecordParentsWhenEncoding, DecodeFromBytes, DecodeHead {
         override val parents: Deque<Tag<out Any>> = ArrayDeque()
@@ -58,6 +59,7 @@ fun userOnBytesDecodeIntent(data:ByteArray, start:Int, recordParents: Boolean = 
     }
 }
 
+@JvmOverloads
 fun toProxyIntent(intent: DecodeIntent, decodeHead: Boolean, desId: Byte, ignoreIdWhenDecoding: Boolean = false): DecodeIntent {
     val interfaces = intent::class.java.interfaces.toMutableSet()
     interfaces.add(SpecifyIdWhenDecoding::class.java)

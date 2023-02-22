@@ -85,7 +85,7 @@ object NbtPathTool{
         return tagNameRegex.findAll(pathValue).map { it.value }
     }
 
-
+    @JvmOverloads
     /**
      * function will search tag by relatePath start at entry parameter passed in,
      * @param entry search entry
@@ -103,6 +103,7 @@ object NbtPathTool{
         return findTag(entry, accessSeq, targetTagId)
     }
 
+    @JvmOverloads
     /**
      * @param start start point tag
      * @param accessSequence access sequences with path segments name

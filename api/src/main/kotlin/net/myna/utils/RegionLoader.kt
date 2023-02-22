@@ -80,6 +80,7 @@ class RegionLoader(private val regionFile: File) {
         }.let { Pair(BufferedInputStream(it), length) }
     }
 
+    @JvmOverloads
     /**
      * write target chunk to region file by passed in local xz position.
      * @param localChunkX the local chunk x position
