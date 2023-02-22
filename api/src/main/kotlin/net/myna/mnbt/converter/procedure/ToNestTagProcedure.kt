@@ -15,7 +15,7 @@ object ToNestTagProcedure {
         if (intent is OverrideTag) {
             val target = intent.overrideTarget
             if (target !is Tag.NestTag<*>) return intent
-            val subTarget = NbtPathTool.goto(target, toTargetTagPath)
+            val subTarget = NbtPathTool.findTag(target, toTargetTagPath)
             return overrideTagIntent(intent, subTarget)
         } else return intent
     }

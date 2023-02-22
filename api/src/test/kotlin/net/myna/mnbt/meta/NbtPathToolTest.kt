@@ -19,8 +19,8 @@ class NbtPathToolTest {
         val stringTag1 = ApiTestValueBuildTool.prepareTag2("string tag", "string")
         comps1[2].add(stringTag1)
 
-        assertEquals(intTag1, NbtPathTool.goto(comps1.first(), "./tag2/tag3/tag4/int tag", IdTagInt))
-        assertEquals(stringTag1, NbtPathTool.goto(comps1.first(), "./tag2/tag3/string tag", IdTagString))
+        assertEquals(intTag1, NbtPathTool.findTag(comps1.first(), "./tag2/tag3/tag4/int tag", IdTagInt))
+        assertEquals(stringTag1, NbtPathTool.findTag(comps1.first(), "./tag2/tag3/string tag", IdTagString))
     }
 
     @Test
@@ -29,12 +29,12 @@ class NbtPathToolTest {
         val listTags = buildListTags(path1)
         val intListTag = ListTag<Tag<Int>>(IdTagInt, null)
         listTags.last().add(intListTag as ListTag<AnyTag>)
-        assertEquals(intListTag, NbtPathTool.goto(listTags.first(), ".//#0/#15/#10/#0", IdTagList))
+        assertEquals(intListTag, NbtPathTool.findTag(listTags.first(), ".//#0/#15/#10/#0", IdTagList))
         repeat(7) {intListTag.add(ApiTestValueBuildTool.prepareTag2(null, 999) as Tag<Int>)}
         val intTag = ApiTestValueBuildTool.prepareTag2(null, 15) as Tag<Int>
         intListTag.add(intTag)
         repeat(3) {intListTag.add(ApiTestValueBuildTool.prepareTag2(null, 999) as Tag<Int>)}
-        assertEquals(intTag, NbtPathTool.goto(listTags.first(), "./#0/#15/#10/#0/#7", IdTagInt))
+        assertEquals(intTag, NbtPathTool.findTag(listTags.first(), "./#0/#15/#10/#0/#7", IdTagInt))
 
     }
 

@@ -17,6 +17,7 @@ import java.lang.NullPointerException
 //TODO: Exception analyse, refactoring and handling
 //TODO: ensure Java usability
 //TODO: intent parameters passed in mnbt methods(provide optional intent parameters)
+//TODO: let InputStream passed in support mark methods(may use BufferedInputStream)
 open class Mnbt {
 
     @Suppress("UNCHECKED_CAST")
@@ -28,7 +29,7 @@ open class Mnbt {
      * else value with value will first convert to Tag then serialized to bytes
      * @param name name of nbt root tag, see [varTopTagName]
      * @param value the value want to serialize, see [paramJavaObject]
-     * @param typeToken extra typeToken info for value (if ignore this parameter, TypeToken will use value.class as TypeTokenInfo)
+     * @param typeToken extra typeToken info for value (if ignore this parameter, TypeToken will use [value] class as TypeTokenInfo)
      * see [paramTypeToken]
      * @return a ByteArray stores data starts at 0 ends at ByteArray.size
      * @throws ConverterNullResultException if result of value->tag is null
@@ -83,9 +84,9 @@ open class Mnbt {
 
     /**
      * decode binary nbt data from an [InputStream], and convert it to an object with specified object type
-     * @param typeToken @see [paramTypeToken]
+     * @param typeToken see [paramTypeToken]
      * @param inputStream see [paramBinInputStream]
-     * @param converterIntent TODO
+     * @param converterIntent see [optionalParamToValueIntent]
      * @return see [returnFromTagResult]
      */
     open fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
@@ -291,7 +292,7 @@ open class Mnbt {
         private val paramBinOutputStream:Byte by UnsupportedProperty
 
         /**
-         * a [String] value represent top tag name in an Nbt structure
+         * a [String] value represent top tag name in a Nbt structure
          */
         private val varTopTagName:Byte by UnsupportedProperty
 
@@ -305,6 +306,16 @@ open class Mnbt {
          * stores the tag value converted to specified type (from [paramTypeToken])
          */
         private val returnFromTagResult by UnsupportedProperty
+
+        /**
+         * (Optional Parameter) specify [EncodeIntent] when encode a [Tag]
+         */
+        private val optionalParamEncodeIntent:Byte by UnsupportedProperty
+
+        /**
+         * (Optional Parameter) specify [ToValueIntent] by method caller when convert a [Tag] to another java object
+         */
+        private val optionalParamToValueIntent:Byte by UnsupportedProperty
 
     }
 

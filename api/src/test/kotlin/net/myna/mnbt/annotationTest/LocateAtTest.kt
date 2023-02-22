@@ -28,10 +28,10 @@ class LocateAtTest {
         // test override
         val comp2 = TestMnbt.inst.overrideTag(obj2, tk, comp1)
         assertTrue(MockTagEquals().structureEquals(comp1, comp2))
-        val comp2DataEntryTag = NbtPathTool.goto(comp2!!, "./midTag1/data class 4 entry")
-        assertEquals(obj2.dc4Int, NbtPathTool.goto(comp2DataEntryTag!!, "./midTag2/int tag in data class 4 tag")!!.value)
+        val comp2DataEntryTag = NbtPathTool.findTag(comp2!!, "./midTag1/data class 4 entry")
+        assertEquals(obj2.dc4Int, NbtPathTool.findTag(comp2DataEntryTag!!, "./midTag2/int tag in data class 4 tag")!!.value)
         // assert DataClass4::dc1 is ignored
-        assertNull(NbtPathTool.goto(comp2DataEntryTag, "./dc1"))
+        assertNull(NbtPathTool.findTag(comp2DataEntryTag, "./dc1"))
     }
 
     @Test

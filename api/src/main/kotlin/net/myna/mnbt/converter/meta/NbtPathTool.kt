@@ -97,7 +97,7 @@ object NbtPathTool{
      * @throws IllegalArgumentException if path segment in sequence has illegal format
      * @throws IndexOutOfBoundsException if path segment is an index, but index over the related container's length
      */
-    fun goto(entry:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
+    fun findTag(entry:Tag<out Any>, relatePath:String, targetTagId: Byte? = null):Tag<out Any>? {
         if (!isRelatedPath(relatePath)) return null
         val accessSeq = toAccessSequence(relatePath)
         return findTag(entry, accessSeq, targetTagId)

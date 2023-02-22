@@ -58,7 +58,7 @@ class RegionsLoaderTest {
         // assert some data in tag
         assertNotNull(tag)
         assertNotNull((tag as CompoundTag)["Level"])
-        assertEquals(4, (NbtPathTool.goto(tag, "./Level/Sections") as ListTag<AnyTag>).value.size)
+        assertEquals(4, (NbtPathTool.findTag(tag, "./Level/Sections") as ListTag<AnyTag>).value.size)
     }
 
     @Test

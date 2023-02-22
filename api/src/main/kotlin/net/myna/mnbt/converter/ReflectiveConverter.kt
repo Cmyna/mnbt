@@ -45,7 +45,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
         // get tag locator, else build a new one
         val (functionReturnedTag, subTreeRoot, returnedTagPath) = if (intent is BuiltCompoundSubTree) {
-            val got = NbtPathTool.goto(intent.root, intent.createdTagRelatePath, IdTagCompound)?: CompoundTag(name)
+            val got = NbtPathTool.findTag(intent.root, intent.createdTagRelatePath, IdTagCompound)?: CompoundTag(name)
             got as Tag<AnyCompound>
             Triple(got, intent.root, intent.createdTagRelatePath)
         } else {
@@ -124,7 +124,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             }
 
             if (intent is OverrideTag && intent.overrideTarget?.value is UnknownCompound) {
-                val overriddenDataEntryTag = NbtPathTool.goto(intent.overrideTarget!!, targetToDataEntryPath, IdTagCompound)
+                val overriddenDataEntryTag = NbtPathTool.findTag(intent.overrideTarget!!, targetToDataEntryPath, IdTagCompound)
                 if (overriddenDataEntryTag?.value is UnknownCompound) {
                     ToNestTagProcedure.appendMissSubTag(dataEntryTag.value, overriddenDataEntryTag as Tag<AnyCompound>)
                 }
@@ -171,7 +171,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
             subTreeRootToSubTagPath:String, callerIntent: CreateTagIntent,
             returnedTagToSubTagPath:String, buildRoot:Tag<out Any>):CreateTagIntent {
         val overrideTarget = if (callerIntent is OverrideTag && callerIntent.overrideTarget!=null) {
-            NbtPathTool.goto(callerIntent.overrideTarget!!, returnedTagToSubTagPath)
+            NbtPathTool.findTag(callerIntent.overrideTarget!!, returnedTagToSubTagPath)
         } else null
         return Proxy.newProxyInstance(callerIntent::class.java.classLoader, callerIntent::class.java.interfaces) {
             _,method,args ->
@@ -203,7 +203,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
 
         val dataEntryTag = if (classLocateAtMeta != null) {
             // try to get data entry tag from annotation LocateAt
-            val found = NbtPathTool.goto(tag, NbtPathTool.format(LocateAt.getDecodePath(classLocateAtMeta)))
+            val found = NbtPathTool.findTag(tag, NbtPathTool.format(LocateAt.getDecodePath(classLocateAtMeta)))
             if (found!=null && found.id== IdTagCompound) found else tag
         } else tag
         dataEntryTag as Tag<AnyCompound>
