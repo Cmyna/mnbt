@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static net.myna.mnbt.ConstantsKt.*;
@@ -44,6 +46,28 @@ public class UseTest {
         assertEquals("some string", obj2.str);
         assertEquals(5, obj2.bytes.length);
         assertEquals(-127, obj2.bytes[4]);
+    }
+
+    @Test
+    public void testMapConversion() {
+        Map<String, Integer> intMap = new HashMap<>();
+        intMap.put("int tag1", 55);
+        intMap.put("intTag2", 0);
+        intMap.put("intTag3", 9199);
+        Mnbt mnbt = new Mnbt();
+        Tag<?> tag = mnbt.toTag("int tag map", intMap);
+        assertTrue(tag instanceof CompoundTag);
+        assertEquals("int tag map", tag.getName());
+        assertEquals(3, ((CompoundTag)tag).getValue().entrySet().size());
+        assertEquals(55, ((CompoundTag)tag).getValue().get("int tag1").getValue());
+        assertEquals(0, ((CompoundTag)tag).getValue().get("intTag2").getValue());
+        assertEquals(9199, ((CompoundTag)tag).getValue().get("intTag3").getValue());
+
+        Map<String, Integer> map2 = Objects.requireNonNull(mnbt.fromTag(tag, new MTypeToken<Map<String, Integer>>() {})).getSecond();
+        assertEquals(3, map2.entrySet().size());
+        assertEquals(55, map2.get("int tag1"));
+        assertEquals(0, map2.get("intTag2"));
+        assertEquals(9199, map2.get("intTag3"));
     }
 
 

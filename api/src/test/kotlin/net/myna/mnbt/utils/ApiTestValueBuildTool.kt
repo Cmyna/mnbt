@@ -3,10 +3,8 @@ package net.myna.mnbt.utils
 
 import net.myna.mnbt.*
 import net.myna.mnbt.reflect.MTypeToken
-import net.myna.mnbt.tag.ArrayTag
-import net.myna.mnbt.tag.ListTag
+import net.myna.mnbt.tag.*
 import net.myna.mnbt.tag.ListTag.Companion.unknownElementId
-import net.myna.mnbt.tag.PrimitiveTag
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.set
@@ -143,23 +141,23 @@ object ApiTestValueBuildTool {
 
     fun <V:Any> prepareTag(value:V, name:String? = null):Tag<out Any> {
         return when(value) {
-            is Boolean -> PrimitiveTag.ByteTag(name, if (value) 1 else 0)
-            is Byte -> PrimitiveTag.ByteTag(name, value)
-            is Short -> PrimitiveTag.ShortTag(name, value)
-            is Int -> PrimitiveTag.IntTag(name, value)
-            is Long -> PrimitiveTag.LongTag(name, value)
-            is Float -> PrimitiveTag.FloatTag(name, value)
-            is Double -> PrimitiveTag.DoubleTag(name, value)
-            is String -> PrimitiveTag.StringTag(name, value)
-            is ByteArray -> ArrayTag.ByteArrayTag(name, value)
-            is IntArray -> ArrayTag.IntArrayTag(name, value)
-            is LongArray -> ArrayTag.LongArrayTag(name, value)
+            is Boolean -> ByteTag(name, if (value) 1 else 0)
+            is Byte -> ByteTag(name, value)
+            is Short -> ShortTag(name, value)
+            is Int -> IntTag(name, value)
+            is Long -> LongTag(name, value)
+            is Float -> FloatTag(name, value)
+            is Double -> DoubleTag(name, value)
+            is String -> StringTag(name, value)
+            is ByteArray -> ByteArrayTag(name, value)
+            is IntArray -> IntArrayTag(name, value)
+            is LongArray -> LongArrayTag(name, value)
             is Array<*> -> {
                 val comp = value::class.java.componentType
                 when (comp) {
-                    Byte::class.java,java.lang.Byte::class.java -> ArrayTag.ByteArrayTag(name, (value as Array<Byte>).toByteArray()) as Tag<V>
-                    Int::class.java,java.lang.Integer::class.java -> ArrayTag.IntArrayTag(name, (value as Array<Int>).toIntArray()) as Tag<V>
-                    Long::class.java,java.lang.Long::class.java -> ArrayTag.LongArrayTag(name, (value as Array<Long>).toLongArray()) as Tag<V>
+                    Byte::class.java,java.lang.Byte::class.java -> ByteArrayTag(name, (value as Array<Byte>).toByteArray()) as Tag<V>
+                    Int::class.java,java.lang.Integer::class.java -> IntArrayTag(name, (value as Array<Int>).toIntArray()) as Tag<V>
+                    Long::class.java,java.lang.Long::class.java -> LongArrayTag(name, (value as Array<Long>).toLongArray()) as Tag<V>
                     else -> throw NotImplementedError()
                 }
             }

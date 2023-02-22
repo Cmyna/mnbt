@@ -3,6 +3,7 @@ package net.myna.mnbt
 import net.myna.mnbt.codec.binary.BinaryCodecInstances
 import net.myna.mnbt.converter.TagConverters
 import net.myna.mnbt.reflect.MTypeToken
+import net.myna.mnbt.tag.ByteTag
 import net.myna.mnbt.tag.PrimitiveTag
 import net.myna.mnbt.utils.ApiTestTool
 import net.myna.mnbt.utils.ApiTestTool.nestedListTest
@@ -81,11 +82,11 @@ class ApiValidationTest {
         assertEquals(name2, backValue2.first)
 
         // test Tag<Byte> that value not 0
-        val tag3 = PrimitiveTag.ByteTag("", 127)
+        val tag3 = ByteTag("", 127)
         val value3 = TestMnbt.inst.refConverterProxy.toValue(tag3, boolTypeToken)!!
         assertEquals(true, value3.second)
 
-        val tag4 = PrimitiveTag.ByteTag("", -15)
+        val tag4 = ByteTag("", -15)
         val value4 = TestMnbt.inst.refConverterProxy.toValue(tag4, boolTypeToken)!!
         assertEquals(true, value4.second)
     }

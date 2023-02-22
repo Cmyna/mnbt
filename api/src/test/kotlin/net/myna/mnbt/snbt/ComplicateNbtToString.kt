@@ -3,10 +3,7 @@ package net.myna.mnbt.snbt
 import net.myna.mnbt.IdTagCompound
 import net.myna.mnbt.IdTagFloat
 import net.myna.mnbt.IdTagString
-import net.myna.mnbt.tag.ArrayTag
-import net.myna.mnbt.tag.CompoundTag
-import net.myna.mnbt.tag.ListTag
-import net.myna.mnbt.tag.PrimitiveTag
+import net.myna.mnbt.tag.*
 import net.myna.mnbt.utils.ApiTestValueBuildTool
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -73,16 +70,16 @@ class ComplicateNbtToString {
     @Test
     fun hideLongJsonArray() {
         // array tag
-        val intArrayTag = ArrayTag.IntArrayTag("int array tag",
+        val intArrayTag = IntArrayTag("int array tag",
             IntArray(200) { Random.nextInt() }
         )
         println(intArrayTag)
-        val floatTagsList = ListTag<PrimitiveTag.FloatTag>(IdTagFloat, "floatList")
-        repeat(100) { floatTagsList.add(ApiTestValueBuildTool.prepareTag2(null, Random.nextFloat()) as PrimitiveTag.FloatTag)}
+        val floatTagsList = ListTag<FloatTag>(IdTagFloat, "floatList")
+        repeat(100) { floatTagsList.add(ApiTestValueBuildTool.prepareTag2(null, Random.nextFloat()) as FloatTag)}
         println(floatTagsList)
 
-        val stringTagsList = ListTag<PrimitiveTag.StringTag>(IdTagString, "stringList")
-        repeat(100) { stringTagsList.add(ApiTestValueBuildTool.prepareTag2(null, "some string value") as PrimitiveTag.StringTag)}
+        val stringTagsList = ListTag<StringTag>(IdTagString, "stringList")
+        repeat(100) { stringTagsList.add(ApiTestValueBuildTool.prepareTag2(null, "some string value") as StringTag)}
         println(stringTagsList)
     }
 

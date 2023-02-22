@@ -5,8 +5,7 @@ import net.myna.mnbt.codec.*
 import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.presets.BitsArrayLengthGetter
 import net.myna.mnbt.reflect.TypeCheckTool
-import net.myna.mnbt.tag.ArrayTag
-import net.myna.mnbt.tag.PrimitiveTag
+import net.myna.mnbt.tag.*
 import net.myna.utils.Extensions.toBasic
 import net.myna.utils.Extensions.toBytes
 import net.myna.utils.Extensions.toString
@@ -14,43 +13,43 @@ import java.lang.IllegalArgumentException
 
 object FlatCodeses {
 
-    val intCodec = object: NumberTypeFlatCodec<Int, PrimitiveTag.IntTag>(IdTagInt, 0) {
-        override fun createTag(name: String?, value: Int) = PrimitiveTag.IntTag(name, value)
+    val intCodec = object: NumberTypeFlatCodec<Int, IntTag>(IdTagInt, 0) {
+        override fun createTag(name: String?, value: Int) = IntTag(name, value)
     } as OnByteFlatCodec<Int>
-    val byteCodec = object: NumberTypeFlatCodec<Byte, PrimitiveTag.ByteTag>(IdTagByte, 0.toByte()) {
-        override fun createTag(name: String?, value: Byte) = PrimitiveTag.ByteTag(name, value)
+    val byteCodec = object: NumberTypeFlatCodec<Byte, ByteTag>(IdTagByte, 0.toByte()) {
+        override fun createTag(name: String?, value: Byte) = ByteTag(name, value)
     } as OnByteFlatCodec<Byte>
 
-    val shortCodec = object: NumberTypeFlatCodec<Short, PrimitiveTag.ShortTag>(IdTagShort, 0.toShort()) {
-        override fun createTag(name: String?, value: Short) = PrimitiveTag.ShortTag(name, value)
+    val shortCodec = object: NumberTypeFlatCodec<Short, ShortTag>(IdTagShort, 0.toShort()) {
+        override fun createTag(name: String?, value: Short) = ShortTag(name, value)
     } as OnByteFlatCodec<Short>
-    val longCodec = object: NumberTypeFlatCodec<Long, PrimitiveTag.LongTag>(IdTagLong, 0.toLong()) {
-        override fun createTag(name: String?, value: Long) = PrimitiveTag.LongTag(name, value)
+    val longCodec = object: NumberTypeFlatCodec<Long, LongTag>(IdTagLong, 0.toLong()) {
+        override fun createTag(name: String?, value: Long) = LongTag(name, value)
     } as OnByteFlatCodec<Long>
-    val floatCodec = object: NumberTypeFlatCodec<Float, PrimitiveTag.FloatTag>(IdTagFloat,0.0f) {
-        override fun createTag(name: String?, value: Float) = PrimitiveTag.FloatTag(name, value)
+    val floatCodec = object: NumberTypeFlatCodec<Float, FloatTag>(IdTagFloat,0.0f) {
+        override fun createTag(name: String?, value: Float) = FloatTag(name, value)
     } as OnByteFlatCodec<Float>
-    val doubleCodec = object: NumberTypeFlatCodec<Double, PrimitiveTag.DoubleTag>(IdTagDouble,0.0) {
-        override fun createTag(name: String?, value: Double) = PrimitiveTag.DoubleTag(name, value)
+    val doubleCodec = object: NumberTypeFlatCodec<Double, DoubleTag>(IdTagDouble,0.0) {
+        override fun createTag(name: String?, value: Double) = DoubleTag(name, value)
     } as OnByteFlatCodec<Double>
 
     val stringCodec = StringCodec() as OnByteFlatCodec<String>
 
     val byteArrayCodec = FixPayloadArrayTagFlatCodec<Byte, ByteArray>(
-            IdTagByteArray, 1, { name, value -> ArrayTag.ByteArrayTag(name, value) },
+            IdTagByteArray, 1, { name, value -> ByteArrayTag(name, value) },
             { data: ByteArray, start: Int -> data.toBasic(start, 0.toByte()) },
             { element -> byteArrayOf(element) },
             BitsArrayLengthGetter::defaultToInt,
             ByteArray::class.java
     ) as OnByteFlatCodec<ByteArray>
     val intArrayCodec = FixPayloadArrayTagFlatCodec<Int, IntArray>(
-            IdTagIntArray, 4, { name, value -> ArrayTag.IntArrayTag(name, value) },
+            IdTagIntArray, 4, { name, value -> IntArrayTag(name, value) },
             { data: ByteArray, start: Int -> data.toBasic(start, 0) },
             { element -> element.toBytes() },
             BitsArrayLengthGetter::defaultToInt,
             IntArray::class.java) as OnByteFlatCodec<IntArray>
     val longArrayCodec = FixPayloadArrayTagFlatCodec<Long, LongArray>(
-            IdTagLongArray, 8, { name, value -> ArrayTag.LongArrayTag(name, value) },
+            IdTagLongArray, 8, { name, value -> LongArrayTag(name, value) },
             { data: ByteArray, start: Int -> data.toBasic(start, 0.toLong()) },
             { element -> element.toBytes() },
             BitsArrayLengthGetter::defaultToInt,
@@ -104,7 +103,7 @@ object FlatCodeses {
         }
 
         override fun createTag(name: String?, value: String): Tag<String> {
-            return PrimitiveTag.StringTag(name, value)
+            return StringTag(name, value)
         }
     }
 

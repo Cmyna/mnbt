@@ -7,20 +7,20 @@ import net.myna.mnbt.reflect.MTypeToken
 
 object TagConverters {
 
-    val intTagConverter = PrimitiveTagConverter(MTypeToken.of(Int::class.java)) { name, value->PrimitiveTag.IntTag(name, value)}
-    val shortTagConverter = PrimitiveTagConverter(MTypeToken.of(Short::class.java)) { name, value-> PrimitiveTag.ShortTag(name, value)}
-    val byteTagConverter = PrimitiveTagConverter(MTypeToken.of(Byte::class.java)) { name, value-> PrimitiveTag.ByteTag(name, value)}
-    val longTagConverter = PrimitiveTagConverter(MTypeToken.of(Long::class.java)) { name, value-> PrimitiveTag.LongTag(name, value)}
-    val floatTagConverter = PrimitiveTagConverter(MTypeToken.of(Float::class.java)) { name, value-> PrimitiveTag.FloatTag(name, value)}
-    val doubleTagConverter = PrimitiveTagConverter(MTypeToken.of(Double::class.java)) { name, value-> PrimitiveTag.DoubleTag(name, value)}
-    val stringTagConverter = PrimitiveTagConverter(MTypeToken.of(String::class.java)) { name, value-> PrimitiveTag.StringTag(name, value)}
+    val intTagConverter = PrimitiveTagConverter(MTypeToken.of(Int::class.java)) { name, value->IntTag(name, value)}
+    val shortTagConverter = PrimitiveTagConverter(MTypeToken.of(Short::class.java)) { name, value-> ShortTag(name, value)}
+    val byteTagConverter = PrimitiveTagConverter(MTypeToken.of(Byte::class.java)) { name, value-> ByteTag(name, value)}
+    val longTagConverter = PrimitiveTagConverter(MTypeToken.of(Long::class.java)) { name, value-> LongTag(name, value)}
+    val floatTagConverter = PrimitiveTagConverter(MTypeToken.of(Float::class.java)) { name, value-> FloatTag(name, value)}
+    val doubleTagConverter = PrimitiveTagConverter(MTypeToken.of(Double::class.java)) { name, value-> DoubleTag(name, value)}
+    val stringTagConverter = PrimitiveTagConverter(MTypeToken.of(String::class.java)) { name, value-> StringTag(name, value)}
 
     val byteArrayConverter = PrimitiveArrayTagConverter(
-            ByteArray::class.java) { name, arr -> ArrayTag.ByteArrayTag(name, arr) }
+            ByteArray::class.java) { name, arr -> ByteArrayTag(name, arr) }
     val intArrayConverter = PrimitiveArrayTagConverter(
-            IntArray::class.java) { name, arr -> ArrayTag.IntArrayTag(name, arr) }
+            IntArray::class.java) { name, arr -> IntArrayTag(name, arr) }
     val longArrayConverter = PrimitiveArrayTagConverter(
-            LongArray::class.java) { name, arr -> ArrayTag.LongArrayTag(name, arr) }
+            LongArray::class.java) { name, arr -> LongArrayTag(name, arr) }
 
     val booleanConverter = BooleanConverter()
 
@@ -38,7 +38,7 @@ object TagConverters {
         override fun <V : Any> createTag(name: String?, value: V, typeToken: MTypeToken<out V>, intent: CreateTagIntent): Tag<Byte>? {
             if (value is Boolean) {
                 val byte = if (value) 1.toByte() else 0.toByte()
-                return PrimitiveTag.ByteTag(name, byte)
+                return ByteTag(name, byte)
             } else return null
         }
 
