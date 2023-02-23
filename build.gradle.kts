@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "net.myna.mnbt"
 
+
 plugins {
     id("java-library")
     id("idea")
@@ -21,6 +22,11 @@ allprojects {
     tasks.create<Delete>("clean build") {
         group = "build"
         delete = setOf("build", "out")
+    }
+
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
 //    gradle.projectsEvaluated {
