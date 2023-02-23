@@ -15,3 +15,12 @@ include("api")
 
 
 // set subproject MavenPublication
+pluginManagement {
+    repositories {
+        maven {
+            setUrl("file://C:/Users/83663/.m2/repository/")
+            setUrl("https://maven.aliyun.com/repository/gradle-plugin")
+        }
+        gradlePluginPortal()
+    }
+}
