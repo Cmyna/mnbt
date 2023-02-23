@@ -1,12 +1,10 @@
 package net.myna.utils
 
-import net.myna.mnbt.AnyTag
 import net.myna.mnbt.Mnbt
 import net.myna.mnbt.Tag
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.tag.ListTag
 import java.awt.Rectangle
-import java.awt.ScrollPane
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -21,22 +19,30 @@ import javax.swing.tree.DefaultTreeModel
  * An Nbt Explorer Example base on java swing,
  * it can load and show a region file or an nbt file
  */
-class NbtGuiExplorerExample:JFrame() {
+open class NbtGuiExplorerExample:JFrame() {
 
-    @Volatile private var file: File? = null
-    @Volatile private var rootTag: Tag<out Any>? = null
-    @Volatile private var regionLoader: RegionLoader? = null
+    @Volatile
+    protected open var file: File? = null
+    @Volatile
+    protected open var rootTag: Tag<out Any>? = null
+    @Volatile
+    protected open var regionLoader: RegionLoader? = null
 
-    private var fileMenu = JMenu("file")
-    private var menuItemOpen = JMenuItem("open")
-    private var menuItemSave = JMenuItem("save")
-    private var menuItemSaveAs = JMenuItem("save as")
+    /**
+     * save and saveAs button not implemented
+     */
 
-    @Volatile private var nbtDisplayTree = JTree()
+    @Volatile
+    protected open var nbtDisplayTree = JTree()
 
-    private val mnbt = Mnbt()
+    protected open val fileMenu = JMenu("file")
+    protected open val menuItemOpen = JMenuItem("open")
+    protected open val menuItemSave = JMenuItem("save")
+    protected open val menuItemSaveAs = JMenuItem("save as")
 
-    private fun loadNbt(file:File):Tag<out Any>? {
+    protected open val mnbt = Mnbt()
+
+    protected open fun loadNbt(file:File):Tag<out Any>? {
         // try no compress
         try {
             val inputStream = BufferedInputStream(FileInputStream(file))
@@ -62,7 +68,7 @@ class NbtGuiExplorerExample:JFrame() {
         return null
     }
 
-    private fun launchFileLoading() {
+    protected open fun launchFileLoading() {
         val file = this.file
         if (file!=null) {
             Thread {
@@ -78,7 +84,7 @@ class NbtGuiExplorerExample:JFrame() {
     }
 
 
-    private fun updateWholeJTree() {
+    protected open fun updateWholeJTree() {
         println("start update whole JTree")
         if (this.rootTag!=null) {
             println("update from root tag")
@@ -110,7 +116,7 @@ class NbtGuiExplorerExample:JFrame() {
 
 
 
-    private fun initMenuItemEvent() {
+    protected open fun initMenuItemEvent() {
         this.menuItemOpen.addActionListener { event->
             val fileChooser = JFileChooser()
             val result = fileChooser.showOpenDialog(this)
@@ -136,7 +142,7 @@ class NbtGuiExplorerExample:JFrame() {
         }
     }
 
-    private fun buildJTreeModel(tag: Tag<out Any>):DefaultMutableTreeNode {
+    protected open fun buildJTreeModel(tag: Tag<out Any>):DefaultMutableTreeNode {
         if (tag is CompoundTag) {
             val rootNode = DefaultMutableTreeNode("${tag.name} (CompoundTag)")
             tag.value.onEach {
@@ -173,7 +179,7 @@ class NbtGuiExplorerExample:JFrame() {
         initMenuItemEvent()
     }
 
-    private val regionFileRegex = Regex("""
+    protected val regionFileRegex = Regex("""
         r\.\d+\.\d+\.mca
     """.trimIndent())
 
@@ -183,8 +189,6 @@ class NbtGuiExplorerExample:JFrame() {
             // test Nbt explorer
             val explorer = NbtGuiExplorerExample()
             explorer.isVisible = true
-
-
         }
     }
 }
