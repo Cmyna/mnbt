@@ -280,6 +280,7 @@ open class Mnbt {
 
     companion object {
 
+
         /**
          * a [paramJavaObject] class type token, presented by [MTypeToken]
          */
