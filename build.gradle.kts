@@ -24,8 +24,9 @@ allprojects {
         group = "build"
         delete = setOf("build", "out")
     }
-    
+
     apply {
+        // fix issue like https://stackoverflow.com/questions/62498917/gradle-kotlin-dsl-build-script-fails-when-java-sourcecompatibility-defined-in
         plugin("java")
     }
 
@@ -40,7 +41,7 @@ allprojects {
 
     tasks.withType<KotlinCompile>().all {
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "17"
             freeCompilerArgs = listOf()
         }
     }
