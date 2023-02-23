@@ -15,6 +15,7 @@ import java.io.OutputStream
 import java.lang.NullPointerException
 
 //TODO: Exception analyse, refactoring and handling
+// should throw to user readable Exceptions, includes where comes the Exceptions, nbt/object stacktrace
 //TODO: ensure Java usability
 //TODO: let InputStream passed in support mark methods(may use BufferedInputStream)
 open class Mnbt {

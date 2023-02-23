@@ -79,6 +79,17 @@ class RegionLoader(private val regionFile: File) {
         }.let { Pair(BufferedInputStream(it), length) }
     }
 
+    /**
+     * return all chunks with local position
+     * @return a list of local chunk position pair,
+     * first element is local chunk x pos, second one is local chunk z pos
+     */
+    fun listChunks():List<Pair<Int, Int>> {
+        return chunksInfoMap.map {
+            Pair(it.key.x, it.key.z)
+        }
+    }
+
     @JvmOverloads
     /**
      * write target chunk to region file by passed in local xz position.
@@ -165,7 +176,15 @@ class RegionLoader(private val regionFile: File) {
         }
     }
 
-    data class ChunkPosition(val x:Int, val z:Int)
+    data class ChunkPosition(
+        /**
+         * local chunk x
+         */
+        val x:Int,
+        /**
+         * local chunk z
+         */
+        val z:Int)
 
     data class ChunkInfo(
             /**
