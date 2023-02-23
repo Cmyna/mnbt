@@ -4,6 +4,7 @@ group = "net.myna.mnbt"
 
 
 plugins {
+    java
     id("java-library")
     id("idea")
 
@@ -23,11 +24,13 @@ allprojects {
         group = "build"
         delete = setOf("build", "out")
     }
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    
+    apply {
+        plugin("java")
     }
+
+    java.sourceCompatibility = JavaVersion.VERSION_17
+    java.targetCompatibility = JavaVersion.VERSION_17
 
 //    gradle.projectsEvaluated {
 //        tasks.withType(JavaCompile::class.java) {
