@@ -6,15 +6,7 @@ support all Nbt Tag format [specification](https://minecraft.fandom.com/wiki/NBT
 And also provide extension support any future Tag format (see [extension](#extends-more-type-of-nbt-tags-format))
 
 ### add dependencies
-by gradle (where `$version` is the version of this library)
-```groovy
-dependencies {
-    // use main api
-    implementation 'net.myna.mnbt:api:$version'
-    // use annotation
-    implementation 'net.myna.mnbt:annotation:$version'
-}
-```
+TODO
 
 ### Example: use Mnbt to convert single primitive value/primitive array
 convert a String to StringTag(kotlin):
