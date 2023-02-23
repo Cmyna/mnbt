@@ -1,7 +1,5 @@
 package net.myna.utils
 
-import net.myna.mnbt.Tag
-import net.myna.mnbt.tag.AnyCompound
 import net.myna.utils.Extensions.toBytes
 import net.myna.utils.Extensions.toInt
 import java.io.*

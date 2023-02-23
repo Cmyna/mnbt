@@ -100,7 +100,7 @@ open class NbtGuiExplorerExample:JFrame() {
             val chunkPosList = loader.listChunks()
             val root = DefaultMutableTreeNode("region data")
             chunkPosList.forEach {
-                val (stream, length) = loader.getChunkBinaryInputStream(it.first, it.second)!!
+                val (stream, _) = loader.getChunkBinaryInputStream(it.first, it.second)!!
                 val chunk = mnbt.decode(stream)
                 val chunkJNode = buildJTreeModel(chunk)
                 chunkJNode.userObject = "[chunk at x:${it.first}, z:${it.second}]"

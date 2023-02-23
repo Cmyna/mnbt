@@ -58,7 +58,7 @@ open class Mnbt {
      * @param decodeIntent see [optionalParamDecodeIntent]
      * @param toValueIntent see [optionalParamToValueIntent]
      * @return a pair that first element stores root tag name, second one stores deserialized tag value
-     * @throws NullPointerException TODO
+     * @throws IndexOutOfBoundsException if [start] out of [bytes] index range
      */
     open fun <V:Any> fromBytes(
         bytes: ByteArray,
@@ -66,7 +66,8 @@ open class Mnbt {
         typeToken: MTypeToken<out V>? = null,
         decodeIntent: DecodeIntent? = null,
         toValueIntent: ToValueIntent? = null
-    ):Pair<String, V>? {
+    ):Pair<String?, V>? {
+        if (start !in 0..bytes.size) throw IndexOutOfBoundsException("parameter start ($start) out of byte array range!")
         val inputStream = ByteArrayInputStream(bytes.copyOfRange(start, bytes.size))
         return fromStream(inputStream, typeToken, decodeIntent, toValueIntent)
     }
@@ -111,14 +112,13 @@ open class Mnbt {
      * @param toValueIntent see [optionalParamToValueIntent]
      * @param decodeIntent see [optionalParamDecodeIntent]
      * @return see [returnFromTagResult]
-     * @throws NullPointerException TODO
      */
     open fun <V:Any> fromStream(
         inputStream: InputStream,
         typeToken: MTypeToken<out V>? = null,
         decodeIntent: DecodeIntent? = null,
         toValueIntent: ToValueIntent? = null
-    ):Pair<String, V>? {
+    ):Pair<String?, V>? {
         val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
         val feedback = codecProxy.decode(userDecodeIntent(inputStream))
         val res = if (toValueIntent!=null) converterProxy.toValue(feedback.tag, actualTypeToken, toValueIntent)
@@ -126,7 +126,7 @@ open class Mnbt {
         return if (res == null) null
         else {
             if (res.first == null) throw NullPointerException()
-            res as Pair<String, V>
+            res as Pair<String?, V>
         }
     }
 
@@ -177,8 +177,10 @@ open class Mnbt {
      * @param start specifies where the nbt binary data starts
      * @param decodeIntent see [optionalParamDecodeIntent]
      * @return the decoded result
+     * @throws IndexOutOfBoundsException if [start] out of [bytes] index range
      */
     open fun decode(bytes: ByteArray, start:Int, decodeIntent: DecodeIntent? = null):Tag<out Any> {
+        if (start !in 0..bytes.size) throw IndexOutOfBoundsException("parameter start ($start) out of byte array range!")
         val inputStream = ByteArrayInputStream(bytes.copyOfRange(start, bytes.size))
         return decode(inputStream, decodeIntent)
     }

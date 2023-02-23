@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
 
-@Suppress("UnstableApiUsage", "UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
 class ExceptionsTest {
 
     /**
