@@ -1,7 +1,5 @@
 package net.myna.mnbt;
 
-import net.myna.mnbt.Mnbt;
-import net.myna.mnbt.Tag;
 import net.myna.mnbt.reflect.MTypeToken;
 import net.myna.mnbt.tag.CompoundTag;
 import net.myna.mnbt.tag.DoubleTag;

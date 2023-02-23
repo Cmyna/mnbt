@@ -6,8 +6,8 @@ import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.IdTagList
 import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.binary.BinaryCodecInstances
-import net.myna.mnbt.codec.binary.userDecodeIntent
-import net.myna.mnbt.codec.binary.userEncodeIntent
+import net.myna.mnbt.codec.userDecodeIntent
+import net.myna.mnbt.codec.userEncodeIntent
 import net.myna.mnbt.converter.ExcluderConverter
 import net.myna.mnbt.exceptions.CircularReferenceException
 import net.myna.mnbt.exceptions.MaxNbtTreeDepthException

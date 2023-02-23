@@ -2,9 +2,7 @@ package net.myna.mnbt.utils
 
 import net.myna.mnbt.Mnbt
 import net.myna.mnbt.Tag
-import net.myna.mnbt.codec.EncodedBytesFeedback
-import net.myna.mnbt.codec.binary.userOnBytesDecodeIntent
-import net.myna.mnbt.codec.binary.userOnBytesEncodeIntent
+import net.myna.mnbt.codec.*
 import net.myna.mnbt.experiment.CompoundTagCodec
 import net.myna.mnbt.experiment.FlatCodeses
 import net.myna.mnbt.experiment.ListTagCodec
@@ -25,11 +23,11 @@ open class TestMnbt: Mnbt() {
     val refCompoundCodec = super.compoundTagCodec
     val refListCodec = super.listCodec
 
-    override fun decode(bytes: ByteArray, start:Int): Tag<out Any> {
+    override fun decode(bytes: ByteArray, start:Int, decodeIntent: DecodeIntent?): Tag<out Any> {
         return onByteCodecProxy.decode(userOnBytesDecodeIntent(bytes, start)).tag
     }
 
-    override fun encode(tag:Tag<out Any>):ByteArray {
+    override fun encode(tag:Tag<out Any>, encodeIntent: EncodeIntent?):ByteArray {
         return (onByteCodecProxy.encode(tag, userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
     }
 

@@ -1,7 +1,6 @@
-package net.myna.mnbt.codec.binary
+package net.myna.mnbt.codec
 
 import net.myna.mnbt.Tag
-import net.myna.mnbt.codec.*
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Proxy
@@ -10,16 +9,31 @@ import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.javaSetter
 
 
-fun userEncodeIntent(outputStream: OutputStream): EncodeIntent {
-    return object: EncodeHead, EncodeOnStream, RecordParentsWhenEncoding {
+@JvmOverloads
+fun userEncodeIntent(outputStream: OutputStream, intent: EncodeIntent? = null): EncodeIntent {
+    if (intent == null) return object: EncodeHead, EncodeOnStream, RecordParentsWhenEncoding {
         override val parents: Deque<Tag<out Any>> = ArrayDeque()
         override val outputStream: OutputStream = outputStream
         override val encodeHead:Boolean = true
     }
+    else {
+        val interfaces = intent::class.java.interfaces.toMutableSet()
+        interfaces.add(EncodeOnStream::class.java)
+        interfaces.add(EncodeHead::class.java)
+        interfaces.add(RecordParentsWhenEncoding::class.java)
+        return Proxy.newProxyInstance(intent::class.java.classLoader, interfaces.toTypedArray()) { _,method,args->
+            return@newProxyInstance when(method) {
+                EncodeOnStream::outputStream.javaGetter -> outputStream
+                EncodeHead::encodeHead.javaGetter -> true
+                RecordParentsWhenEncoding::parents.javaGetter -> ArrayDeque<Any>()
+                else -> method.invoke(intent, *args.orEmpty())
+            }
+        } as EncodeIntent
+    }
 }
 
-fun userDecodeIntent(inputStream: InputStream): DecodeIntent {
-    return object: DecodeOnStream, DecodeHead, DecodeTreeDepth {
+fun userDecodeIntent(inputStream: InputStream, decodeIntent: DecodeIntent? = null): DecodeIntent {
+    if (decodeIntent==null) return object: DecodeOnStream, DecodeHead, DecodeTreeDepth {
         override val inputStream = inputStream
         override val ignoreIdWhenDecoding: Boolean = false
         var _depth:Int = 0
@@ -27,7 +41,23 @@ fun userDecodeIntent(inputStream: InputStream): DecodeIntent {
             get() = _depth
             set(value) {_depth = value}
     }
+    else {
+        val interfaces = decodeIntent::class.java.interfaces.toMutableSet()
+        interfaces.add(DecodeOnStream::class.java)
+        interfaces.add(DecodeHead::class.java)
+        interfaces.add(DecodeTreeDepth::class.java)
+        return Proxy.newProxyInstance(decodeIntent::class.java.classLoader, interfaces.toTypedArray()) { _,method,args->
+            return@newProxyInstance when(method) {
+                DecodeOnStream::inputStream.javaGetter -> inputStream
+                DecodeHead::ignoreIdWhenDecoding.javaGetter -> false
+                DecodeTreeDepth::depth.javaGetter -> 0
+                else -> method.invoke(decodeIntent, *args.orEmpty())
+            }
+        } as DecodeIntent
+    }
 }
+
+
 
 /**
  * intent that want Codec serialize tag to bytes

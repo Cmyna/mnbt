@@ -31,7 +31,7 @@ class LevelLoadingTest {
         val gzipStream = GZIPInputStream(fileStream)
         TestMnbt.inst.returnObjectContainsNullableProperties = false
         val level = gzipStream.use {
-            TestMnbt.inst.fromStream(object: MTypeToken<LevelClassForTest>() {}, gzipStream)
+            TestMnbt.inst.fromStream(gzipStream, object: MTypeToken<LevelClassForTest>() {})
         }!!
         assertEquals("", level.first)
         assertEquals(testData.hardcore, level.second.hardcore)

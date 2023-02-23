@@ -3,7 +3,6 @@ package net.myna.mnbt.experiment
 import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.Tag
 import net.myna.mnbt.codec.*
-import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.defaultTreeDepthLimit
 import net.myna.mnbt.exceptions.CircularReferenceException
 import net.myna.mnbt.exceptions.MaxNbtTreeDepthException

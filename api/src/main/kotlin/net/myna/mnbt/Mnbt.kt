@@ -16,12 +16,10 @@ import java.lang.NullPointerException
 
 //TODO: Exception analyse, refactoring and handling
 //TODO: ensure Java usability
-//TODO: intent parameters passed in mnbt methods(provide optional intent parameters)
 //TODO: let InputStream passed in support mark methods(may use BufferedInputStream)
 open class Mnbt {
 
     @JvmOverloads
-    @Suppress("UNCHECKED_CAST")
     /**
      * serialize value to Nbt binary data stored in a ByteArray(byte[])
      *
@@ -32,110 +30,156 @@ open class Mnbt {
      * @param value the value want to serialize, see [paramJavaObject]
      * @param typeToken extra typeToken info for value (if ignore this parameter, TypeToken will use [value] class as TypeTokenInfo)
      * see [paramTypeToken]
+     * @param createTagIntent see [optionalParamCreateTagIntent]
+     * @param encodeIntent see [optionalParamEncodeIntent]
      * @return a ByteArray stores data starts at 0 ends at ByteArray.size
      * @throws ConverterNullResultException if result of value->tag is null
      * @throws CircularReferenceException if circular reference is found
      */
-    open fun <V:Any> toBytes(name:String, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):ByteArray {
-        if (value is Tag<*>) {
-            return encode(value as Tag<out Any>)
-        }
-        val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent())
-                ?: throw ConverterNullResultException(value)
-        return encode(tag)
+    open fun <V:Any> toBytes(
+        name:String, value:V,
+        typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java),
+        createTagIntent: CreateTagIntent? = null,
+        encodeIntent: EncodeIntent? = null
+    ):ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        toStream(name, value, typeToken, outputStream, createTagIntent, encodeIntent)
+        return outputStream.toByteArray()
     }
 
     @JvmOverloads
-    @Suppress("UNCHECKED_CAST")
     /**
      * deserialize nbt binary data from a ByteArray starts at pointer passed in
      * @param bytes the ByteArray stores nbt data
      * @param start pointer to the nbt data
      * @param typeToken see [paramTypeToken]
      * if null it will return default type
+     * @param decodeIntent see [optionalParamDecodeIntent]
+     * @param toValueIntent see [optionalParamToValueIntent]
      * @return a pair that first element stores root tag name, second one stores deserialized tag value
      * @throws NullPointerException TODO
      */
-    open fun <V:Any> fromBytes(bytes:ByteArray, start:Int, typeToken: MTypeToken<out V>? = null):Pair<String, V>? {
-        val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
-        val tag = decode(bytes, start)
-        val converterCallerIntent = if (typeToken == null)  converterCallerIntent(true) else converterCallerIntent(false)
-        val res = converterProxy.toValue<Any>(tag, actualTypeToken, converterCallerIntent)
-        if (res?.first==null) throw NullPointerException()
-        return res as Pair<String, V>? // runtime check
+    open fun <V:Any> fromBytes(
+        bytes: ByteArray,
+        start: Int,
+        typeToken: MTypeToken<out V>? = null,
+        decodeIntent: DecodeIntent? = null,
+        toValueIntent: ToValueIntent? = null
+    ):Pair<String, V>? {
+        val inputStream = ByteArrayInputStream(bytes.copyOfRange(start, bytes.size))
+        return fromStream(inputStream, typeToken, decodeIntent, toValueIntent)
     }
 
+    @JvmOverloads
     /**
      * encode the object to binary nbt format, and write encoded result to an [OutputStream]
      * @param name the root tag name, see [varTopTagName]
      * @param value the object to encoded, see [paramJavaObject]
      * @param typeToken see [paramTypeToken]
+     * @param createTagIntent see [optionalParamCreateTagIntent]
+     * @param encodeIntent see [optionalParamEncodeIntent]
      * @param outputStream see [paramBinOutputStream]
      * @return return encode process success or not
+     * @throws ConverterNullResultException if result of value->tag is null
+     * @throws CircularReferenceException if circular reference is found
      */
-    open fun <V:Any> toStream(name:String, value:V, typeToken: MTypeToken<out V>, outputStream:OutputStream):Boolean {
+    open fun <V:Any> toStream(
+        name: String,
+        value: V,
+        typeToken: MTypeToken<out V>,
+        outputStream: OutputStream,
+        createTagIntent: CreateTagIntent? = null,
+        encodeIntent: EncodeIntent? = null
+    ):Boolean {
         if (value is Tag<*>) {
-            codecProxy.encode(encapsulatedWithCompoundTag(name, value), userEncodeIntent(outputStream))
+            codecProxy.encode(encapsulatedWithCompoundTag(name, value), userEncodeIntent(outputStream, encodeIntent))
             return true
         }
-        val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent())
+        val tag = converterProxy.createTag(name, value, typeToken, createTagUserIntent(createTagIntent))
                 ?: throw ConverterNullResultException(value)
-        codecProxy.encode(tag, userEncodeIntent(outputStream))
+        codecProxy.encode(tag, userEncodeIntent(outputStream, encodeIntent))
         return true
     }
 
     @JvmOverloads
+    @Suppress("UNCHECKED_CAST")
     /**
      * decode binary nbt data from an [InputStream], and convert it to an object with specified object type
-     * @param typeToken see [paramTypeToken]
+     * @param typeToken (optional) see [paramTypeToken], if not pas typeToken then function will return value as default type
      * @param inputStream see [paramBinInputStream]
-     * @param converterIntent see [optionalParamToValueIntent]
+     * @param toValueIntent see [optionalParamToValueIntent]
+     * @param decodeIntent see [optionalParamDecodeIntent]
      * @return see [returnFromTagResult]
+     * @throws NullPointerException TODO
      */
-    open fun <V:Any> fromStream(typeToken: MTypeToken<out V>, inputStream: InputStream, converterIntent: ToValueIntent?=null):Pair<String?, V>? {
+    open fun <V:Any> fromStream(
+        inputStream: InputStream,
+        typeToken: MTypeToken<out V>? = null,
+        decodeIntent: DecodeIntent? = null,
+        toValueIntent: ToValueIntent? = null
+    ):Pair<String, V>? {
+        val actualTypeToken = typeToken?:MTypeToken.of(Any::class.java)
         val feedback = codecProxy.decode(userDecodeIntent(inputStream))
-        return if (converterIntent!=null) converterProxy.toValue(feedback.tag, typeToken, converterIntent)
-        else converterProxy.toValue(feedback.tag, typeToken)
+        val res = if (toValueIntent!=null) converterProxy.toValue(feedback.tag, actualTypeToken, toValueIntent)
+        else converterProxy.toValue(feedback.tag, actualTypeToken)
+        return if (res == null) null
+        else {
+            if (res.first == null) throw NullPointerException()
+            res as Pair<String, V>
+        }
     }
 
+    @JvmOverloads
     /**
      * encode a [Tag] as binary nbt format to an [OutputStream]
+     * the function will auto override [EncodeOnStream],[EncodeHead],and [RecordParentsWhenEncoding] as encode intent
      * @param tag the [Tag] want to encode
      * @param outputStream see [paramBinOutputStream]
+     * @param encodeIntent see [optionalParamEncodeIntent]
+     * @throws CircularReferenceException if circular references is found in [tag]
      */
-    open fun encode(tag:Tag<out Any>, outputStream: OutputStream) {
-        codecProxy.encode(tag, userEncodeIntent(outputStream))
+    open fun encode(tag:Tag<out Any>, outputStream: OutputStream, encodeIntent: EncodeIntent? = null) {
+        val intent = userEncodeIntent(outputStream, encodeIntent)
+        codecProxy.encode(tag, intent)
     }
 
+    @JvmOverloads
     /**
-     * encode a [Tag] to an byte array
+     * encode a [Tag] to a byte array,
+     * the function will auto override [EncodeOnStream],[EncodeHead],and [RecordParentsWhenEncoding] as encode intent
      * @param tag the [Tag] want to encode
+     * @param encodeIntent see [optionalParamEncodeIntent]
      * @return a byte array stores encoded result starts at index 0, ends at byte array's end
      * @throws CircularReferenceException if circular references is found in [tag]
      */
-    open fun encode(tag:Tag<out Any>):ByteArray {
+    open fun encode(tag:Tag<out Any>, encodeIntent: EncodeIntent? = null):ByteArray {
         val outputStream = ByteArrayOutputStream()
-        codecProxy.encode(tag, userEncodeIntent(outputStream))
+        encode(tag, outputStream, encodeIntent)
         return outputStream.toByteArray()
     }
 
+    @JvmOverloads
     /**
      * decode a tag from an [InputStream]
      * @param inputStream see [paramBinInputStream]
+     * @param decodeIntent see [optionalParamDecodeIntent]
      * @return decoded [Tag]
      */
-    open fun decode(inputStream: InputStream):Tag<out Any> {
-        return codecProxy.decode(userDecodeIntent(inputStream)).tag
+    open fun decode(inputStream: InputStream, decodeIntent: DecodeIntent? = null):Tag<out Any> {
+        return codecProxy.decode(userDecodeIntent(inputStream, decodeIntent)).tag
     }
 
+    @JvmOverloads
     /**
      * decode a byte array
-     * @start specifies where the nbt binary data starts
+     * @param bytes byte array contains nbt binary data
+     * @param start specifies where the nbt binary data starts
+     * @param decodeIntent see [optionalParamDecodeIntent]
      * @return the decoded result
      */
-    open fun decode(bytes: ByteArray, start:Int):Tag<out Any> {
+    open fun decode(bytes: ByteArray, start:Int, decodeIntent: DecodeIntent? = null):Tag<out Any> {
         val inputStream = ByteArrayInputStream(bytes.copyOfRange(start, bytes.size))
-        return codecProxy.decode(userDecodeIntent(inputStream)).tag
+        return decode(inputStream, decodeIntent)
     }
 
     @JvmOverloads
@@ -143,35 +187,45 @@ open class Mnbt {
      * convert a java object to [Tag]
      * @param name see [varTopTagName]
      * @param value see [paramJavaObject]
-     * @param typeToken optional, see [paramTypeToken]
+     * @param typeToken (optional) see [paramTypeToken]
+     * @param createTagIntent see [optionalParamCreateTagIntent]
      * @return convert result [Tag]
      */
-    fun <V:Any> toTag(name:String?, value:V, typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java)):Tag<out Any>? {
-        return converterProxy.createTag(name, value, typeToken, createTagUserIntent())
+    fun <V:Any> toTag(
+        name:String?, value:V,
+        typeToken: MTypeToken<out V> = MTypeToken.of(value::class.java),
+        createTagIntent: CreateTagIntent? = null
+    ):Tag<out Any>? {
+        return converterProxy.createTag(name, value, typeToken, createTagUserIntent(createTagIntent))
     }
 
+    @JvmOverloads
     /**
      * convert a [Tag] to an java object with specified type
      * @param tag a [Tag] object
      * @param typeToken see [paramTypeToken]
+     * @param toValueIntent see [optionalParamToValueIntent]
      * @return see [returnFromTagResult]
      */
-    fun <V:Any> fromTag(tag:Tag<out Any>, typeToken: MTypeToken<out V>):Pair<String?,V>? {
+    fun <V:Any> fromTag(tag:Tag<out Any>, typeToken: MTypeToken<out V>, toValueIntent: ToValueIntent? = null):Pair<String?,V>? {
+        if (toValueIntent!=null) return converterProxy.toValue(tag, typeToken, toValueIntent)
         return converterProxy.toValue(tag, typeToken)
     }
 
+    @JvmOverloads
     /**
      * @param value see [paramJavaObject]
      * @param typeToken see [paramTypeToken]
      * @param targetTag a [Tag] that will be overridden
+     * @param overrideTagIntent (optional) an [CreateTagIntent], function will auto override [RecordParents] and [OverrideTag] interfaces
      * @return a new [Tag] that is combined from value and targetTag,
      * all same tag in [targetTag] nbt structure is overridden by value
      */
-    fun <V:Any> overrideTag(value:V, typeToken: MTypeToken<out V>, targetTag:Tag<out Any>):Tag<out Any>? {
+    fun <V:Any> overrideTag(value:V, typeToken: MTypeToken<out V>, targetTag:Tag<out Any>, overrideTagIntent: CreateTagIntent? = null):Tag<out Any>? {
         // for flat tag, it just creates a new tag and use value from parameter, use name from target tag
         // so no extra code to reach functionality of override
         // problem is need to check tag type is equals or not
-        val res = converterProxy.createTag(targetTag.name, value, typeToken, overrideTagUserIntent(targetTag))
+        val res = converterProxy.createTag(targetTag.name, value, typeToken, overrideTagUserIntent(targetTag, overrideTagIntent))
         // check top tag type
         return if (res?.id != targetTag.id) null
         else res
@@ -313,14 +367,28 @@ open class Mnbt {
         private val returnFromTagResult by UnsupportedProperty
 
         /**
-         * (Optional Parameter) specify [EncodeIntent] when encode a [Tag]
+         * (Optional Parameter) specify [EncodeIntent] by function caller,
+         * the function will override interfaces [EncodeOnStream],[EncodeHead],and [RecordParentsWhenEncoding]
          */
         private val optionalParamEncodeIntent:Byte by UnsupportedProperty
 
         /**
-         * (Optional Parameter) specify [ToValueIntent] by method caller when convert a [Tag] to another java object
+         * (Optional Parameter) specify [DecodeIntent] by function caller,
+         * the function will override interfaces [DecodeHead],[DecodeOnStream] and [DecodeTreeDepth]
+         */
+        private val optionalParamDecodeIntent:Byte by UnsupportedProperty
+
+        /**
+         * (Optional Parameter) specify [ToValueIntent] by function caller when convert a [Tag] to another java object
          */
         private val optionalParamToValueIntent:Byte by UnsupportedProperty
+
+        /**
+         * (Optional Parameter) specify [CreateTagIntent] by function caller when convert any java object to a [Tag],
+         * the function will auto override [RecordParents] interfaces
+         */
+        private val optionalParamCreateTagIntent:Byte by UnsupportedProperty
+
 
     }
 

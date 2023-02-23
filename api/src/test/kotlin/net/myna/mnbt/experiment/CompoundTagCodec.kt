@@ -5,7 +5,6 @@ import net.myna.mnbt.IdTagEnd
 import net.myna.mnbt.Tag
 import net.myna.mnbt.TagIdPayload
 import net.myna.mnbt.codec.*
-import net.myna.mnbt.codec.binary.*
 import net.myna.mnbt.tag.AnyCompound
 import net.myna.mnbt.tag.CompoundTag
 import java.util.ArrayList

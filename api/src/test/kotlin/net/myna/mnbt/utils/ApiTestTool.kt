@@ -4,8 +4,8 @@ package net.myna.mnbt.utils
 import net.myna.mnbt.*
 import net.myna.mnbt.codec.Codec
 import net.myna.mnbt.codec.HierarchicalCodec
-import net.myna.mnbt.codec.binary.userDecodeIntent
-import net.myna.mnbt.codec.binary.userEncodeIntent
+import net.myna.mnbt.codec.userDecodeIntent
+import net.myna.mnbt.codec.userEncodeIntent
 import net.myna.mnbt.converter.*
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.reflect.ObjectInstanceHandler
@@ -321,13 +321,13 @@ object ApiTestTool {
         private fun <V:Any> mnbtTest(name:String, value:V, typeToken: MTypeToken<out V>, valueBitsLen: Int) {
             val bytes1 = TestMnbt.inst.toBytes(name, value, typeToken)
             val outputStream = ByteArrayOutputStream()
-            TestMnbt.inst.toStream(name, value, typeToken, outputStream)
+            TestMnbt.inst.toStream(name, value, typeToken, outputStream, null, null)
             val bytes2 = outputStream.toByteArray()
             val tagHeadBitsLen = name!!.toByteArray(Charsets.UTF_8).size + TagIdPayload + StringSizePayload
             val tagLen = tagHeadBitsLen + valueBitsLen
 
-            val value2 = TestMnbt.inst.fromBytes(bytes1, 0, typeToken)!!
-            val value3 = TestMnbt.inst.fromStream(typeToken, ByteArrayInputStream(bytes2))!!
+            val value2 = TestMnbt.inst.fromBytes(bytes1, 0, typeToken, null, null)!!
+            val value3 = TestMnbt.inst.fromStream(ByteArrayInputStream(bytes2), typeToken)!!
 
             assertEquals(tagLen, bytes1.size)
             assertEquals(tagLen, bytes2.size)
