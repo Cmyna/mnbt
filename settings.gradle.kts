@@ -9,7 +9,7 @@
 
 rootProject.name = "mnbt"
 
-include("processor")
+// include("processor") // not used now
 include("annotation")
 include("api")
 
