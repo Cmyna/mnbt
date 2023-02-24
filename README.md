@@ -1,4 +1,6 @@
 # mnbt
+[![](https://jitpack.io/v/Cmyna/mnbt.svg)](https://jitpack.io/#Cmyna/mnbt)
+
 An nbt serialization/deserialization JVM library 
 
 A better nbt data processing tools on JVM, 
@@ -6,7 +8,22 @@ support all Nbt Tag format [specification](https://minecraft.fandom.com/wiki/NBT
 And also provide extension support any future Tag format (see [extension](#extends-more-type-of-nbt-tags-format))
 
 ### add dependencies
-TODO
+#### Gradle
+First add JitPack Repository
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+Then add mnbt dependencies
+```groovy
+dependencies {
+    // api dependency
+    implementation 'com.github.Cmyna.mnbt:api:alpha-1.0'
+    // annotation dependency
+    implementation 'com.github.Cmyna.mnbt:annotation:alpha-1.0'
+}
+```
 
 ### Example: use Mnbt to convert single primitive value/primitive array
 convert a String to StringTag(kotlin):
@@ -72,5 +89,33 @@ class DateTag(override val name:String?, override val value:Date):Tag<Date>() {
     }
 }
 ```
-Also, to handle this kind of Tag, should also implement 
+Also, to handle this new Tag type, should also implement 
 `Codec` and `TagConverter` class
+
+### Example: use Annotation
+
+Mnbt support using annotation to remap the classes/fields to a specific 
+Nbt structure, take map Level.dat nbt data as example:
+```kotlin
+@LocateAt("./Data/Version") // map to a relate Nbt tag structure
+data class LevelVersion(
+    @LocateAt("Id")
+    val id:Int, // remap to tag with name "Id"
+    @LocateAt("Name")
+    val name:String, // remap to tag with name "Name"
+    val Snapshot: Byte, // no mapping, the tag name is "Snapshot"
+)
+```
+we know the Level.dat nbt structure is: an unnamed root tag contains a
+sub-Compound tag called "Data", where there is a Compound Tag called "Version". 
+So the class with `LocateAt` annotation shows this structure. Then 
+we can easily get correct `LevelVersion` object with correct data
+when there is already an `Tag` object represent Level.dat nbt structure:
+```kotlin
+val levelTag:CompoundTag = getLevelTag()
+val levelVersion = Mnbt().fromTag(levelTag, object:MTypeToken<LevelVersion>() {})
+```
+
+There are other Annotations such as `Ignore`/`IgnoreWhenEncode`/`IgnoreWhenDecode`,
+which can declare a field will
+be ignored in converting to a Tag or de-converting from a Tag
