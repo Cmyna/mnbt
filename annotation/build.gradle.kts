@@ -5,8 +5,6 @@ plugins {
     id("maven-publish")
 }
 
-version "unspecified"
-
 repositories {
     mavenCentral()
 }

@@ -29,10 +29,10 @@ open class Mnbt {
      * else value with value will first convert to Tag then serialized to bytes
      * @param name name of nbt root tag, see [varTopTagName]
      * @param value the value want to serialize, see [paramJavaObject]
-     * @param typeToken extra typeToken info for value (if ignore this parameter, TypeToken will use [value] class as TypeTokenInfo)
+     * @param typeToken (optional) extra typeToken info for value (if ignore this parameter, TypeToken will use [value] class as TypeTokenInfo)
      * see [paramTypeToken]
-     * @param createTagIntent see [optionalParamCreateTagIntent]
-     * @param encodeIntent see [optionalParamEncodeIntent]
+     * @param createTagIntent (optional) see [optionalParamCreateTagIntent]
+     * @param encodeIntent (optional) see [optionalParamEncodeIntent]
      * @return a ByteArray stores data starts at 0 ends at ByteArray.size
      * @throws ConverterNullResultException if result of value->tag is null
      * @throws CircularReferenceException if circular reference is found
@@ -53,10 +53,10 @@ open class Mnbt {
      * deserialize nbt binary data from a ByteArray starts at pointer passed in
      * @param bytes the ByteArray stores nbt data
      * @param start pointer to the nbt data
-     * @param typeToken see [paramTypeToken]
+     * @param typeToken (optional) see [paramTypeToken]
      * if null it will return default type
-     * @param decodeIntent see [optionalParamDecodeIntent]
-     * @param toValueIntent see [optionalParamToValueIntent]
+     * @param decodeIntent (optional) see [optionalParamDecodeIntent]
+     * @param toValueIntent (optional) see [optionalParamToValueIntent]
      * @return a pair that first element stores root tag name, second one stores deserialized tag value
      * @throws IndexOutOfBoundsException if [start] out of [bytes] index range
      */
@@ -78,9 +78,10 @@ open class Mnbt {
      * @param name the root tag name, see [varTopTagName]
      * @param value the object to encoded, see [paramJavaObject]
      * @param typeToken see [paramTypeToken]
-     * @param createTagIntent see [optionalParamCreateTagIntent]
-     * @param encodeIntent see [optionalParamEncodeIntent]
      * @param outputStream see [paramBinOutputStream]
+     * @param createTagIntent (optional) see [optionalParamCreateTagIntent]
+     * @param encodeIntent (optional) see [optionalParamEncodeIntent]
+
      * @return return encode process success or not
      * @throws ConverterNullResultException if result of value->tag is null
      * @throws CircularReferenceException if circular reference is found
@@ -109,8 +110,8 @@ open class Mnbt {
      * decode binary nbt data from an [InputStream], and convert it to an object with specified object type
      * @param typeToken (optional) see [paramTypeToken], if not pas typeToken then function will return value as default type
      * @param inputStream see [paramBinInputStream]
-     * @param toValueIntent see [optionalParamToValueIntent]
-     * @param decodeIntent see [optionalParamDecodeIntent]
+     * @param toValueIntent (optional) see [optionalParamToValueIntent]
+     * @param decodeIntent (optional) see [optionalParamDecodeIntent]
      * @return see [returnFromTagResult]
      */
     open fun <V:Any> fromStream(
@@ -136,7 +137,7 @@ open class Mnbt {
      * the function will auto override [EncodeOnStream],[EncodeHead],and [RecordParentsWhenEncoding] as encode intent
      * @param tag the [Tag] want to encode
      * @param outputStream see [paramBinOutputStream]
-     * @param encodeIntent see [optionalParamEncodeIntent]
+     * @param encodeIntent (optional) see [optionalParamEncodeIntent]
      * @throws CircularReferenceException if circular references is found in [tag]
      */
     open fun encode(tag:Tag<out Any>, outputStream: OutputStream, encodeIntent: EncodeIntent? = null) {
@@ -149,7 +150,7 @@ open class Mnbt {
      * encode a [Tag] to a byte array,
      * the function will auto override [EncodeOnStream],[EncodeHead],and [RecordParentsWhenEncoding] as encode intent
      * @param tag the [Tag] want to encode
-     * @param encodeIntent see [optionalParamEncodeIntent]
+     * @param encodeIntent (optional) see [optionalParamEncodeIntent]
      * @return a byte array stores encoded result starts at index 0, ends at byte array's end
      * @throws CircularReferenceException if circular references is found in [tag]
      */
@@ -163,7 +164,7 @@ open class Mnbt {
     /**
      * decode a tag from an [InputStream]
      * @param inputStream see [paramBinInputStream]
-     * @param decodeIntent see [optionalParamDecodeIntent]
+     * @param decodeIntent (optional) see [optionalParamDecodeIntent]
      * @return decoded [Tag]
      */
     open fun decode(inputStream: InputStream, decodeIntent: DecodeIntent? = null):Tag<out Any> {
@@ -175,7 +176,7 @@ open class Mnbt {
      * decode a byte array
      * @param bytes byte array contains nbt binary data
      * @param start specifies where the nbt binary data starts
-     * @param decodeIntent see [optionalParamDecodeIntent]
+     * @param decodeIntent (optional) see [optionalParamDecodeIntent]
      * @return the decoded result
      * @throws IndexOutOfBoundsException if [start] out of [bytes] index range
      */
@@ -191,7 +192,7 @@ open class Mnbt {
      * @param name see [varTopTagName]
      * @param value see [paramJavaObject]
      * @param typeToken (optional) see [paramTypeToken]
-     * @param createTagIntent see [optionalParamCreateTagIntent]
+     * @param createTagIntent (optional) see [optionalParamCreateTagIntent]
      * @return convert result [Tag]
      */
     fun <V:Any> toTag(
@@ -207,7 +208,7 @@ open class Mnbt {
      * convert a [Tag] to an java object with specified type
      * @param tag a [Tag] object
      * @param typeToken see [paramTypeToken]
-     * @param toValueIntent see [optionalParamToValueIntent]
+     * @param toValueIntent (optional) see [optionalParamToValueIntent]
      * @return see [returnFromTagResult]
      */
     fun <V:Any> fromTag(tag:Tag<out Any>, typeToken: MTypeToken<out V>, toValueIntent: ToValueIntent? = null):Pair<String?,V>? {
