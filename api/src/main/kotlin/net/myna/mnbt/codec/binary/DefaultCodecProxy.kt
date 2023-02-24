@@ -19,19 +19,9 @@ class DefaultCodecProxy(): Codec<Any> {
     override val valueTypeToken = Any::class.java
     private val codecMap:MutableMap<Byte, Codec<out Any>> = HashMap<Byte, Codec<out Any>>()
 
-    fun registerCodec(codec: Codec<out Any>):Boolean {
-        this.codecMap[codec.id] = codec
+    fun registerCodec(codec: Codec<out Any>, targetTagId:Byte):Boolean {
+        this.codecMap[targetTagId] = codec
         return true
-    }
-
-    constructor(codecInstances:List<Codec<Any>>):this() {
-        for (codec in codecInstances) codecMap[codec.id] = codec
-    }
-
-    constructor(vararg codecInstances: Codec<out Any>):this() {
-        for (codec in codecInstances) {
-            codecMap[codec.id] = codec
-        }
     }
 
     /**

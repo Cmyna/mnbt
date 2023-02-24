@@ -18,7 +18,7 @@ class CodecBytesProfiling {
         val mnbt = Mnbt()
         val bytes = BufferedInputStream(GZIPInputStream(FileInputStream(file))).readAllBytes()
         val holder = Holder(null)
-        repeat(1000) {
+        repeat(100) {
             val tag = mnbt.decode(bytes, 0)
             holder.obj = tag
         }

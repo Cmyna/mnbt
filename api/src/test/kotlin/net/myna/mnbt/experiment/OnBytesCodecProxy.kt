@@ -18,17 +18,6 @@ class OnBytesCodecProxy: Codec<Any> {
     private val codecMap:MutableMap<Byte, Codec<out Any>> = HashMap<Byte, Codec<out Any>>()
 
 
-
-    constructor(codecInstances:List<Codec<Any>>):this() {
-        for (Codec in codecInstances) codecMap[Codec.id] = Codec
-    }
-
-    constructor(vararg Codeces: Codec<out Any>) {
-        for (codec in Codeces) {
-            codecMap[codec.id] = codec
-        }
-    }
-
     override fun encode(tag: Tag<out Any>, intent: EncodeIntent): CodecFeedback {
         intent as RecordParentsWhenEncoding
         val parents = intent.parents
@@ -71,8 +60,8 @@ class OnBytesCodecProxy: Codec<Any> {
         return Codec.decode(newIntent)
     }
 
-    fun registerCodec(codec: Codec<out Any>):Boolean {
-        this.codecMap[codec.id] = codec
+    fun registerCodec(codec: Codec<out Any>, id:Byte):Boolean {
+        this.codecMap[id] = codec
         return true
     }
 
