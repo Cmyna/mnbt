@@ -5,7 +5,6 @@ import net.myna.mnbt.Tag;
 import net.myna.mnbt.annotations.FieldValueProvider;
 import net.myna.mnbt.annotations.Ignore;
 import net.myna.mnbt.annotations.LocateAt;
-import net.myna.mnbt.converter.meta.NbtPathTool;
 import net.myna.mnbt.reflect.MTypeToken;
 import net.myna.mnbt.tag.CompoundTag;
 import org.jetbrains.annotations.NotNull;

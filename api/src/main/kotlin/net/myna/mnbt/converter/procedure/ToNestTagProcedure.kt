@@ -3,7 +3,7 @@ package net.myna.mnbt.converter.procedure
 import net.myna.mnbt.Tag
 import net.myna.mnbt.converter.CreateTagIntent
 import net.myna.mnbt.converter.OverrideTag
-import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.converter.overrideTagIntent
 import net.myna.mnbt.tag.AnyCompound
 import net.myna.mnbt.tag.AnyTagList

@@ -1,7 +1,7 @@
 package net.myna.mnbt.meta
 
 import net.myna.mnbt.*
-import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.tag.ListTag
 import net.myna.mnbt.utils.ApiTestValueBuildTool

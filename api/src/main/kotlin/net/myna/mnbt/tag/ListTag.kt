@@ -2,7 +2,7 @@ package net.myna.mnbt.tag
 
 import net.myna.mnbt.IdTagList
 import net.myna.mnbt.Tag
-import net.myna.mnbt.converter.meta.NbtPathTool.indexFormatRegex
+import net.myna.mnbt.utils.NbtPathTool.indexFormatRegex
 import java.lang.StringBuilder
 import java.util.*
 

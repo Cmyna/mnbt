@@ -1,4 +1,4 @@
-package net.myna.mnbt.converter.meta
+package net.myna.mnbt.utils
 
 import net.myna.mnbt.Tag
 import java.lang.IllegalArgumentException
@@ -119,7 +119,7 @@ object NbtPathTool{
         accessSequence.forEach { pathSegment->
             sequenceMatchFlag = false
             val value = current!!.value
-            val subTag = getSubTag(value, pathSegment)?: return@forEach
+            val subTag = getSubTag(value, pathSegment) ?: return@forEach
             current = subTag
             sequenceMatchFlag = true
         }

@@ -7,7 +7,7 @@ import net.myna.mnbt.Tag
 import net.myna.mnbt.annotations.Ignore
 import net.myna.mnbt.annotations.IgnoreFromTag
 import net.myna.mnbt.annotations.LocateAt
-import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.converter.procedure.ToNestTagProcedure
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.reflect.ObjectInstanceHandler
