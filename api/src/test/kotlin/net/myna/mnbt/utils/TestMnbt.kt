@@ -1,7 +1,6 @@
 package net.myna.mnbt.utils
 
-import net.myna.mnbt.Mnbt
-import net.myna.mnbt.Tag
+import net.myna.mnbt.*
 import net.myna.mnbt.codec.*
 import net.myna.mnbt.experiment.CompoundTagCodec
 import net.myna.mnbt.experiment.FlatCodeses
@@ -31,19 +30,24 @@ open class TestMnbt: Mnbt() {
         return (onByteCodecProxy.encode(tag, userOnBytesEncodeIntent()) as EncodedBytesFeedback).bytes
     }
 
-    protected val onByteCodecProxy: OnBytesCodecProxy = OnBytesCodecProxy(
-    FlatCodeses.intCodec, FlatCodeses.shortCodec,
-    FlatCodeses.byteCodec, FlatCodeses.longCodec,
-    FlatCodeses.floatCodec, FlatCodeses.doubleCodec,
-    FlatCodeses.stringCodec, FlatCodeses.intArrayCodec,
-    FlatCodeses.byteArrayCodec, FlatCodeses.longArrayCodec,
-    )
+    protected val onByteCodecProxy: OnBytesCodecProxy = OnBytesCodecProxy()
 
     protected val onByteListCodec = ListTagCodec(this.onByteCodecProxy)
     protected val onByteCompoundTagCodec = CompoundTagCodec(this.onByteCodecProxy)
 
 
     init {
+        onByteCodecProxy.registerCodec(FlatCodeses.intCodec, IdTagInt)
+        onByteCodecProxy.registerCodec(FlatCodeses.shortCodec, IdTagShort)
+        onByteCodecProxy.registerCodec(FlatCodeses.byteCodec, IdTagByte)
+        onByteCodecProxy.registerCodec(FlatCodeses.longCodec, IdTagLong)
+        onByteCodecProxy.registerCodec(FlatCodeses.floatCodec, IdTagFloat)
+        onByteCodecProxy.registerCodec(FlatCodeses.doubleCodec, IdTagDouble)
+        onByteCodecProxy.registerCodec(FlatCodeses.stringCodec, IdTagString)
+        onByteCodecProxy.registerCodec(FlatCodeses.intArrayCodec, IdTagIntArray)
+        onByteCodecProxy.registerCodec(FlatCodeses.byteArrayCodec, IdTagByteArray)
+        onByteCodecProxy.registerCodec(FlatCodeses.longArrayCodec, IdTagLongArray)
+
         super.reflectiveConverter.proxy = mockConverterProxy
         super.arrayTypeListTagConverter.proxy = mockConverterProxy
         super.mapTypeTagConverter.proxy = mockConverterProxy
@@ -54,8 +58,8 @@ open class TestMnbt: Mnbt() {
 
         super.reflectiveConverter.printStacktrace = true
 
-        this.onByteCodecProxy.registerCodec(onByteCompoundTagCodec)
-        this.onByteCodecProxy.registerCodec(onByteListCodec)
+        this.onByteCodecProxy.registerCodec(onByteCompoundTagCodec, IdTagCompound)
+        this.onByteCodecProxy.registerCodec(onByteListCodec, IdTagList)
     }
 
     companion object {
