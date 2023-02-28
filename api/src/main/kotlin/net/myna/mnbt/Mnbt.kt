@@ -309,6 +309,7 @@ open class Mnbt {
 
     init {
         // register codec
+        this.codecProxy.registerCodec(BinaryCodecInstances.nullTagCodec, IdTagEnd)
         this.codecProxy.registerCodec(BinaryCodecInstances.byteCodec, IdTagByte)
         this.codecProxy.registerCodec(BinaryCodecInstances.shortCodec, IdTagShort)
         this.codecProxy.registerCodec(BinaryCodecInstances.intCodec, IdTagInt)
