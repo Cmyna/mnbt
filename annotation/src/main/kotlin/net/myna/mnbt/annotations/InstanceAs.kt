@@ -2,6 +2,7 @@ package net.myna.mnbt.annotations
 
 import kotlin.reflect.KClass
 
+// TODO: annotated to generic type support
 /**
  * this annotation is used for declaring an actual field class type
  * if field is declared as an interface

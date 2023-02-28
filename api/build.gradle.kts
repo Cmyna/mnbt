@@ -55,6 +55,7 @@ sourceSets.test {
     resources.srcDirs("src/test/resources")
 }
 
+
 // the handle error when use ./gradlew build ----- Execution failed for task ':api:processTestResources'.
 // > Entry nbt_data/regions/r.3.4.mca is a duplicate but no duplicate handling strategy has been set
 tasks.processTestResources {

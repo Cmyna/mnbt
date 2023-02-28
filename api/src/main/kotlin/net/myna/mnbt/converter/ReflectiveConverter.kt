@@ -6,11 +6,13 @@ import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.Tag
 import net.myna.mnbt.annotations.Ignore
 import net.myna.mnbt.annotations.IgnoreFromTag
+import net.myna.mnbt.annotations.InstanceAs
 import net.myna.mnbt.annotations.LocateAt
 import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.converter.procedure.ToNestTagProcedure
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.reflect.ObjectInstanceHandler
+import net.myna.mnbt.reflect.TypeCheckTool
 import net.myna.mnbt.tag.UnknownCompound
 import java.lang.Exception
 import java.lang.IllegalArgumentException
@@ -187,7 +189,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
     // core idea: first find constructors
     // try to deserialize them with field related class as typeToken
     // if one of return is null, means total conversion failed, final result will become null
-    // if can not construct instance, return null
+    // if the converter can not construct instance, return null
     @Suppress("UNCHECKED_CAST")
     override fun <V : Any> toValue(tag: Tag<out Any>, typeToken: MTypeToken<out V>, intent: ToValueIntent): Pair<String?, V>? {
         // parameter check
@@ -224,7 +226,9 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                 // try ignoreFromTag
                 val ignoreFromTag = Ignore.tryGetIgnoreFromTag(field)
                 if (ignoreFromTag != null) return@mapValues IgnoreFromTag.tryProvide(ignoreFromTag.fieldValueProvider, field)
-                val fieldTypeToken = MTypeToken.of(field.genericType)
+                val instanceAsAnnotation = field.getAnnotation(InstanceAs::class.java)
+                val fieldTypeToken = if (instanceAsAnnotation!=null) MTypeToken.of(instanceAsAnnotation.instanceClass.java) else MTypeToken.of(field.genericType)
+                //val fieldTypeToken = MTypeToken.of(field.genericType)
 
                 val fieldTag = NbtPathTool.findTag(dataEntryTag, it.value)?: return@mapValues null
                 val value = proxy.toValue(fieldTag, fieldTypeToken, nestCIntent(intent, false))
