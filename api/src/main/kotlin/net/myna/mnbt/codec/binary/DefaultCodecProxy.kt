@@ -11,27 +11,20 @@ import java.lang.reflect.Proxy
 import java.util.*
 import kotlin.reflect.jvm.javaGetter
 
+// FIXME: Codec proxy has serious performance issue, in some benchmark decode process is even much slower than convert the class object process
+//  major performance cost in profiling comes from reflect invoke method through Dynamic proxies
 class DefaultCodecProxy(): Codec<Any> {
 
     private val invalidFlag:Byte = -1
 
+    @Deprecated("Codec tag type(with id) restriction is considered to be removed")
     override val id: Byte = invalidFlag
     override val valueTypeToken = Any::class.java
     private val codecMap:MutableMap<Byte, Codec<out Any>> = HashMap<Byte, Codec<out Any>>()
 
-    fun registerCodec(codec: Codec<out Any>):Boolean {
-        this.codecMap[codec.id] = codec
+    fun registerCodec(codec: Codec<out Any>, targetTagId:Byte):Boolean {
+        this.codecMap[targetTagId] = codec
         return true
-    }
-
-    constructor(codecInstances:List<Codec<Any>>):this() {
-        for (codec in codecInstances) codecMap[codec.id] = codec
-    }
-
-    constructor(vararg codecInstances: Codec<out Any>):this() {
-        for (codec in codecInstances) {
-            codecMap[codec.id] = codec
-        }
     }
 
     /**

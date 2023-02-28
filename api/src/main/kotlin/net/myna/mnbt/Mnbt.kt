@@ -249,10 +249,12 @@ open class Mnbt {
     /**
      * register Codec to encode/decode a tag to binary format. Because one [Codec] can only handle one Tag type (with id specified in [Tag.id]),
      * so it will replace the [Codec] which handle same type tag
+     * @param codec [Codec] instance
+     * @param targetTagId the Target [Tag] type id that the [codec] can handle
      * @return specifies that register is success or not
      */
-    fun registerCodec(codec: Codec<Any>):Boolean {
-        return this.codecProxy.registerCodec(codec)
+    fun registerCodec(codec: Codec<Any>, targetTagId:Byte):Boolean {
+        return this.codecProxy.registerCodec(codec, targetTagId)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -293,12 +295,7 @@ open class Mnbt {
 
 
     protected val converterProxy:DefaultConverterProxy = DefaultConverterProxy()
-    protected val codecProxy: DefaultCodecProxy = DefaultCodecProxy(BinaryCodecInstances.intCodec, BinaryCodecInstances.shortCodec,
-            BinaryCodecInstances.byteCodec, BinaryCodecInstances.longCodec,
-            BinaryCodecInstances.floatCodec, BinaryCodecInstances.doubleCodec,
-            BinaryCodecInstances.stringCodec, BinaryCodecInstances.intArrayCodec,
-            BinaryCodecInstances.byteArrayCodec, BinaryCodecInstances.longArrayCodec,
-            BinaryCodecInstances.nullTagCodec)
+    protected val codecProxy: DefaultCodecProxy = DefaultCodecProxy()
 
 
     protected val arrayTypeListTagConverter = ListConverters.ArrayTypeListTagConverter(this.converterProxy)
@@ -311,8 +308,20 @@ open class Mnbt {
 
 
     init {
-        this.codecProxy.registerCodec(listCodec)
-        this.codecProxy.registerCodec(compoundTagCodec)
+        // register codec
+        this.codecProxy.registerCodec(BinaryCodecInstances.byteCodec, IdTagByte)
+        this.codecProxy.registerCodec(BinaryCodecInstances.shortCodec, IdTagShort)
+        this.codecProxy.registerCodec(BinaryCodecInstances.intCodec, IdTagInt)
+        this.codecProxy.registerCodec(BinaryCodecInstances.longCodec, IdTagLong)
+        this.codecProxy.registerCodec(BinaryCodecInstances.floatCodec, IdTagFloat)
+        this.codecProxy.registerCodec(BinaryCodecInstances.doubleCodec, IdTagDouble)
+        this.codecProxy.registerCodec(BinaryCodecInstances.stringCodec, IdTagString)
+        this.codecProxy.registerCodec(BinaryCodecInstances.byteArrayCodec, IdTagByteArray)
+        this.codecProxy.registerCodec(BinaryCodecInstances.intArrayCodec, IdTagIntArray)
+        this.codecProxy.registerCodec(BinaryCodecInstances.longArrayCodec, IdTagLongArray)
+        this.codecProxy.registerCodec(listCodec, IdTagList)
+        this.codecProxy.registerCodec(compoundTagCodec, IdTagCompound)
+
         converterProxy.also {
             it.registerToFirst(ExcluderConverter.instance)
             it.registerToLast(TagConverters.booleanConverter)

@@ -1,12 +1,13 @@
 package net.myna.mnbt.annotationTest
 
+import net.myna.mnbt.IdTagCompound
+import net.myna.mnbt.Mnbt
+import net.myna.mnbt.annotations.IgnoreToTag
 import net.myna.mnbt.annotations.LocateAt
 import net.myna.mnbt.converter.OverrideTag
-import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.reflect.MTypeToken
-import net.myna.mnbt.tag.AnyCompound
-import net.myna.mnbt.tag.CompoundTag
-import net.myna.mnbt.tag.UnknownCompound
+import net.myna.mnbt.tag.*
 import net.myna.mnbt.utils.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -89,8 +90,50 @@ class LocateAtTest {
         template.apiTest(name1, name2, value1, value2, object:MTypeToken<TestClassA>() {})
     }
 
+    @Test
+    fun backTracePath() {
+        val root = CompoundTag("root")
+        val tag1 = CompoundTag("tag1").also { root.add(it) }
+        val dataEntry = CompoundTag("targetTag").also { tag1.add(it) }
+        val stringTag = StringTag("string tag", "string value").also { tag1.add(it) }
+        val intTag = IntTag("int tag", 18933).also { root.add(it) }
+
+        val mnbt = Mnbt()
+        val cb = mnbt.fromTag(root, object:MTypeToken<TestClassB>() {})
+        assertNotNull(cb)
+        assertEquals("root", cb!!.first)
+        assertEquals("string value", cb.second.v2)
+        assertEquals(18933, cb.second.v1)
+
+        // test back with list tag
+        val root2 = CompoundTag("root2")
+        val listTag = ListTag<CompoundTag>(IdTagCompound, "listTag").also { root2.add(it) }
+        val dataEntry2 = CompoundTag(null).also { listTag.add(it) }
+        root2.add(intTag)
+
+    }
+
     private data class TestClassA(
             @LocateAt("./tag1/tag2/tag3/int tag") val v1:Int,
             @LocateAt("./tag1/string tag") val v2:String? = null
+    )
+
+    // a more complicate path specification
+    @LocateAt("tag1/targetTag/")
+    private data class TestClassB(
+        @LocateAt(toTagPath = "", fromTagPath = "../../int tag")
+        @IgnoreToTag
+        val v1:Int, // is field is outside "tag1" tag specified in class LocateAt path
+
+        @LocateAt(toTagPath = "", fromTagPath = "../string tag")
+        @IgnoreToTag
+        val v2:String, // this field related tag is under "tag1" tag
+    )
+
+    @LocateAt("","./listTag/#0/")
+    private data class TestClassC(
+        @LocateAt(toTagPath = "", fromTagPath = "../../int tag")
+        @IgnoreToTag
+        val v1:Int,
     )
 }

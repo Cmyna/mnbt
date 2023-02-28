@@ -3,7 +3,7 @@ package net.myna.utils
 import net.myna.Tools
 import net.myna.mnbt.AnyTag
 import net.myna.mnbt.Mnbt
-import net.myna.mnbt.converter.meta.NbtPathTool
+import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.tag.CompoundTag
 import net.myna.mnbt.tag.ListTag
 import net.myna.utils.Extensions.toBytes

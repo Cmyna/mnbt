@@ -2,6 +2,7 @@ package net.myna.mnbt.codec
 
 import net.myna.mnbt.Tag
 
+// FIXME: it makes no sense to restrict Codec implementation generic type, it is possible to ignore generic type specification (eg. set generic type to Any)
 // I decided to name this functionality to `Codec` (from https://english.stackexchange.com/questions/76549/a-word-that-describes-both-encoding-and-decoding)
 /**
  * an interface for encode/decode (serialize/deserialize) a complete tag
@@ -12,6 +13,7 @@ interface Codec<NbtRelatedType>{
     // the generic type in this interface is to restrict the implementation of Codec
     // however it can not constrain the caller
     // if someone use wrong delegate, it should directly throw exception
+    @Deprecated("Codec tag type(with id) restriction is considered to be removed")
     /**
      * the related nbt type id to this Codec
      */
