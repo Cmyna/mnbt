@@ -7,6 +7,7 @@ import net.myna.mnbt.annotations.Ignore;
 import net.myna.mnbt.annotations.LocateAt;
 import net.myna.mnbt.reflect.MTypeToken;
 import net.myna.mnbt.tag.CompoundTag;
+import net.myna.mnbt.utils.NbtPathTool;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;

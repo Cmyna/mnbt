@@ -1,6 +1,7 @@
 package net.myna.mnbt.converter
 
 import com.google.common.annotations.Beta
+import net.myna.mnbt.AnyTag
 import net.myna.mnbt.Tag
 import java.util.Deque
 
@@ -54,4 +55,18 @@ interface ToValueIntent:ConverterCallerIntent
  * Typical usage: let Converter return default value when calling toValue
  */
 interface IgnoreValueTypeToken:ToValueIntent
+
+@Beta
+/**
+ * specified the nbt tree data
+ */
+interface NbtTree:ToValueIntent {
+    val rootTag: AnyTag
+
+    /**
+     * the current tag parameter relate nbt path
+     * passed in [TagConverter.toValue] method
+     */
+    val treeToCurrentCallTagPath: String
+}
 

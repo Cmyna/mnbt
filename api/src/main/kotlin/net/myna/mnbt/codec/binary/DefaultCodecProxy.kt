@@ -17,6 +17,7 @@ class DefaultCodecProxy(): Codec<Any> {
 
     private val invalidFlag:Byte = -1
 
+    @Deprecated("Codec tag type(with id) restriction is considered to be removed")
     override val id: Byte = invalidFlag
     override val valueTypeToken = Any::class.java
     private val codecMap:MutableMap<Byte, Codec<out Any>> = HashMap<Byte, Codec<out Any>>()

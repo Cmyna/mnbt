@@ -1,5 +1,6 @@
 package net.myna.mnbt.annotationTest
 
+import net.myna.mnbt.IdTagCompound
 import net.myna.mnbt.Mnbt
 import net.myna.mnbt.annotations.IgnoreToTag
 import net.myna.mnbt.annotations.LocateAt
@@ -104,7 +105,12 @@ class LocateAtTest {
         assertEquals("string value", cb.second.v2)
         assertEquals(18933, cb.second.v1)
 
-        // test back
+        // test back with list tag
+        val root2 = CompoundTag("root2")
+        val listTag = ListTag<CompoundTag>(IdTagCompound, "listTag").also { root2.add(it) }
+        val dataEntry2 = CompoundTag(null).also { listTag.add(it) }
+        root2.add(intTag)
+
     }
 
     private data class TestClassA(
@@ -124,6 +130,7 @@ class LocateAtTest {
         val v2:String, // this field related tag is under "tag1" tag
     )
 
+    @LocateAt("","./listTag/#0/")
     private data class TestClassC(
         @LocateAt(toTagPath = "", fromTagPath = "../../int tag")
         @IgnoreToTag
