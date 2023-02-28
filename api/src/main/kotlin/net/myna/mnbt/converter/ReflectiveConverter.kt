@@ -11,6 +11,7 @@ import net.myna.mnbt.annotations.LocateAt
 import net.myna.mnbt.utils.NbtPathTool
 import net.myna.mnbt.converter.procedure.ToNestTagProcedure
 import net.myna.mnbt.exceptions.InvalidInstanceAsClassException
+import net.myna.mnbt.reflect.InstanceAsTool
 import net.myna.mnbt.reflect.MTypeToken
 import net.myna.mnbt.reflect.ObjectInstanceHandler
 import net.myna.mnbt.reflect.TypeCheckTool
@@ -231,24 +232,7 @@ class ReflectiveConverter(override var proxy: TagConverter<Any>): HierarchicalTa
                     field
                 )
                 val instanceAsAnnotation = field.getAnnotation(InstanceAs::class.java)
-                val fieldTypeToken = if (instanceAsAnnotation != null) {
-                    val wrappedClass = instanceAsAnnotation.instanceClass.java
-                    val token = MTypeToken.of(wrappedClass)
-                    if (!TypeCheckTool.isCastable(token, MTypeToken.of(field.genericType))) {
-                        throw InvalidInstanceAsClassException(
-                            wrappedClass,
-                            field.type,
-                            InvalidInstanceAsClassException.ExceptionType.NOT_SUBTYPE
-                        )
-                    }
-                    if (wrappedClass.isInterface || Modifier.isAbstract(wrappedClass.modifiers)) {
-                        throw InvalidInstanceAsClassException(
-                            wrappedClass, field.type,
-                            InvalidInstanceAsClassException.ExceptionType.IS_ABSTRACT
-                        )
-                    }
-                    token
-                } else MTypeToken.of(field.genericType)
+                val fieldTypeToken = InstanceAsTool.resolveAnnotation(field)
                 //val fieldTypeToken = MTypeToken.of(field.genericType)
 
                 val fieldTag = NbtPathTool.findTag(dataEntryTag, it.value) ?: return@mapValues null

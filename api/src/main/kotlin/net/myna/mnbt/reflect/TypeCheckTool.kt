@@ -2,6 +2,7 @@ package net.myna.mnbt.reflect
 
 import net.myna.mnbt.reflect.MTypeToken
 import java.lang.reflect.GenericArrayType
+import java.lang.reflect.Modifier
 import java.lang.reflect.Type
 
 object TypeCheckTool {
@@ -64,6 +65,15 @@ object TypeCheckTool {
             return type.genericComponentType
         }
         return null // unsupported type, return null
+    }
+
+    fun isInterfaceOrAbstract(clazz: Class<*>):Boolean {
+        if (clazz.isInterface) return true
+        if (clazz.isArray) {
+            return isInterfaceOrAbstract(clazz.componentType)
+        }
+        if (Modifier.isAbstract(clazz.modifiers)) return true
+        return false
     }
 
 }
